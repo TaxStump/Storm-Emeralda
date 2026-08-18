@@ -306,6 +306,61 @@
   .btn:hover { filter: brightness(1.06); }
   .btn:active { transform: translateY(2px); border-bottom-width: 2px; }
 
+  .name-field { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .name-field label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #9c917d;
+    font-weight: 700;
+  }
+  .name-field input {
+    font: inherit;
+    font-weight: 700;
+    text-align: center;
+    color: #e8ddc6;
+    background: #2a2118;
+    border: 1px solid #4a3c29;
+    border-bottom-width: 3px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 180px;
+    outline: none;
+  }
+  .name-field input:focus { border-color: var(--gold); }
+
+  .leaderboard {
+    width: 100%;
+    max-width: 260px;
+    max-height: 150px;
+    overflow-y: auto;
+    background: rgba(0,0,0,.35);
+    border: 1px solid rgba(246,201,69,.25);
+    border-radius: 8px;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  .leaderboard.hidden { display: none; }
+  .leaderboard .lb-title {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--gold);
+    padding-bottom: 5px;
+  }
+  .leaderboard .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #e8ddc6;
+    padding: 3px 0;
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
+  .leaderboard .lb-rank { width: 24px; text-align: center; font-weight: 800; color: #9c917d; flex: none; }
+  .leaderboard .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .leaderboard .lb-score { font-weight: 800; color: var(--gold); flex: none; }
+
   .dpad {
     display: none;
     grid-template-columns: repeat(3, 54px);
@@ -389,6 +444,10 @@
           <span style="padding-top:3px">atau</span>
           <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
         </div>
+        <div class="name-field">
+          <label>NAMA PLAYER</label>
+          <input type="text" id="playerName" maxlength="20" placeholder="Masukkan nama..." autocomplete="off" />
+        </div>
         <button class="btn" id="startBtn">MULAI</button>
       </div>
 
@@ -396,6 +455,7 @@
         <h2>RAYQUAZA FAINTED!</h2>
         <p class="big" id="finalScore">Skor: 0</p>
         <p id="newRecord" class="hidden" style="color:#f6c945;font-weight:700">★ Rekor baru!</p>
+        <div class="leaderboard hidden" id="leaderboard"></div>
         <button class="btn" id="restartBtn">MAIN LAGI</button>
       </div>
     </div>
@@ -414,6 +474,10 @@
 
   // ---------- Konfigurasi ----------
   const COLS = 20, ROWS = 20, CELL = 24;
+
+  // Leaderboard online (Supabase)
+  const SB_URL = "https://iimwrkjdbfifddhcrydd.supabase.co";
+  const SB_KEY = "sb_publishable_EDQc9EcNnpp6rCSW78O0IA_wmMkMPco";
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   canvas.width = COLS * CELL;   // 480
@@ -493,9 +557,13 @@
   const overOverlay  = document.getElementById("overOverlay");
   const finalScore   = document.getElementById("finalScore");
   const newRecord    = document.getElementById("newRecord");
+  const elPlayerName = document.getElementById("playerName");
+  const elLeaderboard = document.getElementById("leaderboard");
 
   try { high = parseInt(localStorage.getItem("steelix-dig-high") || "0", 10) || 0; } catch (e) {}
   elHigh.textContent = high;
+
+  try { const n = localStorage.getItem("storm-emeralda-name"); if (n) elPlayerName.value = n; } catch (e) {}
 
   // ---------- Audio ----------
   let audio = null;
@@ -932,6 +1000,59 @@
     }
     newRecord.classList.toggle("hidden", !record);
     overOverlay.classList.remove("hidden");
+
+    // Leaderboard online: simpan nama + submit skor + tampilkan top 10
+    const name = (elPlayerName.value || "").trim().slice(0, 20) || "PLAYER";
+    try { localStorage.setItem("storm-emeralda-name", name); } catch (e) {}
+    submitScore(name, score);
+    loadLeaderboard();
+  }
+
+  // ---------- Leaderboard online (Supabase) ----------
+  function escapeHtml(s) {
+    const map = { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" };
+    return String(s).replace(/[&<>"']/g, c => map[c]);
+  }
+
+  async function submitScore(name, score) {
+    try {
+      await fetch(`${SB_URL}/rest/v1/scores`, {
+        method: "POST",
+        headers: {
+          "apikey": SB_KEY,
+          "Authorization": "Bearer " + SB_KEY,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({ name: name, score: score })
+      });
+    } catch (e) { /* offline — abaikan */ }
+  }
+
+  async function loadLeaderboard() {
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/scores?select=name,score&order=score.desc&limit=10`, {
+        headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY }
+      });
+      if (!res.ok) return;
+      const rows = await res.json();
+      renderLeaderboard(rows);
+    } catch (e) { /* offline — abaikan */ }
+  }
+
+  function renderLeaderboard(rows) {
+    elLeaderboard.classList.toggle("hidden", !rows.length);
+    if (!rows.length) { elLeaderboard.innerHTML = ""; return; }
+    const medals = ["🥇", "🥈", "🥉"];
+    elLeaderboard.innerHTML =
+      '<div class="lb-title">🏆 TOP 10 DUNIA</div>' +
+      rows.map((r, i) =>
+        `<div class="lb-row">` +
+          `<span class="lb-rank">${medals[i] || (i + 1)}</span>` +
+          `<span class="lb-name">${escapeHtml(r.name)}</span>` +
+          `<span class="lb-score">${r.score}</span>` +
+        `</div>`
+      ).join("");
   }
 
   // ---------- Efek visual ----------
