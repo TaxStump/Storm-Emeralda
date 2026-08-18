@@ -737,9 +737,10 @@
     beamCooldown = performance.now() + 5000;
 
     const hx = snake[0].x, hy = snake[0].y;
-    const px = -dir.y, py = dir.x; // arah tegak lurus (untuk 3 baris beam)
+    const px = -dir.y, py = dir.x; // arah tegak lurus
+    const offs = evolved ? [-1, 0, 1] : [0]; // 3 baris saat Mega, 1 baris saat normal
     const cells = [];
-    for (let off = -1; off <= 1; off++) {
+    for (const off of offs) {
       for (let i = 1; ; i++) {
         const x = hx + dir.x * i + px * off, y = hy + dir.y * i + py * off;
         if (x < 0 || y < 0 || x >= COLS || y >= ROWS) break;
