@@ -1933,9 +1933,9 @@
     }
     if (now < evolveMsgUntil) {
       const total = 2800;
-      const t = (evolveMsgUntil - now) / total; // 1 → 0
-      const fade = Math.min(1, t / 0.25);       // fade out di 25% terakhir
-      const pulse = 1 + 0.12 * Math.sin((1 - t) * 18);
+      const p = (evolveMsgUntil - now) / total; // 1 → 0
+      const fade = Math.min(1, p / 0.25);       // fade out di 25% terakhir
+      const pulse = 1 + 0.12 * Math.sin((1 - p) * 18);
       ctx.save();
       ctx.globalAlpha = fade;
       ctx.textAlign = "center";
