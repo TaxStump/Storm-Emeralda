@@ -1004,8 +1004,7 @@
     // Leaderboard online: simpan nama + submit skor + tampilkan top 10
     const name = (elPlayerName.value || "").trim().slice(0, 20) || "PLAYER";
     try { localStorage.setItem("storm-emeralda-name", name); } catch (e) {}
-    submitScore(name, score);
-    loadLeaderboard();
+    submitScore(name, score).then(() => loadLeaderboard());
   }
 
   // ---------- Leaderboard online (Supabase) ----------
