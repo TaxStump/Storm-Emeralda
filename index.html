@@ -454,6 +454,7 @@
   let snake, dir, nextDir, food;
   let score = 0, high = 0;
   let evolved = false;
+  let evolveUntil = 0;
   let multiplier = 1, multiplierUntil = 0;
   let mega = false, megaUntil = 0;
   let shield = false;
@@ -711,6 +712,7 @@
     nextDir = DIRS.right;
     score = 0;
     evolved = false;
+    evolveUntil = 0;
     multiplier = 1;
     multiplierUntil = 0;
     mega = false;
@@ -904,6 +906,7 @@
 
   function doEvolve() {
     evolved = true;
+    evolveUntil = performance.now() + 15000; // Mega Rayquaza hanya 15 detik
     flashUntil = performance.now() + 900;
     evolveMsgUntil = performance.now() + 2800;
     shake = 18;
@@ -1737,6 +1740,15 @@
 
   function loop(now) {
     if (state === "playing") {
+      // Mega Rayquaza hanya 15 detik, lalu kembali normal
+      if (evolved && now > evolveUntil) {
+        evolved = false;
+        mega = false;
+        megaUntil = 0;
+        flashUntil = now + 300;
+        const h = snake[0];
+        spawnPopup(h.x, h.y, "Mega berakhir!", "#9c917d");
+      }
       if (now - lastTick >= speedMs()) {
         lastTick = now;
         tick();
