@@ -1984,6 +1984,15 @@
   }
 
   window.addEventListener("keydown", (e) => {
+    // Abaikan kontrol game saat mengetik di field nama player
+    if (e.target && e.target.tagName === "INPUT") {
+      if (e.key === "Enter" && state === "start") {
+        e.preventDefault();
+        initAudio();
+        start();
+      }
+      return;
+    }
     const map = {
       ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
       w: "up", s: "down", a: "left", d: "right",
