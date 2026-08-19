@@ -1698,230 +1698,251 @@
   }
 
   const PALETTE = {
-    rayquaza:     { top: "#a7f0bb", mid: "#58c978", bottom: "#2a8a4f", outline: "#0d4a28", horn: "#f6d24a", cheek: "#ff9db0" },
-    megarayquaza: { top: "#d8ffb4", mid: "#7fe05e", bottom: "#2f9e57", outline: "#0f5c30", horn: "#ffe27a", cheek: "#ff9db0" },
+    rayquaza:     { top: "#9ff0b0", mid: "#46c26b", bottom: "#1e7a45", outline: "#0d4a28", fin: "#3aa75c", horn: "#f6d24a" },
+    megarayquaza: { top: "#d9ffb0", mid: "#63d94a", bottom: "#1f8f4a", outline: "#0f5c30", fin: "#ffd84a", horn: "#ffe27a" },
   };
+
+  function center(i) {
+    return { x: snake[i].x * CELL + CELL / 2, y: snake[i].y * CELL + CELL / 2 };
+  }
+
+  // Arah lokal segmen (menuju kepala). Fallback ke `dir` kalau diam.
+  function segDir(i) {
+    const p = snake[Math.max(0, i - 1)];
+    const n = snake[Math.min(snake.length - 1, i + 1)];
+    let dx = p.x - n.x, dy = p.y - n.y;
+    if (dx === 0 && dy === 0) { dx = dir.x; dy = dir.y; }
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: dx / len, y: dy / len };
+  }
+
+  // Path polyline lewat pusat tiap segmen; putus saat ada lompatan portal (>1.5 sel).
+  function tracePath(pts) {
+    ctx.beginPath();
+    pts.forEach((pt, i) => {
+      if (i === 0) { ctx.moveTo(pt.x, pt.y); return; }
+      const prev = pts[i - 1];
+      if (Math.hypot(pt.x - prev.x, pt.y - prev.y) > CELL * 1.5) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+  }
 
   function drawSnake() {
     const pal = evolved ? PALETTE.megarayquaza : PALETTE.rayquaza;
     const rainbow = combo >= 5;
-
-    // Konektor antar segmen (biar menyambung, tetap chunky).
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineWidth = CELL * 0.52;
-    for (let i = 1; i < snake.length; i++) {
-      const a = snake[i - 1], b = snake[i];
-      if (Math.hypot(b.x - a.x, b.y - a.y) > 1.5) continue; // portal
-      const ax = a.x * CELL + CELL / 2, ay = a.y * CELL + CELL / 2;
-      const bx = b.x * CELL + CELL / 2, by = b.y * CELL + CELL / 2;
-      if (rainbow) {
-        const hue = (i * 36 + Math.floor(performance.now() / 40)) % 360;
-        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
-      } else {
-        ctx.strokeStyle = pal.mid;
-      }
-      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
-    }
-    ctx.restore();
-
-    // Segmen badan (ekor → leher).
-    for (let i = snake.length - 1; i >= 1; i--) {
-      const seg = snake[i];
-      drawChibiSegment(seg.x, seg.y, CELL * 0.78, pal, rainbow, i);
-    }
-
-    // Kepala (lebih besar, chibi).
-    const h = snake[0];
-    drawChibiHead(h.x * CELL + CELL / 2, h.y * CELL + CELL / 2, CELL * 0.95, pal, rainbow);
-
+    drawBody(pal, rainbow);
+    for (let i = snake.length - 1; i >= 1; i--) drawFins(i, pal);
+    const h = center(0);
+    drawHead(h.x, h.y, pal);
     if (shield) {
-      const cx = h.x * CELL + CELL / 2, cy = h.y * CELL + CELL / 2;
       ctx.save();
       ctx.strokeStyle = "rgba(140,240,176,0.9)";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(cx, cy, CELL * 0.72, 0, Math.PI * 2);
+      ctx.arc(h.x, h.y, CELL * 0.72, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
   }
 
-  function drawChibiSegment(x, y, s, pal, rainbow, idx) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    const x0 = cx - s / 2, y0 = cy - s / 2;
-    const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
+  function drawBody(pal, rainbow) {
+    const w = CELL * 0.66;
+    const pts = snake.map((_, i) => center(i));
+
+    // Aura saat Mega Rayquaza (di bawah badan, dibedakan dari glow Mega Stone).
+    if (evolved) {
+      ctx.save();
+      ctx.shadowColor = "rgba(124,240,255,0.55)";
+      ctx.shadowBlur = 22;
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.lineWidth = w;
+      ctx.strokeStyle = "rgba(255,216,74,0.35)";
+      tracePath(pts);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Outline (tepi gelap).
+    ctx.save();
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.lineWidth = w;
+    ctx.strokeStyle = pal.outline;
+    tracePath(pts);
+    ctx.stroke();
+    ctx.restore();
+
+    // Isi badan (gradient, atau rainbow per-segmen).
+    ctx.save();
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    if (mega) { ctx.shadowColor = "rgba(124,240,255,0.9)"; ctx.shadowBlur = 14; }
+    else { ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
+    ctx.lineWidth = w - 4;
     if (rainbow) {
-      const hue = (idx * 36 + Math.floor(performance.now() / 40)) % 360;
-      g.addColorStop(0, `hsl(${hue}, 80%, 64%)`);
-      g.addColorStop(1, `hsl(${(hue + 50) % 360}, 75%, 48%)`);
+      for (let i = 1; i < snake.length; i++) {
+        const a = center(i - 1), b = center(i);
+        if (Math.hypot(b.x - a.x, b.y - a.y) > CELL * 1.5) continue;
+        const hue = (i * 36 + Math.floor(performance.now() / 40)) % 360;
+        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
     } else {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const pt of pts) {
+        if (pt.x < minX) minX = pt.x;
+        if (pt.y < minY) minY = pt.y;
+        if (pt.x > maxX) maxX = pt.x;
+        if (pt.y > maxY) maxY = pt.y;
+      }
+      const g = ctx.createLinearGradient(minX, minY, maxX, maxY);
       g.addColorStop(0, pal.top);
       g.addColorStop(0.5, pal.mid);
       g.addColorStop(1, pal.bottom);
+      ctx.strokeStyle = g;
+      tracePath(pts);
+      ctx.stroke();
     }
+    ctx.restore();
 
+    // Kilau punggung (garis terang tipis di tengah).
+    ctx.save();
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.lineWidth = w * 0.2;
+    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    tracePath(pts);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawFins(i, pal) {
+    const c = center(i);
+    const d = segDir(i);
+    const n = { x: d.y, y: -d.x }; // tegak lurus, sisi konsisten dgn crest
+    const size = evolved ? CELL * 0.34 : CELL * 0.24;
+    const bx = c.x + n.x * CELL * 0.14;
+    const by = c.y + n.y * CELL * 0.14;
+    ctx.save();
+    ctx.fillStyle = pal.fin;
+    ctx.strokeStyle = pal.outline;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bx - d.x * size * 0.5, by - d.y * size * 0.5);
+    ctx.lineTo(bx + d.x * size * 0.5, by + d.y * size * 0.5);
+    ctx.lineTo(c.x + n.x * (CELL * 0.14 + size), c.y + n.y * (CELL * 0.14 + size));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawHead(cx, cy, pal) {
+    const s = CELL * 1.02;
+    const angle = Math.atan2(dir.y, dir.x);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+    // frame lokal: +x = depan, -y = sisi crest/sirip
+
+    if (evolved) drawStreamers(s, pal);
+
+    // kepala (ellipse memanjang ke depan)
     ctx.save();
     if (mega) { ctx.shadowColor = "rgba(124,240,255,0.9)"; ctx.shadowBlur = 14; }
     else { ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
-    roundRect(x0, y0, s, s, s * 0.38); // lebih bulat = chibi
-    ctx.fillStyle = g;
+    const hg = ctx.createLinearGradient(-s * 0.3, -s * 0.35, s * 0.5, s * 0.35);
+    hg.addColorStop(0, pal.top);
+    hg.addColorStop(0.5, pal.mid);
+    hg.addColorStop(1, pal.bottom);
+    ctx.fillStyle = hg;
+    ctx.beginPath();
+    ctx.ellipse(s * 0.1, 0, s * 0.42, s * 0.34, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowColor = "transparent";
     ctx.strokeStyle = pal.outline;
     ctx.lineWidth = 2;
     ctx.stroke();
+    ctx.restore();
 
-    // kilau kecil (cute shine)
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    // moncong (ujung lebih gelap)
+    ctx.fillStyle = pal.bottom;
     ctx.beginPath();
-    ctx.arc(cx - s * 0.16, cy - s * 0.16, s * 0.09, 0, Math.PI * 2);
+    ctx.ellipse(s * 0.38, 0, s * 0.13, s * 0.15, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // titik emas (skala)
-    ctx.fillStyle = pal.horn;
-    ctx.beginPath();
-    ctx.arc(cx, cy, s * 0.12, 0, Math.PI * 2);
-    ctx.fill();
+    // mata (sisi kepala)
+    for (const sign of [-1, 1]) {
+      const mx = s * 0.16, my = sign * s * 0.22;
+      ctx.fillStyle = "#1a1d22";
+      ctx.beginPath(); ctx.arc(mx, my, s * 0.13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f7c948";
+      ctx.beginPath(); ctx.arc(mx + s * 0.05, my, s * 0.065, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // alis galak saat Mega
+    if (evolved) {
+      ctx.strokeStyle = pal.outline;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      for (const sign of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(s * 0.02, sign * s * 0.32);
+        ctx.lineTo(s * 0.30, sign * s * 0.20);
+        ctx.stroke();
+      }
+    }
+
+    drawCrest(s, pal);
+
     ctx.restore();
   }
 
-  function drawChibiHead(cx, cy, s, pal, rainbow) {
-    const x0 = cx - s / 2, y0 = cy - s / 2;
-    const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
-    if (rainbow) {
-      const hue = (Math.floor(performance.now() / 40)) % 360;
-      g.addColorStop(0, `hsl(${hue}, 80%, 64%)`);
-      g.addColorStop(1, `hsl(${(hue + 50) % 360}, 75%, 48%)`);
-    } else {
-      g.addColorStop(0, pal.top);
-      g.addColorStop(0.5, pal.mid);
-      g.addColorStop(1, pal.bottom);
-    }
-
-    // Kumis emas + sparkle saat Mega (di belakang kepala).
-    if (evolved) {
-      drawSparkles(cx, cy);
-      drawWhiskers(cx, cy, s, pal);
-    }
-
-    // Jambul emas (crest) — lebih besar saat Mega.
+  function drawCrest(s, pal) {
     ctx.save();
     if (evolved) { ctx.shadowColor = "rgba(255,216,74,0.9)"; ctx.shadowBlur = 10; }
     ctx.fillStyle = pal.horn;
     ctx.strokeStyle = pal.outline;
     ctx.lineWidth = 1.5;
-    const hl = evolved ? s * 0.42 : s * 0.3;
+    const hornLen = evolved ? s * 0.70 : s * 0.55;
+
+    // tanduk utama (ke -y)
     ctx.beginPath();
-    ctx.moveTo(cx - s * 0.16, cy - s * 0.34);
-    ctx.lineTo(cx + s * 0.16, cy - s * 0.34);
-    ctx.lineTo(cx, cy - s * 0.34 - hl);
+    ctx.moveTo(-s * 0.07, -s * 0.20);
+    ctx.lineTo(s * 0.07, -s * 0.20);
+    ctx.lineTo(0, -s * 0.20 - hornLen);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.restore();
 
-    // Kepala (rounded square besar).
-    ctx.save();
-    if (mega) { ctx.shadowColor = "rgba(124,240,255,0.9)"; ctx.shadowBlur = 14; }
-    else { ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
-    roundRect(x0, y0, s, s, s * 0.4);
-    ctx.fillStyle = g;
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.strokeStyle = pal.outline;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-
-    // Kilau kepala.
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.beginPath();
-    ctx.arc(cx - s * 0.2, cy - s * 0.2, s * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Mata besar (chibi) + pipi merona.
-    const ex = cx + dir.x * s * 0.16;
-    const ey = cy + dir.y * s * 0.16;
-    const p = dir.x !== 0 ? { x: 0, y: 1 } : { x: 1, y: 0 };
-    const off = s * 0.16;
+    // tanduk samping
     for (const sign of [-1, 1]) {
-      const mx = ex + p.x * off * sign;
-      const my = ey + p.y * off * sign;
-      // bola mata
-      ctx.fillStyle = "#1a1d22";
-      ctx.beginPath(); ctx.arc(mx, my, s * 0.17, 0, Math.PI * 2); ctx.fill();
-      // pupil emas
-      ctx.fillStyle = "#f7c948";
-      ctx.beginPath(); ctx.arc(mx + dir.x * s * 0.05, my + dir.y * s * 0.05, s * 0.08, 0, Math.PI * 2); ctx.fill();
-      // kilau putih (cute)
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath(); ctx.arc(mx + dir.x * s * 0.07, my + dir.y * s * 0.07 - s * 0.04, s * 0.035, 0, Math.PI * 2); ctx.fill();
-
-      // pipi merona (di belakang mata)
-      ctx.fillStyle = pal.cheek;
-      ctx.globalAlpha = 0.55;
+      const lx = sign * s * 0.18;
       ctx.beginPath();
-      ctx.arc(cx - dir.x * s * 0.16 + p.x * off * sign, cy - dir.y * s * 0.16 + p.y * off * sign, s * 0.08, 0, Math.PI * 2);
+      ctx.moveTo(lx - s * 0.07, -s * 0.10);
+      ctx.lineTo(lx + s * 0.07, -s * 0.10);
+      ctx.lineTo(lx + sign * s * 0.06, -s * 0.10 - hornLen * 0.5);
+      ctx.closePath();
       ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  function drawSparkles(cx, cy) {
-    const time = performance.now();
-    ctx.save();
-    ctx.fillStyle = "#ffe27a";
-    ctx.shadowColor = "rgba(255,220,90,0.9)";
-    ctx.shadowBlur = 8;
-    for (let k = 0; k < 3; k++) {
-      const a = time / 400 + k * 2.1;
-      const rx = cx + Math.cos(a) * CELL * 0.62;
-      const ry = cy + Math.sin(a) * CELL * 0.62 - CELL * 0.1;
-      const r = CELL * 0.09 * (0.7 + 0.3 * Math.sin(time / 200 + k));
-      drawStar(rx, ry, r);
+      ctx.stroke();
     }
     ctx.restore();
   }
 
-  function drawStar(x, y, r) {
-    ctx.beginPath();
-    for (let i = 0; i < 8; i++) {
-      const rad = i % 2 === 0 ? r : r * 0.45;
-      const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
-      const px = x + Math.cos(a) * rad;
-      const py = y + Math.sin(a) * rad;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // Kumis emas khas Mega Rayquaza: 2 helai menjuntai dari kepala ke belakang.
-  function drawWhiskers(cx, cy, s, pal) {
+  function drawStreamers(s, pal) {
     const time = performance.now();
-    const bx = -dir.x, by = -dir.y; // arah belakang (lawan arah gerak)
-    const px = -by, py = bx;        // tegak lurus
     ctx.save();
     ctx.strokeStyle = pal.horn;
-    ctx.shadowColor = "rgba(255,220,90,0.9)";
+    ctx.shadowColor = "rgba(255,220,90,0.8)";
     ctx.shadowBlur = 8;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.lineWidth = s * 0.09;
     for (const sign of [-1, 1]) {
-      const sx = cx + bx * s * 0.4 + px * s * 0.2 * sign;
-      const sy = cy + by * s * 0.4 + py * s * 0.2 * sign;
+      const baseY = sign * s * 0.30;
+      ctx.lineWidth = s * 0.10;
       ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      const segs = 5;
-      for (let k = 1; k <= segs; k++) {
-        const f = k / segs;
-        const wave = Math.sin(time / 130 + k * 0.9 + sign) * s * 0.2;
-        ctx.lineTo(
-          sx + bx * s * 1.5 * f + px * wave,
-          sy + by * s * 1.5 * f + py * wave
-        );
+      ctx.moveTo(-s * 0.32, baseY);
+      for (let k = 1; k <= 4; k++) {
+        const px = -s * 0.32 - k * s * 0.48;
+        const wig = Math.sin(time / 120 + k * 0.9 + sign) * s * 0.16;
+        ctx.lineTo(px, baseY + wig - k * s * 0.05 * sign);
       }
       ctx.stroke();
     }
