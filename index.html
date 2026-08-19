@@ -1919,8 +1919,8 @@
         const f = k / segs;
         const wave = Math.sin(time / 130 + k * 0.9 + sign) * s * 0.2;
         ctx.lineTo(
-          sx + bx * s * 1.5 * f + px * wave,
-          sy + by * s * 1.5 * f + py * wave
+          sx + bx * CELL * 3 * f + px * wave,
+          sy + by * CELL * 3 * f + py * wave
         );
       }
       ctx.stroke();
