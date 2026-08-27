@@ -177,6 +177,22 @@
     gap: 6px;
     min-height: 22px;
   }
+  .upgrade-chips {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 0;
+  }
+  .upgrade-chip {
+    padding: 2px 6px;
+    border: 1px solid rgba(124,240,255,.28);
+    border-radius: 99px;
+    color: #aeeef5;
+    background: rgba(20,45,54,.65);
+    font-size: 10px;
+    font-weight: 800;
+  }
   .bchip {
     width: 20px;
     height: 20px;
@@ -280,6 +296,7 @@
     background: rgba(12,9,7,.82);
     backdrop-filter: blur(2px);
     padding: 16px;
+    z-index: 4;
   }
   .overlay.hidden { display: none; }
 
@@ -384,10 +401,66 @@
   .leaderboard .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .leaderboard .lb-score { font-weight: 800; color: var(--gold); flex: none; }
 
+  .lb-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+  .lb-tab {
+    flex: 1;
+    border: 1px solid rgba(246,201,69,.28);
+    border-radius: 5px;
+    padding: 4px;
+    color: #a99d88;
+    background: rgba(42,33,24,.7);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .lb-tab.active {
+    color: #241a06;
+    background: var(--gold);
+  }
+  .lb-empty { padding: 10px 0; text-align: center; color: #9c917d; font-size: 11px; }
+
+  .boss-hud {
+    position: absolute;
+    z-index: 3;
+    top: 10px;
+    left: 50%;
+    width: min(78%, 340px);
+    transform: translateX(-50%);
+    padding: 7px 10px;
+    border: 1px solid rgba(255,120,100,.7);
+    border-radius: 9px;
+    background: rgba(20,8,12,.88);
+    box-shadow: 0 4px 18px rgba(0,0,0,.55);
+    pointer-events: none;
+  }
+  .boss-hud.hidden { display: none; }
+  .boss-name {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    color: #ffd8cf;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .7px;
+  }
+  .boss-track { height: 8px; overflow: hidden; border-radius: 99px; background: #351a1d; }
+  .boss-fill {
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ff493d, #ffb13d);
+    transition: width .18s ease;
+  }
+
   .dpad {
     display: none;
-    grid-template-columns: repeat(3, 54px);
-    grid-template-rows: repeat(3, 54px);
+    grid-template-columns: repeat(3, 58px);
+    grid-template-rows: repeat(3, 58px);
     gap: 5px;
     justify-content: center;
   }
@@ -399,14 +472,30 @@
     background: #2a2118;
     color: #e8ddc6;
     cursor: pointer;
+    touch-action: manipulation;
   }
   .dpad button:active { transform: translateY(2px); border-bottom-width: 2px; }
   .dpad .up    { grid-area: 1 / 2; }
   .dpad .left  { grid-area: 2 / 1; }
   .dpad .right { grid-area: 2 / 3; }
   .dpad .down  { grid-area: 3 / 2; }
+  .dpad .fire {
+    grid-area: 2 / 2;
+    font-size: 18px;
+    font-weight: 900;
+    color: #062a30;
+    background: radial-gradient(circle at 35% 30%, #7cf0ff, #0aa8c8);
+    border: 1px solid #0aa8c8;
+    border-bottom-width: 4px;
+    border-radius: 50%;
+    box-shadow: 0 0 18px rgba(10,168,200,.48), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .dpad .fire.cooling {
+    filter: grayscale(0.75) brightness(0.7);
+    color: #e8e0cf;
+  }
 
-  @media (pointer: coarse) {
+  @media (max-width: 700px), (pointer: coarse) {
     .dpad { display: grid; }
     .keys { display: none; }
   }
@@ -450,10 +539,16 @@
     </div>
 
     <div class="badges" id="badges"></div>
+    <div class="upgrade-chips" id="upgradeChips"></div>
     <div class="beam-hint" id="beamHint"></div>
 
     <div class="board">
       <canvas id="game" width="480" height="480"></canvas>
+
+      <div class="boss-hud hidden" id="bossHud">
+        <div class="boss-name"><span id="bossName">BOSS</span><span id="bossHp">0/0</span></div>
+        <div class="boss-track"><div class="boss-fill" id="bossFill"></div></div>
+      </div>
 
       <div class="overlay" id="startOverlay">
         <h2>STORM EMERALDA</h2>
@@ -464,7 +559,8 @@
           <span data-i18n="legend.slow">🍖 Slowpoke Tail = pelan</span> <span data-i18n="legend.meteor">☄️ Draco Meteor = bahaya</span><br>
           <span>🕳️ Portal</span> <span data-i18n="legend.karp">🐟 Magikarp emas = +200</span><br>
           <span data-i18n="legend.delta">🟢 Delta Stream = bersihkan</span> <span>⚡ Hyper Beam [Space]</span><br>
-          <span data-i18n="legend.weather">🌦️ Cuaca berganti (Sunny/Rain/Sand/Hail)</span> <span data-i18n="legend.frenzy">🌈 Frenzy di combo ×5</span>
+          <span data-i18n="legend.weather">🌦️ Cuaca berganti (Sunny/Rain/Sand/Hail)</span> <span data-i18n="legend.frenzy">🌈 Frenzy di combo ×5</span><br>
+          <span data-i18n="legend.boss">⚠ Boss setiap 5 level — serang dengan Hyper Beam</span>
         </div>
         <div class="keys">
           <span class="key">←</span><span class="key">↑</span>
@@ -486,11 +582,13 @@
         <div class="leaderboard hidden" id="leaderboard"></div>
         <button class="btn" id="restartBtn" data-i18n="over.btn">MAIN LAGI</button>
       </div>
+
     </div>
 
     <div class="dpad" id="dpad">
       <button class="up"    data-dir="up">▲</button>
       <button class="left"  data-dir="left">◀</button>
+      <button class="fire"  id="fireBtn" type="button" aria-label="Hyper Beam">⚡</button>
       <button class="right" data-dir="right">▶</button>
       <button class="down"  data-dir="down">▼</button>
     </div>
@@ -521,6 +619,7 @@
       "legend.delta": "🟢 Delta Stream = bersihkan",
       "legend.weather": "🌦️ Cuaca berganti (Sunny/Rain/Sand/Hail)",
       "legend.frenzy": "🌈 Frenzy di combo ×5",
+      "legend.boss": "⚠ Boss setiap 5 level — serang dengan Hyper Beam",
       "keys.or": "atau",
       "name.label": "NAMA PLAYER",
       "name.ph": "Masukkan nama...",
@@ -530,9 +629,14 @@
       "over.record": "★ Rekor baru!",
       "over.btn": "MAIN LAGI",
       "lb.title": "🏆 TOP 10 DUNIA",
+      "lb.weekly": "MINGGU INI",
+      "lb.all": "SEPANJANG MASA",
+      "lb.empty": "Belum ada skor pada periode ini.",
       "beam.ready": "⚡ HYPER BEAM [SPACE] — SIAP",
       "evolve.title": "💠 EVOLUSI MEGA! 💠",
-      "popup.megaEnd": "Mega berakhir!"
+      "popup.megaEnd": "Mega berakhir!",
+      "boss.appears": "⚠ BOSS MUNCUL!",
+      "boss.defeated": "BOSS DIKALAHKAN!"
     },
     en: {
       "hud.score": "Score",
@@ -546,6 +650,7 @@
       "legend.delta": "🟢 Delta Stream = clear",
       "legend.weather": "🌦️ Weather changes (Sunny/Rain/Sand/Hail)",
       "legend.frenzy": "🌈 Frenzy at combo ×5",
+      "legend.boss": "⚠ Boss every 5 levels — attack with Hyper Beam",
       "keys.or": "or",
       "name.label": "PLAYER NAME",
       "name.ph": "Enter name...",
@@ -555,9 +660,14 @@
       "over.record": "★ New record!",
       "over.btn": "PLAY AGAIN",
       "lb.title": "🏆 WORLD TOP 10",
+      "lb.weekly": "THIS WEEK",
+      "lb.all": "ALL TIME",
+      "lb.empty": "No scores in this period yet.",
       "beam.ready": "⚡ HYPER BEAM [SPACE] — READY",
       "evolve.title": "💠 MEGA EVOLUTION! 💠",
-      "popup.megaEnd": "Mega ended!"
+      "popup.megaEnd": "Mega ended!",
+      "boss.appears": "⚠ BOSS APPEARS!",
+      "boss.defeated": "BOSS DEFEATED!"
     }
   };
 
@@ -627,14 +737,29 @@
     { name: "Earth",   threshold: 2000, color: "#7a9b57" },
   ];
 
+  const BOSS_TYPES = [
+    { name: "GROUDON", color: "#ef553f", accent: "#ffd166" },
+    { name: "KYOGRE", color: "#3286e6", accent: "#9ee8ff" },
+    { name: "DEOXYS", color: "#ef694f", accent: "#7cf0ff" },
+  ];
+
+  const UPGRADES = [
+    { id: "beam", icon: "⚡", name: { id: "Hyper Core", en: "Hyper Core" }, desc: { id: "Cooldown Hyper Beam -0,75 detik dan damage boss +1.", en: "Hyper Beam cooldown -0.75s and boss damage +1." } },
+    { id: "shield", icon: "🛡", name: { id: "Emerald Guard", en: "Emerald Guard" }, desc: { id: "Dapatkan 1 shield sekarang dan Potion memberi shield ekstra.", en: "Gain 1 shield now and Potions grant an extra shield." } },
+    { id: "combo", icon: "🌈", name: { id: "Frenzy Link", en: "Frenzy Link" }, desc: { id: "Durasi combo bertambah 1 detik.", en: "Combo duration increases by 1 second." } },
+    { id: "mega", icon: "💠", name: { id: "Meteor Resonance", en: "Meteor Resonance" }, desc: { id: "Mega Evolution bertahan 4 detik lebih lama.", en: "Mega Evolution lasts 4 seconds longer." } },
+    { id: "lucky", icon: "✨", name: { id: "Shiny Aura", en: "Shiny Aura" }, desc: { id: "Peluang item shiny bertambah 5%.", en: "Shiny item chance increases by 5%." } },
+  ];
+
   // ---------- State ----------
   let snake, dir, nextDir, food;
   let score = 0, high = 0;
   let evolved = false;
+  let snakeShiny = false;
   let evolveUntil = 0;
   let multiplier = 1, multiplierUntil = 0;
   let mega = false, megaUntil = 0;
-  let shield = false;
+  let shield = 0;
   let slowmo = false, slowmoUntil = 0;
   let speedUp = false, speedUpUntil = 0;
   let meteors = [];
@@ -648,11 +773,16 @@
   let magikarp = null, magikarpMove = 0, magikarpUntil = 0, lastMagikarpSpawn = 0;
   let badgeCount = 0;
   let lastWildMove = 0;
-  let particles = [], popups = [];
-  let flashUntil = 0, evolveMsgUntil = 0;
+  let particles = [], popups = [], rings = [];
   let shake = 0;
   let state = "start";
   let lastTick = 0;
+  let lastTrail = 0;
+  let boss = null, nextBossLevel = 5, bossCount = 0;
+  let upgrades = { beam: 0, shield: 0, combo: 0, mega: 0, lucky: 0 };
+  let nextUpgradeLevel = 3;
+  let leaderboardPeriod = "weekly";
+  let leaderboardCache = { weekly: null, all: null };
 
   const elScore   = document.getElementById("score");
   const elLevel   = document.getElementById("level");
@@ -663,15 +793,21 @@
   const elSlow    = document.getElementById("slowBadge");
   const elSpeed   = document.getElementById("speedBadge");
   const elBeamHint = document.getElementById("beamHint");
+  const elFire     = document.getElementById("fireBtn");
   const elWeather  = document.getElementById("weatherBadge");
   const elCombo   = document.getElementById("combo");
   const elBadges  = document.getElementById("badges");
+  const elUpgradeChips = document.getElementById("upgradeChips");
   const startOverlay = document.getElementById("startOverlay");
   const overOverlay  = document.getElementById("overOverlay");
   const finalScore   = document.getElementById("finalScore");
   const newRecord    = document.getElementById("newRecord");
   const elPlayerName = document.getElementById("playerName");
   const elLeaderboard = document.getElementById("leaderboard");
+  const bossHud      = document.getElementById("bossHud");
+  const bossName     = document.getElementById("bossName");
+  const bossHp       = document.getElementById("bossHp");
+  const bossFill     = document.getElementById("bossFill");
 
   try { high = parseInt(localStorage.getItem("steelix-dig-high") || "0", 10) || 0; } catch (e) {}
   elHigh.textContent = high;
@@ -745,6 +881,7 @@
            wilds.some(w => w.x === x && w.y === y) ||
            portals.some(p => p.x === x && p.y === y) ||
            meteors.some(m => m.x === x && m.y === y) ||
+           (boss && boss.x === x && boss.y === y) ||
            (magikarp && magikarp.x === x && magikarp.y === y);
   }
 
@@ -769,7 +906,7 @@
 
   function spawnFood() {
     const pos = randomCell();
-    food = { ...pos, type: pickFood(), shiny: Math.random() < 0.15 };
+    food = { ...pos, type: pickFood(), shiny: Math.random() < Math.min(0.5, 0.15 + upgrades.lucky * 0.05) };
   }
 
   function syncRocks() {
@@ -847,7 +984,7 @@
 
   function fireBeam() {
     if (beamCooldown > performance.now()) return;
-    beamCooldown = performance.now() + 5000;
+    beamCooldown = performance.now() + Math.max(2000, 5000 - upgrades.beam * 750);
 
     const hx = snake[0].x, hy = snake[0].y;
     const px = -dir.y, py = dir.x; // arah tegak lurus
@@ -866,8 +1003,101 @@
       meteors = meteors.filter(m => !(m.x === c.x && m.y === c.y));
       spawnParticles(c.x, c.y, "#7cf0ff");
     }
+    if (boss && cells.some(c => c.x === boss.x && c.y === boss.y)) {
+      damageBoss(1 + upgrades.beam + (evolved ? 1 : 0));
+    }
     beam = { cells, until: performance.now() + 250 };
     sfx.beam();
+  }
+
+  function startBoss() {
+    const type = BOSS_TYPES[bossCount % BOSS_TYPES.length];
+    const head = snake[0];
+    let pos = null;
+    for (let i = 0; i < 100; i++) {
+      const c = safeCell();
+      if (c && Math.abs(c.x - head.x) + Math.abs(c.y - head.y) >= 7) { pos = c; break; }
+    }
+    pos = pos || { x: head.x < COLS / 2 ? COLS - 4 : 3, y: head.y < ROWS / 2 ? ROWS - 4 : 3 };
+    const hp = 7 + bossCount * 3;
+    boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp, nextAttack: performance.now() + 2200 };
+    bossCount++;
+    rocks = rocks.filter(r => Math.abs(r.x - boss.x) + Math.abs(r.y - boss.y) > 2);
+    wilds = wilds.filter(w => Math.abs(w.x - boss.x) + Math.abs(w.y - boss.y) > 2);
+    portals = portals.filter(p => Math.abs(p.x - boss.x) + Math.abs(p.y - boss.y) > 1);
+    bossHud.classList.remove("hidden");
+    updateBossHud();
+    spawnPopup(boss.x, boss.y - 2, t("boss.appears"), type.accent);
+    shake = 6;
+    sfx.meteor();
+  }
+
+  function damageBoss(amount) {
+    if (!boss) return;
+    boss.hp = Math.max(0, boss.hp - amount);
+    burst(boss.x, boss.y, boss.accent);
+    spawnPopup(boss.x, boss.y - 1, "-" + amount, "#ffffff");
+    shake = 7;
+    updateBossHud();
+    if (boss.hp <= 0) defeatBoss();
+  }
+
+  function defeatBoss() {
+    const defeated = boss;
+    const bonus = 250 + bossCount * 75;
+    score += bonus;
+    burst(defeated.x, defeated.y, defeated.accent);
+    spawnRing(defeated.x, defeated.y, "#ffffff");
+    spawnPopup(defeated.x, defeated.y, t("boss.defeated") + " +" + bonus, "#f6c945");
+    boss = null;
+    nextBossLevel += 5;
+    bossHud.classList.add("hidden");
+    meteors = meteors.filter(m => !m.bossAttack);
+    updateHud();
+    sfx.evolve();
+  }
+
+  function updateBossHud() {
+    if (!boss) return;
+    bossName.textContent = boss.name;
+    bossHp.textContent = boss.hp + "/" + boss.maxHp;
+    bossFill.style.width = (boss.hp / boss.maxHp * 100) + "%";
+  }
+
+  function bossAttack(now) {
+    if (!boss || now < boss.nextAttack) return;
+    const count = Math.min(6, 3 + Math.floor(bossCount / 2));
+    const targets = [{ x: snake[0].x, y: snake[0].y }];
+    for (let i = 1; i < count; i++) {
+      const c = safeCell();
+      if (c) targets.push(c);
+    }
+    for (const c of targets) meteors.push({ x: c.x, y: c.y, landAt: now + 1300, bossAttack: true });
+    boss.nextAttack = now + Math.max(1600, 3000 - bossCount * 120);
+    sfx.meteor();
+  }
+
+  function checkProgression() {
+    if (state !== "playing") return;
+    while (level() >= nextUpgradeLevel) {
+      nextUpgradeLevel += 3;
+      grantRandomUpgrade();
+    }
+    if (!boss && level() >= nextBossLevel) startBoss();
+  }
+
+  function grantRandomUpgrade() {
+    const upgrade = UPGRADES[Math.floor(Math.random() * UPGRADES.length)];
+    upgrades[upgrade.id]++;
+    if (upgrade.id === "shield") shield++;
+    elUpgradeChips.innerHTML = Object.entries(upgrades)
+      .filter(([, count]) => count > 0)
+      .map(([upgradeId, count]) => {
+        const item = UPGRADES.find(u => u.id === upgradeId);
+        return `<span class="upgrade-chip" title="${escapeHtml(item.name[lang])}">${item.icon} ${count}</span>`;
+      }).join("");
+    spawnPopup(snake[0].x, snake[0].y - 2, "🎲 " + upgrade.icon + " " + upgrade.name[lang] + " Lv." + upgrades[upgrade.id], "#7cf0ff");
+    sfx.level();
   }
 
   function clearHazards() {
@@ -894,12 +1124,13 @@
     nextDir = DIRS.right;
     score = 0;
     evolved = false;
+    snakeShiny = Math.random() < 1 / 64; // peluang langka shiny hitam
     evolveUntil = 0;
     multiplier = 1;
     multiplierUntil = 0;
     mega = false;
     megaUntil = 0;
-    shield = false;
+    shield = 0;
     slowmo = false;
     slowmoUntil = 0;
     speedUp = false;
@@ -924,10 +1155,16 @@
     lastWildMove = 0;
     particles = [];
     popups = [];
-    flashUntil = 0;
-    evolveMsgUntil = 0;
+    rings = [];
     shake = 0;
+    boss = null;
+    nextBossLevel = 5;
+    bossCount = 0;
+    upgrades = { beam: 0, shield: 0, combo: 0, mega: 0, lucky: 0 };
+    nextUpgradeLevel = 3;
+    bossHud.classList.add("hidden");
     elBadges.innerHTML = "";
+    elUpgradeChips.innerHTML = "";
     spawnFood();
     updateHud();
   }
@@ -1012,12 +1249,13 @@
     const hitRock = rocks.some(r => r.x === nx && r.y === ny);
     const hitMeteor = meteors.some(m => now >= m.landAt && now < m.landAt + 5000 && m.x === nx && m.y === ny);
     const hitWild = wilds.some(w => w.x === nx && w.y === ny);
+    const hitBoss = !!(boss && boss.x === nx && boss.y === ny);
     const growing = food && nx === food.x && ny === food.y;
     const body = growing ? snake : snake.slice(0, -1);
     const hitSelf = body.some(s => s.x === nx && s.y === ny);
 
-    if ((hitRock && !mega) || (hitMeteor && !mega) || hitWild || hitSelf) {
-      if (shield) { shield = false; return; } // perisai menahan gerakan ini
+    if ((hitRock && !mega) || (hitMeteor && !mega) || hitWild || hitBoss || hitSelf) {
+      if (shield > 0) { shield--; return; } // perisai menahan gerakan ini
       return gameOver();
     }
 
@@ -1043,13 +1281,14 @@
     }
 
     updateHud();
+    checkProgression();
   }
 
   function eat(f) {
     const t = f.type;
     const now = performance.now();
     if (now < comboUntil) combo++; else combo = 1;
-    comboUntil = now + 3000;
+    comboUntil = now + 3000 + upgrades.combo * 1000;
 
     const megaMul = mega ? 3 : 1;
     const shinyMul = f.shiny ? 3 : 1;
@@ -1067,8 +1306,8 @@
     else if (isShield) { popText = "🛡 SHIELD!"; popColor = "#7cf0ff"; }
     else { popText = "+" + gained; popColor = col; }
 
-    spawnParticles(f.x, f.y, f.shiny ? "#ffe98a" : col);
-    if (f.shiny) { spawnParticles(f.x, f.y, "#fff6c0"); sfx.shiny(); }
+    burst(f.x, f.y, f.shiny ? "#ffe98a" : col);
+    if (f.shiny) { spawnRing(f.x, f.y, "#fff6c0"); sfx.shiny(); }
     spawnPopup(f.x, f.y, popText, popColor);
     if (combo > 1 && !isShield && !f.shiny) spawnPopup(f.x, f.y - 1, "COMBO ×" + combo, "#f6c945");
     sfx.eat();
@@ -1077,7 +1316,7 @@
       case "level":   score += 20; sfx.level(); break;
       case "x2":      multiplier = 2; multiplierUntil = now + 8000; sfx.rare(); break;
       case "big":     sfx.rare(); break;
-      case "shield":  shield = true; sfx.shield(); break;
+      case "shield":  shield += 1 + upgrades.shield; sfx.shield(); break;
       case "slow":    slowmo = true; slowmoUntil = now + 5000; sfx.slow(); break;
       case "speed":   speedUp = true; speedUpUntil = now + 6000; sfx.speed(); break;
       case "clear":   clearHazards(); sfx.clear(); break;
@@ -1088,19 +1327,18 @@
 
   function doEvolve() {
     evolved = true;
-    evolveUntil = performance.now() + 15000; // Mega Rayquaza hanya 15 detik
-    flashUntil = performance.now() + 900;
-    evolveMsgUntil = performance.now() + 2800;
-    shake = 18;
+    evolveUntil = performance.now() + 15000 + upgrades.mega * 4000;
+    shake = 4;
     const hx = snake[0].x, hy = snake[0].y;
-    for (let i = 0; i < 16; i++) {
-      spawnParticles(hx, hy, i % 2 ? "#7cf0ff" : "#f6c945");
-    }
+    burst(hx, hy, "#7cf0ff");
+    spawnRing(hx, hy, "#f6c945");
+    spawnPopup(hx, hy - 2, t("evolve.title"), "#f6c945");
     sfx.evolve();
   }
 
   function gameOver() {
     state = "over";
+    bossHud.classList.add("hidden");
     shake = 14;
     sfx.over();
     finalScore.textContent = t("over.scorePrefix") + score;
@@ -1118,6 +1356,8 @@
     // Leaderboard online: simpan nama + submit skor + tampilkan top 10
     const name = (elPlayerName.value || "").trim().slice(0, 20) || "PLAYER";
     try { localStorage.setItem("storm-emeralda-name", name); } catch (e) {}
+    leaderboardCache = { weekly: null, all: null };
+    leaderboardPeriod = "weekly";
     submitScore(name, score).then(() => loadLeaderboard());
   }
 
@@ -1143,39 +1383,85 @@
   }
 
   async function loadLeaderboard() {
+    const period = leaderboardPeriod;
     try {
-      const res = await fetch(`${SB_URL}/rest/v1/scores?select=name,score&order=score.desc&limit=10`, {
+      let filter = "";
+      if (period === "weekly") {
+        const start = new Date();
+        const day = start.getDay();
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
+        filter = `&created_at=gte.${encodeURIComponent(start.toISOString())}`;
+      }
+      const fields = period === "weekly" ? "name,score,created_at" : "name,score";
+      const res = await fetch(`${SB_URL}/rest/v1/scores?select=${fields}${filter}&order=score.desc&limit=100`, {
         headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY }
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (period === "weekly") {
+          leaderboardPeriod = "all";
+          return loadLeaderboard();
+        }
+        return;
+      }
       const rows = await res.json();
-      renderLeaderboard(rows);
+      leaderboardCache[period] = rows;
+      renderLeaderboard(rows, period);
     } catch (e) { /* offline — abaikan */ }
   }
 
-  function renderLeaderboard(rows) {
-    elLeaderboard.classList.toggle("hidden", !rows.length);
-    if (!rows.length) { elLeaderboard.innerHTML = ""; return; }
+  function bestScoresByPlayer(rows) {
+    const seen = new Set();
+    return rows.filter(r => {
+      const key = String(r.name || "PLAYER").trim().toLocaleLowerCase();
+      if (seen.has(key) || !Number.isFinite(Number(r.score))) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 10);
+  }
+
+  function renderLeaderboard(rawRows, period) {
+    const rows = bestScoresByPlayer(rawRows || []);
+    elLeaderboard.classList.remove("hidden");
     const medals = ["🥇", "🥈", "🥉"];
     elLeaderboard.innerHTML =
       '<div class="lb-title">' + t("lb.title") + '</div>' +
-      rows.map((r, i) =>
+      '<div class="lb-tabs">' +
+        `<button class="lb-tab ${period === "weekly" ? "active" : ""}" data-period="weekly">${t("lb.weekly")}</button>` +
+        `<button class="lb-tab ${period === "all" ? "active" : ""}" data-period="all">${t("lb.all")}</button>` +
+      '</div>' +
+      (rows.length ? rows.map((r, i) =>
         `<div class="lb-row">` +
           `<span class="lb-rank">${medals[i] || (i + 1)}</span>` +
-          `<span class="lb-name">${escapeHtml(r.name)}</span>` +
-          `<span class="lb-score">${r.score}</span>` +
+          `<span class="lb-name">${escapeHtml(r.name || "PLAYER")}</span>` +
+          `<span class="lb-score">${Math.max(0, Math.floor(Number(r.score)))}</span>` +
         `</div>`
-      ).join("");
+      ).join("") : `<div class="lb-empty">${t("lb.empty")}</div>`);
   }
 
   // ---------- Efek visual ----------
-  function spawnParticles(x, y, color) {
+  function spawnParticles(x, y, color, count, speed) {
+    count = count || 8;
+    speed = speed || 2;
     const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
-      const sp = 1 + Math.random() * 2;
-      particles.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, color });
+      const sp = (0.5 + Math.random()) * speed;
+      const size = 1.5 + Math.random() * 2;
+      particles.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, color, size });
     }
+  }
+
+  // Ledakan partikel radial + ring shockwave (dipakai saat makan item).
+  function burst(x, y, color) {
+    spawnParticles(x, y, color, 14, 3);
+    spawnParticles(x, y, "#ffffff", 5, 2);
+    spawnRing(x, y, color);
+  }
+
+  function spawnRing(x, y, color) {
+    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
+    rings.push({ x: cx, y: cy, r: CELL * 0.2, maxR: CELL * 1.1, life: 1, color });
   }
 
   function spawnPopup(x, y, text, color) {
@@ -1193,14 +1479,72 @@
       p.y -= 0.6; p.life -= 0.02;
       if (p.life <= 0) popups.splice(i, 1);
     }
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i];
+      r.r += (r.maxR - r.r) * 0.14;
+      r.life -= 0.06;
+      if (r.life <= 0) rings.splice(i, 1);
+    }
   }
 
   // ---------- Rendering ----------
   function drawBackground() {
-    ctx.fillStyle = "#1c1512";
+    const now = performance.now();
+
+    // Gradasi langit malam — Rayquaza si naga langit (Delta Pokémon).
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#0a0c1c");
+    sky.addColorStop(0.45, "#12152b");
+    sky.addColorStop(0.8, "#141b26");
+    sky.addColorStop(1, "#0e1218");
+    ctx.fillStyle = sky;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = "rgba(255,255,255,0.035)";
+    // Awan nebula (ungu / teal / emas), low-alpha, melayang pelan.
+    const nebulae = [
+      { x: 0.30, y: 0.28, r: 0.55, c: "rgba(123,47,247,0.16)",  dr: 0.10, sp: 0.00012 },
+      { x: 0.72, y: 0.20, r: 0.45, c: "rgba(18,181,122,0.15)",  dr: 0.06, sp: 0.00018 },
+      { x: 0.52, y: 0.74, r: 0.50, c: "rgba(246,201,69,0.10)",  dr: 0.08, sp: 0.00010 },
+      { x: 0.16, y: 0.70, r: 0.34, c: "rgba(88,120,255,0.12)",  dr: 0.05, sp: 0.00016 },
+    ];
+    for (let i = 0; i < nebulae.length; i++) {
+      const n = nebulae[i];
+      const nx = (n.x + Math.sin(now * n.sp + i * 2.1) * 0.06) * canvas.width;
+      const ny = (n.y + Math.cos(now * n.sp * 0.8 + i) * 0.05) * canvas.height;
+      const nr = (n.r + Math.sin(now * n.sp + i * 1.7) * n.dr) * canvas.width;
+      const g = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+      g.addColorStop(0, n.c);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Bintang berkelip — posisi deterministik (stabil antar frame), kedipan halus.
+    for (let i = 0; i < 72; i++) {
+      const sx = (i * 137 + 42 * 53) % canvas.width;
+      const sy = (i * 251 + 42 * 31) % canvas.height;
+      const tw = 0.4 + 0.6 * Math.sin(now / (500 + (i % 5) * 120) + i * 1.7);
+      const size = (i % 4 === 0) ? 1.6 : 0.9;
+      ctx.fillStyle = `rgba(255,255,255,${0.22 + tw * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(sx, sy, size * (0.7 + 0.3 * tw), 0, Math.PI * 2);
+      ctx.fill();
+      // sesekali bintang kebiruan/keemasan biar beragam
+      if (i % 9 === 0) {
+        ctx.fillStyle = `rgba(140,200,255,${0.18 + tw * 0.4})`;
+        ctx.beginPath();
+        ctx.arc(sx + 2, sy + 2, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (i % 11 === 0) {
+        ctx.fillStyle = `rgba(255,224,140,${0.18 + tw * 0.4})`;
+        ctx.beginPath();
+        ctx.arc(sx - 1, sy + 1, 1.0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Grid samar — tetap terasa seperti papan game.
+    ctx.strokeStyle = "rgba(255,255,255,0.03)";
     ctx.lineWidth = 1;
     for (let i = 0; i <= COLS; i++) {
       ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, canvas.height); ctx.stroke();
@@ -1209,17 +1553,7 @@
       ctx.beginPath(); ctx.moveTo(0, i * CELL); ctx.lineTo(canvas.width, i * CELL); ctx.stroke();
     }
 
-    const seed = 42;
-    for (let i = 0; i < 50; i++) {
-      const rx = ((i * 137 + seed * 53) % COLS) * CELL;
-      const ry = ((i * 251 + seed * 31) % ROWS) * CELL;
-      ctx.fillStyle = "rgba(255,255,255,0.025)";
-      ctx.beginPath();
-      ctx.arc(rx + CELL / 2, ry + CELL / 2, CELL * 0.12, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // bingkai tepi gua (rapi, aksen zamrud)
+    // Bingkai tepi (rapi, aksen zamrud).
     ctx.strokeStyle = "rgba(0,0,0,0.5)";
     ctx.lineWidth = 4;
     ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
@@ -1432,13 +1766,62 @@
     }
   }
 
+  function drawBoss(now) {
+    if (!boss) return;
+    const cx = boss.x * CELL + CELL / 2;
+    const cy = boss.y * CELL + CELL / 2;
+    const pulse = 1 + Math.sin(now / 180) * 0.06;
+    const r = CELL * 0.75 * pulse;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.shadowColor = boss.accent;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = boss.color;
+    ctx.strokeStyle = "#160b10";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    if (boss.name === "KYOGRE") {
+      ctx.moveTo(-r * 1.25, 0); ctx.quadraticCurveTo(0, -r, r * 1.25, 0);
+      ctx.quadraticCurveTo(0, r * .8, -r * 1.25, 0);
+    } else if (boss.name === "DEOXYS") {
+      ctx.moveTo(0, -r * 1.25); ctx.lineTo(r * .75, r * .75);
+      ctx.lineTo(0, r * .35); ctx.lineTo(-r * .75, r * .75); ctx.closePath();
+    } else {
+      ctx.moveTo(-r, r * .6); ctx.lineTo(-r * .75, -r * .8);
+      ctx.lineTo(0, -r * 1.1); ctx.lineTo(r * .75, -r * .8);
+      ctx.lineTo(r, r * .6); ctx.closePath();
+    }
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = boss.accent;
+    ctx.beginPath(); ctx.arc(-r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.8)";
+    ctx.beginPath(); ctx.arc(0, r * .28, r * .16, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
   function drawFood() {
     if (!food) return;
+    const now = performance.now();
     const cx = food.x * CELL + CELL / 2;
-    const cy = food.y * CELL + CELL / 2;
-    const pulse = 1 + Math.sin(performance.now() / 180) * 0.08;
+    const bob = Math.sin(now / 320 + (food.x + food.y) * 1.3) * CELL * 0.07; // naik-turun halus
+    const cy = food.y * CELL + CELL / 2 + bob;
+    const pulse = 1 + Math.sin(now / 180) * 0.08;
     const r = CELL * 0.42 * pulse;
+    const glowColor = colorFor(food.type.kind);
 
+    // Aura glow berdenyut di belakang item (warna sesuai jenis).
+    ctx.save();
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 9 + Math.sin(now / 220) * 3;
+    ctx.fillStyle = glowColor;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 1.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Item (dengan drop shadow lembut).
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.5)";
     ctx.shadowBlur = 3;
@@ -1459,7 +1842,7 @@
     }
     ctx.restore();
 
-    if (food.shiny) drawSparkles(cx, cy);
+    if (food.shiny) drawFoodSparkles(cx, cy);
   }
 
   function berry(cx, cy, r, dark, light) {
@@ -1644,7 +2027,7 @@
     ctx.beginPath(); ctx.arc(cx + r * 0.15, cy - r * 0.1, r * 0.12, 0, Math.PI * 2); ctx.fill();
   }
 
-  function drawSparkles(cx, cy) {
+  function drawFoodSparkles(cx, cy) {
     const t = performance.now() / 120;
     for (let i = 0; i < 4; i++) {
       const a = t + i * Math.PI / 2;
@@ -1700,10 +2083,14 @@
   const PALETTE = {
     rayquaza:     { top: "#a7f0bb", mid: "#58c978", bottom: "#2a8a4f", outline: "#0d4a28", horn: "#f6d24a", cheek: "#ff9db0" },
     megarayquaza: { top: "#d8ffb4", mid: "#7fe05e", bottom: "#2f9e57", outline: "#0f5c30", horn: "#ffe27a", cheek: "#ff9db0" },
+    shinyrayquaza:     { top: "#6b7280", mid: "#3a3f4a", bottom: "#1a1d24", outline: "#050608", horn: "#f6d24a", cheek: "#ff9db0" },
+    shinymegarayquaza: { top: "#838a9a", mid: "#454b57", bottom: "#232833", outline: "#0a0c10", horn: "#ffe27a", cheek: "#ff9db0" },
   };
 
   function drawSnake() {
-    const pal = evolved ? PALETTE.megarayquaza : PALETTE.rayquaza;
+    const pal = snakeShiny
+      ? (evolved ? PALETTE.shinymegarayquaza : PALETTE.shinyrayquaza)
+      : (evolved ? PALETTE.megarayquaza : PALETTE.rayquaza);
     const rainbow = combo >= 5;
 
     // Konektor antar segmen (biar menyambung, tetap chunky).
@@ -1799,10 +2186,12 @@
       g.addColorStop(1, pal.bottom);
     }
 
-    // Kumis emas + sparkle saat Mega (di belakang kepala).
+    // Kumis emas + sparkle saat Mega; sparkle emas juga untuk shiny (di belakang kepala).
     if (evolved) {
       drawSparkles(cx, cy);
       drawWhiskers(cx, cy, s, pal);
+    } else if (snakeShiny) {
+      drawSparkles(cx, cy);
     }
 
     // Jambul emas (crest) — lebih besar saat Mega.
@@ -1932,9 +2321,22 @@
     for (const p of particles) {
       ctx.globalAlpha = Math.max(0, p.life);
       ctx.fillStyle = p.color;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size || 2.5, 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalAlpha = 1;
+  }
+
+  function drawRings() {
+    for (const r of rings) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, r.life) * 0.7;
+      ctx.strokeStyle = r.color;
+      ctx.lineWidth = 3 * r.life;
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   function drawPopups() {
@@ -2046,60 +2448,17 @@
     if (slowmo && now < slowmoUntil) drawFrame("rgba(90,160,255,0.45)");
     if (speedUp && now < speedUpUntil) drawFrame("rgba(255,150,50,0.5)");
 
+    drawBoss(now);
     drawFood();
     drawMagikarp();
     drawSnake();
     if (beam && now < beam.until) drawBeam(beam, now);
+    drawRings();
     drawParticles();
     drawPopups();
     ctx.restore();
 
     drawWeather(now);
-
-    if (now < flashUntil) {
-      const a = Math.max(0, (flashUntil - now) / 500) * 0.9;
-      ctx.fillStyle = `rgba(255,255,255,${a})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    if (now < evolveMsgUntil) {
-      const total = 2800;
-      const p = (evolveMsgUntil - now) / total; // 1 → 0
-      const fade = Math.min(1, p / 0.25);       // fade out di 25% terakhir
-      const pulse = 1 + 0.12 * Math.sin((1 - p) * 18);
-      ctx.save();
-      ctx.globalAlpha = fade;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.translate(canvas.width / 2, canvas.height / 2 - 30);
-      ctx.scale(pulse, pulse);
-      ctx.shadowColor = "#7cf0ff";
-      ctx.shadowBlur = 30;
-      ctx.lineJoin = "round";
-
-      ctx.font = "bold 36px 'Segoe UI', sans-serif";
-      ctx.lineWidth = 7;
-      ctx.strokeStyle = "rgba(0,0,0,0.85)";
-      const title = t("evolve.title");
-      ctx.strokeText(title, 0, -24);
-      const g1 = ctx.createLinearGradient(0, -60, 0, -10);
-      g1.addColorStop(0, "#ffffff");
-      g1.addColorStop(0.5, "#fff7c0");
-      g1.addColorStop(1, "#f6c945");
-      ctx.fillStyle = g1;
-      ctx.fillText(title, 0, -24);
-
-      ctx.font = "bold 22px 'Segoe UI', sans-serif";
-      ctx.lineWidth = 5;
-      const sub = "Rayquaza → MEGA RAYQUAZA";
-      ctx.strokeText(sub, 0, 22);
-      const g2 = ctx.createLinearGradient(0, 0, 0, 40);
-      g2.addColorStop(0, "#7cf0ff");
-      g2.addColorStop(1, "#d6fbff");
-      ctx.fillStyle = g2;
-      ctx.fillText(sub, 0, 22);
-
-      ctx.restore();
-    }
   }
 
   function loop(now) {
@@ -2109,13 +2468,27 @@
         evolved = false;
         mega = false;
         megaUntil = 0;
-        flashUntil = now + 300;
         const h = snake[0];
         spawnPopup(h.x, h.y, t("popup.megaEnd"), "#9c917d");
       }
       if (now - lastTick >= speedMs()) {
         lastTick = now;
         tick();
+      }
+      // Trail partikel di belakang ekor saat ngebut (Extreme Speed) atau Mega.
+      if ((speedUp || mega) && now - lastTrail >= 40) {
+        lastTrail = now;
+        const tail = snake[snake.length - 1];
+        const col = mega ? "#7cf0ff" : "#ff9e3d";
+        particles.push({
+          x: tail.x * CELL + CELL / 2,
+          y: tail.y * CELL + CELL / 2,
+          vx: (Math.random() - 0.5) * 1.2,
+          vy: (Math.random() - 0.5) * 1.2,
+          life: 0.7,
+          color: col,
+          size: 2.5 + Math.random() * 2,
+        });
       }
       if (now - lastWildMove >= 900) {
         lastWildMove = now;
@@ -2137,9 +2510,11 @@
         magikarpMove = now;
       }
 
+      bossAttack(now);
+
       // Draco Meteor (hujan meteor)
       meteors = meteors.filter(m => now < m.landAt + 5000);
-      if (now - lastMeteorTime >= (weather === "hail" ? 5000 : 10000)) {
+      if (!boss && now - lastMeteorTime >= (weather === "hail" ? 5000 : 10000)) {
         for (let i = 0; i < 3; i++) {
           const c = randomCell();
           meteors.push({ x: c.x, y: c.y, landAt: now + 1500 });
@@ -2188,7 +2563,8 @@
       speedUp = false;
       elSpeed.classList.remove("on");
     }
-    elShield.classList.toggle("on", shield);
+    elShield.classList.toggle("on", shield > 0);
+    elShield.textContent = shield > 1 ? "🛡 SHIELD ×" + shield : "🛡 SHIELD";
     if (combo > 1 && comboUntil - now > 0) {
       elCombo.classList.add("on");
       elCombo.textContent = combo >= 5 ? "🌈 FRENZY ×" + combo : "COMBO ×" + combo;
@@ -2206,6 +2582,15 @@
       }
     } else {
       elBeamHint.textContent = "";
+    }
+
+    // Indikator cooldown tombol laser di layar sentuh.
+    if (state === "playing" && beamCooldown > now) {
+      elFire.classList.add("cooling");
+      elFire.textContent = Math.ceil((beamCooldown - now) / 1000);
+    } else {
+      elFire.classList.remove("cooling");
+      elFire.textContent = "⚡";
     }
 
     if (weather) {
@@ -2265,6 +2650,49 @@
     else if (state === "playing") setDirection(btn.dataset.dir);
   });
 
+  // Tombol Hyper Beam (laser) di layar sentuh.
+  elFire.addEventListener("click", () => {
+    initAudio();
+    if (state === "start") start();
+    else if (state === "playing") fireBeam();
+  });
+
+  elLeaderboard.addEventListener("click", (e) => {
+    const tab = e.target.closest("button[data-period]");
+    if (!tab) return;
+    leaderboardPeriod = tab.dataset.period;
+    const cached = leaderboardCache[leaderboardPeriod];
+    if (cached) renderLeaderboard(cached, leaderboardPeriod);
+    else loadLeaderboard();
+  });
+
+  // Kontrol swipe di papan (untuk HP) — hanya aktif saat sedang main.
+  (function initSwipe() {
+    const board = document.querySelector(".board");
+    let sx = 0, sy = 0;
+    const THRESH = 24; // jarak minimum (px) agar dianggap swipe, bukan tap
+
+    board.addEventListener("touchstart", (e) => {
+      if (state !== "playing") return;
+      const t = e.touches[0];
+      sx = t.clientX; sy = t.clientY;
+    }, { passive: true });
+
+    board.addEventListener("touchmove", (e) => {
+      if (state === "playing" && e.touches.length === 1) e.preventDefault();
+    }, { passive: false });
+
+    board.addEventListener("touchend", (e) => {
+      if (state !== "playing") return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - sx, dy = t.clientY - sy;
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+      if (Math.max(adx, ady) < THRESH) return;
+      if (adx > ady) setDirection(dx > 0 ? "right" : "left");
+      else setDirection(dy > 0 ? "down" : "up");
+    }, { passive: true });
+  })();
+
   document.getElementById("startBtn").addEventListener("click", () => { initAudio(); start(); });
   document.getElementById("restartBtn").addEventListener("click", () => { initAudio(); restart(); });
 
@@ -2276,12 +2704,17 @@
 
   function start() {
     reset();
+    if (snakeShiny) {
+      spawnPopup(snake[0].x, snake[0].y - 2, "✨ SHINY RAYQUAZA!", "#ffe98a");
+      sfx.shiny();
+    }
     state = "playing";
     lastTick = performance.now();
     lastWildMove = performance.now();
     lastMagikarpSpawn = performance.now();
     lastMeteorTime = performance.now();
     lastWeatherTime = performance.now();
+    lastTrail = performance.now();
     startOverlay.classList.add("hidden");
     overOverlay.classList.add("hidden");
   }
@@ -2294,6 +2727,7 @@
     lastMagikarpSpawn = performance.now();
     lastMeteorTime = performance.now();
     lastWeatherTime = performance.now();
+    lastTrail = performance.now();
     overOverlay.classList.add("hidden");
   }
 
