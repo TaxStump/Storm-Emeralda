@@ -6,12 +6,14 @@
 <title>Storm Emeralda — Snake Pokémon</title>
 <style>
   :root {
-    --bg: #14100d;
-    --cave: #1c1512;
+    --bg: #060a12;
+    --cave: #0d1220;
     --gold: #f6c945;
     --red: #e2382c;
     --steel: #8b94a3;
     --text: #f3ead9;
+    --emerald: #37d67a;
+    --cyan: #7cf0ff;
   }
 
   * { box-sizing: border-box; }
@@ -22,12 +24,51 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: radial-gradient(1000px 600px at 50% -10%, #2a2018, var(--bg));
+    overflow-x: hidden;
+    isolation: isolate;
+    background: #060a12;
     color: var(--text);
     font-family: "Segoe UI", "Trebuchet MS", sans-serif;
     padding: 12px;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before {
+    background:
+      radial-gradient(ellipse at 50% 38%, rgba(26,85,72,.34) 0 15%, transparent 48%),
+      radial-gradient(ellipse at 16% 22%, rgba(72,52,138,.28), transparent 38%),
+      radial-gradient(ellipse at 84% 70%, rgba(11,108,126,.2), transparent 40%),
+      radial-gradient(ellipse at 50% 115%, rgba(246,201,69,.11), transparent 45%),
+      linear-gradient(155deg, #090d19 0%, #101325 38%, #071018 72%, #05070d 100%);
+    animation: sky-drift 18s ease-in-out infinite alternate;
+  }
+  body::after {
+    opacity: .68;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 1.5px),
+      radial-gradient(circle, rgba(124,240,255,.55) 0 1px, transparent 1.5px),
+      radial-gradient(circle, rgba(246,201,69,.5) 0 1px, transparent 1.5px);
+    background-position: 0 0, 31px 47px, 83px 19px;
+    background-size: 113px 113px, 157px 157px, 211px 211px;
+    mask-image: linear-gradient(to bottom, #000, rgba(0,0,0,.45) 78%, transparent);
+    animation: stars-drift 42s linear infinite;
+  }
+  @keyframes sky-drift {
+    from { transform: scale(1) translate3d(-1%, -1%, 0); filter: saturate(.95); }
+    to { transform: scale(1.06) translate3d(1%, 1%, 0); filter: saturate(1.15); }
+  }
+  @keyframes stars-drift {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-32px, 24px, 0); }
   }
 
   .wrap {
@@ -38,14 +79,52 @@
     position: relative;
     z-index: 1;
   }
+  .wrap::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 8% 0 3%;
+    border-radius: 45%;
+    background: radial-gradient(ellipse, rgba(55,214,122,.1), rgba(124,240,255,.035) 45%, transparent 72%);
+    filter: blur(24px);
+    pointer-events: none;
+  }
 
   header { text-align: center; }
 
-  .lang-toggle {
+  .utility-bar {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+  }
+  .lang-toggle {
+    display: flex;
     gap: 4px;
   }
+  .fullscreen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 26px;
+    padding: 3px 9px;
+    border: 1px solid rgba(124,240,255,.26);
+    border-radius: 6px;
+    color: #bceff3;
+    background: rgba(10,24,34,.72);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .7px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+  }
+  .fullscreen-btn:hover {
+    color: #fff;
+    border-color: rgba(124,240,255,.55);
+    box-shadow: 0 0 16px rgba(124,240,255,.1);
+  }
+  .fullscreen-btn .fs-icon { font-size: 14px; line-height: 1; }
   .lang-toggle button {
     font: inherit;
     font-size: 11px;
@@ -69,8 +148,8 @@
     font-size: clamp(22px, 5vw, 32px);
     letter-spacing: 3px;
     font-weight: 900;
-    color: var(--steel);
-    text-shadow: 0 2px 0 #39404d, 0 4px 12px rgba(0,0,0,.6);
+    color: #aeb8c9;
+    text-shadow: 0 2px 0 #31394a, 0 0 24px rgba(124,240,255,.1), 0 6px 18px rgba(0,0,0,.75);
   }
   h1 .ball {
     color: #37d67a;
@@ -103,13 +182,14 @@
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(180deg, rgba(42,33,23,.62), rgba(20,15,11,.58));
-    border: 1px solid rgba(246,201,69,.3);
+    background: linear-gradient(135deg, rgba(18,29,42,.86), rgba(9,15,25,.72));
+    border: 1px solid rgba(124,240,255,.2);
     border-radius: 10px;
     padding: 8px 12px;
     font-size: 13px;
     flex-wrap: wrap;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.24);
+    backdrop-filter: blur(10px);
   }
   .hud .stat { display: flex; flex-direction: column; line-height: 1.05; }
   .hud .label {
@@ -193,6 +273,42 @@
     font-size: 10px;
     font-weight: 800;
   }
+  .upgrade-hint {
+    min-height: 0;
+    text-align: center;
+    color: #d8fbff;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+  .upgrade-hint:not(:empty) {
+    padding: 8px;
+    border: 1px solid rgba(124,240,255,.28);
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(13,35,44,.94), rgba(14,18,35,.92));
+    box-shadow: 0 8px 24px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .upgrade-hint strong {
+    display: block;
+    color: #f6c945;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .upgrade-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+    gap: 6px;
+  }
+  .upgrade-option {
+    min-width: 0;
+    padding: 6px 7px;
+    border: 1px solid color-mix(in srgb, var(--upgrade-color) 42%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--upgrade-color) 9%, rgba(7,13,22,.82));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .upgrade-option b { display: block; color: #fff; font-size: 10px; }
+  .upgrade-option small { display: block; margin-top: 2px; color: #b9cad4; font-size: 9px; font-weight: 600; line-height: 1.35; }
   .bchip {
     width: 20px;
     height: 20px;
@@ -258,24 +374,69 @@
     position: fixed;
     pointer-events: none;
     z-index: 0;
-    opacity: .14;
-    font-size: 34px;
-    color: #f6c945;
-    animation: float 8s ease-in-out infinite;
+    opacity: .2;
+    color: #7cf0ff;
+    animation: float 9s ease-in-out infinite;
+    filter: drop-shadow(0 0 9px currentColor);
   }
   @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(12deg); }
+    0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+    50% { transform: translateY(-16px) rotate(10deg) scale(1.08); }
+  }
+
+  .sky-ring {
+    width: 52px;
+    height: 52px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+  }
+  .sky-ring::before,
+  .sky-ring::after {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+  }
+  .sky-ring::after { inset: 21px; background: currentColor; }
+  .sky-diamond {
+    width: 28px;
+    height: 28px;
+    border: 1px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .sky-diamond::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px solid currentColor;
+  }
+  .sky-comet {
+    width: 64px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, currentColor);
+    transform: rotate(-28deg);
+  }
+  .sky-comet::after {
+    content: "";
+    position: absolute;
+    right: -2px;
+    top: -3px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 12px currentColor;
   }
 
   .board {
     position: relative;
     border-radius: 14px;
     overflow: hidden;
-    border: 3px solid #2a1c12;
-    outline: 2px solid rgba(246,201,69,.4);
+    border: 3px solid #111a24;
+    outline: 2px solid rgba(55,214,122,.48);
     outline-offset: 2px;
-    box-shadow: 0 14px 50px rgba(0,0,0,.65);
+    box-shadow: 0 18px 60px rgba(0,0,0,.72), 0 0 34px rgba(55,214,122,.09), inset 0 0 0 1px rgba(124,240,255,.12);
   }
   canvas {
     display: block;
@@ -293,11 +454,22 @@
     align-items: center;
     gap: 10px;
     text-align: center;
-    background: rgba(12,9,7,.82);
-    backdrop-filter: blur(2px);
+    background:
+      radial-gradient(circle at 50% 34%, rgba(33,90,76,.18), transparent 38%),
+      linear-gradient(160deg, rgba(5,8,16,.9), rgba(8,13,23,.82));
+    backdrop-filter: blur(3px);
     padding: 16px;
     z-index: 4;
   }
+  .overlay::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border: 1px solid rgba(124,240,255,.12);
+    border-radius: 10px;
+    pointer-events: none;
+  }
+  .overlay > * { position: relative; z-index: 1; }
   .overlay.hidden { display: none; }
 
   .overlay h2 {
@@ -305,7 +477,26 @@
     font-size: 26px;
     letter-spacing: 2px;
     color: var(--gold);
-    text-shadow: 0 2px 0 #6b4a06;
+    text-shadow: 0 2px 0 #6b4a06, 0 0 22px rgba(246,201,69,.22);
+  }
+  .pause-overlay {
+    background:
+      radial-gradient(circle at 50% 42%, rgba(55,214,122,.17), transparent 38%),
+      rgba(5,9,17,.76);
+  }
+  .pause-overlay h2 { color: #7cf0ff; text-shadow: 0 0 24px rgba(124,240,255,.35); }
+  .pause-mark {
+    display: flex;
+    gap: 7px;
+    height: 42px;
+    align-items: stretch;
+  }
+  .pause-mark span {
+    display: block;
+    width: 11px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #d8fbff, #37d67a);
+    box-shadow: 0 0 18px rgba(55,214,122,.4);
   }
   .overlay p { margin: 0; color: #cbbfa9; font-size: 13px; line-height: 1.55; }
   .overlay .big { font-size: 18px; font-weight: 800; color: #fff; }
@@ -335,13 +526,14 @@
     font-weight: 800;
     letter-spacing: 1px;
     color: #241a06;
-    background: linear-gradient(180deg, #f6c945, #d39b18);
+    background: linear-gradient(180deg, #ffe071, #e6aa19);
     border: none;
     border-bottom: 4px solid #8a6208;
     border-radius: 10px;
     padding: 11px 24px;
     cursor: pointer;
-    transition: transform .06s, filter .15s;
+    box-shadow: 0 8px 24px rgba(246,201,69,.2), inset 0 1px 0 rgba(255,255,255,.5);
+    transition: transform .06s, filter .15s, box-shadow .15s;
   }
   .btn:hover { filter: brightness(1.06); }
   .btn:active { transform: translateY(2px); border-bottom-width: 2px; }
@@ -456,6 +648,18 @@
     background: linear-gradient(90deg, #ff493d, #ffb13d);
     transition: width .18s ease;
   }
+  .boss-skill {
+    min-height: 14px;
+    margin-top: 5px;
+    color: #ffd9a8;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .55px;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0,0,0,.8);
+  }
+  .boss-skill.warning { color: #ffe071; animation: pulse .42s infinite alternate; }
+  .boss-skill.active { color: #ff8b7c; }
 
   .dpad {
     display: none;
@@ -499,30 +703,73 @@
     .dpad { display: grid; }
     .keys { display: none; }
   }
+
+  @media (max-width: 700px) { .fullscreen-btn { display: none; } }
+
+  @media (max-width: 430px) {
+    body { padding: 8px; align-items: flex-start; }
+    .wrap { width: min(100%, 480px); gap: 6px; }
+    h1 { font-size: 21px; letter-spacing: 2px; }
+    .hud { padding: 7px 9px; }
+    .upgrade-options { grid-template-columns: 1fr; }
+    .upgrade-option { padding: 5px 7px; }
+    .bg-ornament { opacity: .1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body::before, body::after, .bg-ornament { animation: none; }
+  }
+
+  :fullscreen { overflow: hidden; }
+  :fullscreen body {
+    width: 100vw;
+    height: 100vh;
+    min-height: 0;
+    padding: 8px;
+    align-items: center;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  :fullscreen .wrap {
+    width: var(--fullscreen-size, min(94vw, 620px));
+    max-height: calc(100vh - 16px);
+    gap: 4px;
+  }
+  :fullscreen header h1 { font-size: clamp(21px, 3.2vh, 30px); }
+  :fullscreen .divider { margin-top: 1px; }
+  :fullscreen .hud { padding-block: 6px; }
+  :fullscreen .dpad { display: none; }
+  :fullscreen .board {
+    flex: none;
+    box-shadow: 0 24px 90px rgba(0,0,0,.82), 0 0 52px rgba(55,214,122,.16);
+  }
 </style>
 </head>
 <body>
-  <span class="bg-ornament pokeball" style="top:14%;left:6%;width:22px;height:22px"></span>
-  <span class="bg-ornament" style="top:20%;right:7%;animation-delay:2s">⚡</span>
-  <span class="bg-ornament pokeball" style="top:72%;left:7%;width:28px;height:28px;opacity:.11;animation-delay:1s"></span>
-  <span class="bg-ornament" style="top:78%;right:6%;animation-delay:3s">✦</span>
-  <span class="bg-ornament pokeball" style="top:46%;left:3%;width:18px;height:18px;opacity:.12;animation-delay:2.5s"></span>
-  <span class="bg-ornament" style="top:55%;right:3%;animation-delay:1.5s">✨</span>
-  <span class="bg-ornament" style="top:30%;left:8%;animation-delay:.5s">🐢</span>
-  <span class="bg-ornament" style="top:84%;left:13%;animation-delay:3.5s">🐟</span>
-  <span class="bg-ornament" style="top:11%;right:16%;animation-delay:4s">🐦</span>
-  <span class="bg-ornament" style="top:62%;right:10%;animation-delay:2.2s">🐍</span>
-  <span class="bg-ornament pokeball" style="top:34%;right:5%;width:20px;height:20px;opacity:.1;animation-delay:1.8s"></span>
-  <span class="bg-ornament" style="top:90%;right:15%;animation-delay:.8s">⭐</span>
+  <span class="bg-ornament pokeball" aria-hidden="true" style="top:14%;left:6%;width:22px;height:22px"></span>
+  <span class="bg-ornament sky-comet" aria-hidden="true" style="top:20%;right:7%;color:#f6c945;animation-delay:2s"></span>
+  <span class="bg-ornament pokeball" aria-hidden="true" style="top:72%;left:7%;width:28px;height:28px;opacity:.11;animation-delay:1s"></span>
+  <span class="bg-ornament sky-diamond" aria-hidden="true" style="top:78%;right:6%;color:#f6c945;animation-delay:3s"></span>
+  <span class="bg-ornament pokeball" aria-hidden="true" style="top:46%;left:3%;width:18px;height:18px;opacity:.12;animation-delay:2.5s"></span>
+  <span class="bg-ornament sky-ring" aria-hidden="true" style="top:54%;right:3%;animation-delay:1.5s"></span>
+  <span class="bg-ornament sky-ring" aria-hidden="true" style="top:29%;left:7%;width:34px;height:34px;color:#37d67a;animation-delay:.5s"></span>
+  <span class="bg-ornament sky-comet" aria-hidden="true" style="top:85%;left:12%;animation-delay:3.5s"></span>
+  <span class="bg-ornament sky-diamond" aria-hidden="true" style="top:11%;right:16%;color:#c47cff;animation-delay:4s"></span>
+  <span class="bg-ornament sky-ring" aria-hidden="true" style="top:64%;right:10%;width:38px;height:38px;color:#37d67a;animation-delay:2.2s"></span>
+  <span class="bg-ornament pokeball" aria-hidden="true" style="top:34%;right:5%;width:20px;height:20px;opacity:.1;animation-delay:1.8s"></span>
+  <span class="bg-ornament sky-diamond" aria-hidden="true" style="top:90%;right:15%;color:#f6c945;animation-delay:.8s"></span>
   <div class="wrap">
     <header>
       <h1><span class="pokeball"></span> STORM <span class="ball">EMERALDA</span> <span class="pokeball"></span></h1>
       <div class="divider"><span class="line"></span><span class="pokeball"></span><span class="line"></span></div>
     </header>
 
-    <div class="lang-toggle">
-      <button data-lang="id">ID</button>
-      <button data-lang="en">EN</button>
+    <div class="utility-bar">
+      <button class="fullscreen-btn" id="fullscreenBtn" type="button"><span class="fs-icon">⛶</span><span id="fullscreenLabel">FULLSCREEN</span></button>
+      <div class="lang-toggle">
+        <button data-lang="id">ID</button>
+        <button data-lang="en">EN</button>
+      </div>
     </div>
 
     <div class="hud">
@@ -540,6 +787,7 @@
 
     <div class="badges" id="badges"></div>
     <div class="upgrade-chips" id="upgradeChips"></div>
+    <div class="upgrade-hint" id="upgradeHint"></div>
     <div class="beam-hint" id="beamHint"></div>
 
     <div class="board">
@@ -548,6 +796,7 @@
       <div class="boss-hud hidden" id="bossHud">
         <div class="boss-name"><span id="bossName">BOSS</span><span id="bossHp">0/0</span></div>
         <div class="boss-track"><div class="boss-fill" id="bossFill"></div></div>
+        <div class="boss-skill" id="bossSkill"></div>
       </div>
 
       <div class="overlay" id="startOverlay">
@@ -573,6 +822,13 @@
           <input type="text" id="playerName" maxlength="20" placeholder="Masukkan nama..." data-i18n-ph="name.ph" autocomplete="off" />
         </div>
         <button class="btn" id="startBtn" data-i18n="start.btn">MULAI</button>
+      </div>
+
+      <div class="overlay pause-overlay hidden" id="pauseOverlay">
+        <div class="pause-mark" aria-hidden="true"><span></span><span></span></div>
+        <h2 data-i18n="pause.title">GAME DI-PAUSE</h2>
+        <p data-i18n="pause.desc">Semua gerakan dan timer dibekukan.</p>
+        <button class="btn" id="resumeBtn" data-i18n="pause.resume">LANJUTKAN</button>
       </div>
 
       <div class="overlay hidden" id="overOverlay">
@@ -636,7 +892,22 @@
       "evolve.title": "💠 EVOLUSI MEGA! 💠",
       "popup.megaEnd": "Mega berakhir!",
       "boss.appears": "⚠ BOSS MUNCUL!",
-      "boss.defeated": "BOSS DIKALAHKAN!"
+      "boss.defeated": "BOSS DIKALAHKAN!",
+      "boss.skill.warning": "BERSIAP",
+      "boss.skill.active": "SERANGAN AKTIF",
+      "boss.skill.groudon": "PRECIPICE BLADES",
+      "boss.skill.kyogre": "ORIGIN WAVE",
+      "boss.skill.deoxys": "PSYCHO BOOST",
+      "boss.tip.groudon": "Belok dari jalur retakan",
+      "boss.tip.kyogre": "Ikuti koridor hijau",
+      "boss.tip.deoxys": "Keluar dari baris dan kolom target",
+      "upgrade.choose": "PILIH EMERALD BLESSING — sentuh satu orb:",
+      "upgrade.complete": "BUILD UPGRADE SELESAI!",
+      "pause.title": "GAME DI-PAUSE",
+      "pause.desc": "Semua gerakan dan timer dibekukan.",
+      "pause.resume": "LANJUTKAN",
+      "fullscreen.enter": "FULLSCREEN",
+      "fullscreen.exit": "KELUAR FULLSCREEN"
     },
     en: {
       "hud.score": "Score",
@@ -667,7 +938,22 @@
       "evolve.title": "💠 MEGA EVOLUTION! 💠",
       "popup.megaEnd": "Mega ended!",
       "boss.appears": "⚠ BOSS APPEARS!",
-      "boss.defeated": "BOSS DEFEATED!"
+      "boss.defeated": "BOSS DEFEATED!",
+      "boss.skill.warning": "GET READY",
+      "boss.skill.active": "ATTACK ACTIVE",
+      "boss.skill.groudon": "PRECIPICE BLADES",
+      "boss.skill.kyogre": "ORIGIN WAVE",
+      "boss.skill.deoxys": "PSYCHO BOOST",
+      "boss.tip.groudon": "Turn away from the fissure path",
+      "boss.tip.kyogre": "Follow the green corridor",
+      "boss.tip.deoxys": "Leave the targeted row and column",
+      "upgrade.choose": "CHOOSE AN EMERALD BLESSING — touch one orb:",
+      "upgrade.complete": "UPGRADE BUILD COMPLETE!",
+      "pause.title": "GAME PAUSED",
+      "pause.desc": "All movement and timers are frozen.",
+      "pause.resume": "RESUME",
+      "fullscreen.enter": "FULLSCREEN",
+      "fullscreen.exit": "EXIT FULLSCREEN"
     }
   };
 
@@ -693,6 +979,10 @@
       b.classList.toggle("active", b.dataset.lang === lang);
     });
     document.documentElement.lang = lang;
+    renderUpgradeHint();
+    renderUpgradeChips();
+    updateFullscreenButton();
+    if (boss) updateBossSkillHud(state === "paused" ? pausedAt : performance.now());
   }
 
   function setLang(l) {
@@ -738,17 +1028,47 @@
   ];
 
   const BOSS_TYPES = [
-    { name: "GROUDON", color: "#ef553f", accent: "#ffd166" },
-    { name: "KYOGRE", color: "#3286e6", accent: "#9ee8ff" },
-    { name: "DEOXYS", color: "#ef694f", accent: "#7cf0ff" },
+    { name: "GROUDON", color: "#ef553f", accent: "#ffd166", skill: "groudon" },
+    { name: "KYOGRE", color: "#3286e6", accent: "#9ee8ff", skill: "kyogre" },
+    { name: "DEOXYS", color: "#ef694f", accent: "#7cf0ff", skill: "deoxys" },
   ];
 
   const UPGRADES = [
-    { id: "beam", icon: "⚡", name: { id: "Hyper Core", en: "Hyper Core" }, desc: { id: "Cooldown Hyper Beam -0,75 detik dan damage boss +1.", en: "Hyper Beam cooldown -0.75s and boss damage +1." } },
-    { id: "shield", icon: "🛡", name: { id: "Emerald Guard", en: "Emerald Guard" }, desc: { id: "Dapatkan 1 shield sekarang dan Potion memberi shield ekstra.", en: "Gain 1 shield now and Potions grant an extra shield." } },
-    { id: "combo", icon: "🌈", name: { id: "Frenzy Link", en: "Frenzy Link" }, desc: { id: "Durasi combo bertambah 1 detik.", en: "Combo duration increases by 1 second." } },
-    { id: "mega", icon: "💠", name: { id: "Meteor Resonance", en: "Meteor Resonance" }, desc: { id: "Mega Evolution bertahan 4 detik lebih lama.", en: "Mega Evolution lasts 4 seconds longer." } },
-    { id: "lucky", icon: "✨", name: { id: "Shiny Aura", en: "Shiny Aura" }, desc: { id: "Peluang item shiny bertambah 5%.", en: "Shiny item chance increases by 5%." } },
+    {
+      id: "beam", icon: "\u26A1", color: "#7cf0ff", name: { id: "Hyper Core", en: "Hyper Core" },
+      levels: {
+        id: ["Cooldown Beam menjadi 4,4 detik.", "Cooldown 3,8 detik; damage boss +1.", "Cooldown 3,2 detik; damage boss total +2."],
+        en: ["Beam cooldown becomes 4.4 seconds.", "Cooldown 3.8 seconds; boss damage +1.", "Cooldown 3.2 seconds; total boss damage +2."]
+      }
+    },
+    {
+      id: "shield", icon: "\u{1F6E1}", color: "#76e69a", name: { id: "Emerald Guard", en: "Emerald Guard" },
+      levels: {
+        id: ["Dapatkan 1 Shield sekarang.", "Potion memberi 2 Shield; maksimum 3.", "Setelah Shield pecah, kebal selama 1 detik."],
+        en: ["Gain 1 Shield now.", "Potions grant 2 Shields; maximum 3.", "After a Shield breaks, become immune for 1 second."]
+      }
+    },
+    {
+      id: "combo", icon: "\u{1F308}", color: "#c47cff", name: { id: "Frenzy Link", en: "Frenzy Link" },
+      levels: {
+        id: ["Jendela combo menjadi 4 detik.", "Jendela combo menjadi 5 detik.", "Jendela combo menjadi 6 detik."],
+        en: ["Combo window becomes 4 seconds.", "Combo window becomes 5 seconds.", "Combo window becomes 6 seconds."]
+      }
+    },
+    {
+      id: "mega", icon: "\u{1F4A0}", color: "#58d8ff", name: { id: "Meteor Resonance", en: "Meteor Resonance" },
+      levels: {
+        id: ["Meteorite lebih sering; evolusi 18 detik.", "Meteorite makin sering; evolusi 21 detik.", "Evolusi 24 detik dan Beam langsung siap."],
+        en: ["Meteorites appear more often; evolution lasts 18 seconds.", "Meteorites appear even more often; evolution lasts 21 seconds.", "Evolution lasts 24 seconds and Beam becomes ready."]
+      }
+    },
+    {
+      id: "lucky", icon: "\u2728", color: "#ffe071", name: { id: "Shiny Aura", en: "Shiny Aura" },
+      levels: {
+        id: ["Peluang item shiny menjadi 20%.", "Peluang item shiny menjadi 25%.", "Peluang item shiny menjadi 30%."],
+        en: ["Shiny item chance becomes 20%.", "Shiny item chance becomes 25%.", "Shiny item chance becomes 30%."]
+      }
+    },
   ];
 
   // ---------- State ----------
@@ -776,11 +1096,15 @@
   let particles = [], popups = [], rings = [];
   let shake = 0;
   let state = "start";
+  let pausedAt = 0;
+  let fullscreenWasActive = false;
   let lastTick = 0;
   let lastTrail = 0;
   let boss = null, nextBossLevel = 5, bossCount = 0;
+  let bossAttacks = [];
   let upgrades = { beam: 0, shield: 0, combo: 0, mega: 0, lucky: 0 };
-  let nextUpgradeLevel = 3;
+  let nextUpgradeLevel = 3, pendingUpgrades = 0;
+  let upgradeChoices = [], upgradeCalmUntil = 0, shieldGraceUntil = 0;
   let leaderboardPeriod = "weekly";
   let leaderboardCache = { weekly: null, all: null };
 
@@ -798,7 +1122,9 @@
   const elCombo   = document.getElementById("combo");
   const elBadges  = document.getElementById("badges");
   const elUpgradeChips = document.getElementById("upgradeChips");
+  const elUpgradeHint = document.getElementById("upgradeHint");
   const startOverlay = document.getElementById("startOverlay");
+  const pauseOverlay = document.getElementById("pauseOverlay");
   const overOverlay  = document.getElementById("overOverlay");
   const finalScore   = document.getElementById("finalScore");
   const newRecord    = document.getElementById("newRecord");
@@ -808,6 +1134,9 @@
   const bossName     = document.getElementById("bossName");
   const bossHp       = document.getElementById("bossHp");
   const bossFill     = document.getElementById("bossFill");
+  const bossSkill    = document.getElementById("bossSkill");
+  const elFullscreen = document.getElementById("fullscreenBtn");
+  const elFullscreenLabel = document.getElementById("fullscreenLabel");
 
   try { high = parseInt(localStorage.getItem("steelix-dig-high") || "0", 10) || 0; } catch (e) {}
   elHigh.textContent = high;
@@ -863,15 +1192,21 @@
   }
 
   function pickFood() {
-    const pool = FOODS.filter(f =>
-      f.when === "always" ||
-      (f.when === "unevolved" && !evolved) ||
-      (f.when === "evolved" && evolved)
-    );
+    const pool = FOODS
+      .filter(f =>
+        f.when === "always" ||
+        (f.when === "unevolved" && !evolved) ||
+        (f.when === "evolved" && evolved)
+      )
+      .map(f => f.kind === "metal" ? { ...f, weight: f.weight + upgrades.mega * 2 } : f);
     const total = pool.reduce((s, f) => s + f.weight, 0);
     let r = Math.random() * total;
     for (const f of pool) { r -= f.weight; if (r <= 0) return f; }
     return pool[0];
+  }
+
+  function insideBossBody(x, y, target = boss) {
+    return !!target && Math.abs(target.x - x) <= 1 && Math.abs(target.y - y) <= 1;
   }
 
   function occupied(x, y) {
@@ -881,7 +1216,8 @@
            wilds.some(w => w.x === x && w.y === y) ||
            portals.some(p => p.x === x && p.y === y) ||
            meteors.some(m => m.x === x && m.y === y) ||
-           (boss && boss.x === x && boss.y === y) ||
+           upgradeChoices.some(c => c.x === x && c.y === y) ||
+           insideBossBody(x, y) ||
            (magikarp && magikarp.x === x && magikarp.y === y);
   }
 
@@ -904,9 +1240,117 @@
     return null;
   }
 
+  function reachableUpgradeCells() {
+    const blocked = (x, y) =>
+      snake.slice(1).some(s => s.x === x && s.y === y) ||
+      rocks.some(r => r.x === x && r.y === y) ||
+      wilds.some(w => w.x === x && w.y === y) ||
+      portals.some(p => p.x === x && p.y === y) ||
+      meteors.some(m => m.x === x && m.y === y) ||
+      (food && food.x === x && food.y === y) ||
+      insideBossBody(x, y) ||
+      (magikarp && magikarp.x === x && magikarp.y === y);
+    const start = snake[0];
+    const queue = [start];
+    const seen = new Set([start.x + "," + start.y]);
+    const cells = [];
+    for (let i = 0; i < queue.length; i++) {
+      const cur = queue[i];
+      for (const d of Object.values(DIRS)) {
+        const x = cur.x + d.x, y = cur.y + d.y;
+        const key = x + "," + y;
+        if (x < 0 || y < 0 || x >= COLS || y >= ROWS || seen.has(key) || blocked(x, y)) continue;
+        seen.add(key);
+        queue.push({ x, y });
+        const distance = Math.abs(x - start.x) + Math.abs(y - start.y);
+        if (distance >= 5 && x > 0 && y > 0 && x < COLS - 1 && y < ROWS - 1) cells.push({ x, y });
+      }
+    }
+    return cells;
+  }
+
+  function shuffled(items) {
+    const result = items.slice();
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
+  function beginUpgradeChoice() {
+    if (boss || upgradeChoices.length || pendingUpgrades <= 0) return;
+    const available = UPGRADES.filter(u => upgrades[u.id] < 3);
+    if (!available.length) {
+      pendingUpgrades = 0;
+      spawnPopup(snake[0].x, snake[0].y - 2, t("upgrade.complete"), "#f6c945");
+      return;
+    }
+    const offered = shuffled(available).slice(0, Math.min(3, available.length));
+    const candidates = shuffled(reachableUpgradeCells());
+    const positions = [];
+    for (const cell of candidates) {
+      if (positions.every(p => Math.abs(p.x - cell.x) + Math.abs(p.y - cell.y) >= 6)) positions.push(cell);
+      if (positions.length >= offered.length) break;
+    }
+    if (positions.length < offered.length) {
+      for (const cell of candidates) {
+        if (!positions.some(p => p.x === cell.x && p.y === cell.y)) positions.push(cell);
+        if (positions.length >= offered.length) break;
+      }
+    }
+    if (positions.length < offered.length) return;
+    upgradeChoices = offered.map((upgrade, index) => ({ ...positions[index], upgrade }));
+    pendingUpgrades--;
+    upgradeCalmUntil = performance.now() + 2000;
+    renderUpgradeHint();
+    spawnPopup(snake[0].x, snake[0].y - 2, "EMERALD BLESSING!", "#7cf0ff");
+    sfx.level();
+  }
+
+  function renderUpgradeHint() {
+    if (!elUpgradeHint) return;
+    if (!upgradeChoices.length) {
+      elUpgradeHint.textContent = "";
+      if (document.fullscreenElement) requestAnimationFrame(fitFullscreenLayout);
+      return;
+    }
+    const options = upgradeChoices.map(choice => {
+      const item = choice.upgrade;
+      const rank = upgrades[item.id] + 1;
+      const effect = item.levels[lang][rank - 1];
+      return `<span class="upgrade-option" style="--upgrade-color:${item.color}"><b>${item.icon} ${escapeHtml(item.name[lang])} · Lv.${rank}</b><small>${escapeHtml(effect)}</small></span>`;
+    });
+    elUpgradeHint.innerHTML = `<strong>${escapeHtml(t("upgrade.choose"))}</strong><span class="upgrade-options">${options.join("")}</span>`;
+    if (document.fullscreenElement) requestAnimationFrame(fitFullscreenLayout);
+  }
+
+  function renderUpgradeChips() {
+    elUpgradeChips.innerHTML = Object.entries(upgrades)
+      .filter(([, count]) => count > 0)
+      .map(([upgradeId, count]) => {
+        const item = UPGRADES.find(u => u.id === upgradeId);
+        return `<span class="upgrade-chip" title="${escapeHtml(item.levels[lang][count - 1])}">${item.icon} ${count}</span>`;
+      }).join("");
+  }
+
+  function selectUpgrade(choice) {
+    const item = choice.upgrade;
+    if (upgrades[item.id] >= 3) return;
+    upgrades[item.id]++;
+    if (item.id === "shield") shield = Math.min(3, shield + 1);
+    for (const orb of upgradeChoices) spawnParticles(orb.x, orb.y, orb === choice ? item.color : "#6b7180", orb === choice ? 18 : 7, 2.4);
+    spawnRing(choice.x, choice.y, item.color);
+    spawnPopup(choice.x, choice.y - 1, item.icon + " " + item.name[lang] + " Lv." + upgrades[item.id], item.color);
+    upgradeChoices = [];
+    renderUpgradeHint();
+    renderUpgradeChips();
+    sfx.evolve();
+  }
+
   function spawnFood() {
     const pos = randomCell();
-    food = { ...pos, type: pickFood(), shiny: Math.random() < Math.min(0.5, 0.15 + upgrades.lucky * 0.05) };
+    food = { ...pos, type: pickFood(), shiny: Math.random() < Math.min(0.3, 0.15 + upgrades.lucky * 0.05) };
   }
 
   function syncRocks() {
@@ -983,8 +1427,9 @@
   }
 
   function fireBeam() {
-    if (beamCooldown > performance.now()) return;
-    beamCooldown = performance.now() + Math.max(2000, 5000 - upgrades.beam * 750);
+    const now = performance.now();
+    if (beamCooldown > now) return;
+    beamCooldown = now + (5000 - upgrades.beam * 600);
 
     const hx = snake[0].x, hy = snake[0].y;
     const px = -dir.y, py = dir.x; // arah tegak lurus
@@ -1003,10 +1448,12 @@
       meteors = meteors.filter(m => !(m.x === c.x && m.y === c.y));
       spawnParticles(c.x, c.y, "#7cf0ff");
     }
+    disruptBossAttacks(cells, now);
     if (boss && cells.some(c => c.x === boss.x && c.y === boss.y)) {
-      damageBoss(1 + upgrades.beam + (evolved ? 1 : 0));
+      const upgradeDamage = Math.max(0, upgrades.beam - 1);
+      damageBoss(1 + upgradeDamage + (evolved ? 1 : 0));
     }
-    beam = { cells, until: performance.now() + 250 };
+    beam = { cells, until: now + 250 };
     sfx.beam();
   }
 
@@ -1020,13 +1467,19 @@
     }
     pos = pos || { x: head.x < COLS / 2 ? COLS - 4 : 3, y: head.y < ROWS / 2 ? ROWS - 4 : 3 };
     const hp = 7 + bossCount * 3;
-    boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp, nextAttack: performance.now() + 2200 };
+    boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp, nextAttack: performance.now() + 2200, attackCycle: 0 };
+    bossAttacks = [];
     bossCount++;
     rocks = rocks.filter(r => Math.abs(r.x - boss.x) + Math.abs(r.y - boss.y) > 2);
     wilds = wilds.filter(w => Math.abs(w.x - boss.x) + Math.abs(w.y - boss.y) > 2);
     portals = portals.filter(p => Math.abs(p.x - boss.x) + Math.abs(p.y - boss.y) > 1);
+    if (food && insideBossBody(food.x, food.y)) {
+      const newFoodPos = randomCell();
+      food = { ...food, ...newFoodPos };
+    }
     bossHud.classList.remove("hidden");
     updateBossHud();
+    updateBossSkillHud(performance.now());
     spawnPopup(boss.x, boss.y - 2, t("boss.appears"), type.accent);
     shake = 6;
     sfx.meteor();
@@ -1050,8 +1503,10 @@
     spawnRing(defeated.x, defeated.y, "#ffffff");
     spawnPopup(defeated.x, defeated.y, t("boss.defeated") + " +" + bonus, "#f6c945");
     boss = null;
+    bossAttacks = [];
     nextBossLevel += 5;
     bossHud.classList.add("hidden");
+    bossSkill.textContent = "";
     meteors = meteors.filter(m => !m.bossAttack);
     updateHud();
     sfx.evolve();
@@ -1064,40 +1519,204 @@
     bossFill.style.width = (boss.hp / boss.maxHp * 100) + "%";
   }
 
+  function updateBossSkillHud(now) {
+    if (!boss) {
+      bossSkill.textContent = "";
+      bossSkill.className = "boss-skill";
+      return;
+    }
+    const attack = bossAttacks.find(item => now < item.until);
+    const skillName = t("boss.skill." + boss.skill);
+    bossSkill.className = "boss-skill";
+    if (!attack) {
+      bossSkill.textContent = skillName + " · " + t("boss.tip." + boss.skill);
+      return;
+    }
+    if (now < attack.activeAt) {
+      bossSkill.classList.add("warning");
+      bossSkill.textContent = "⚠ " + t("boss.skill.warning") + " · " + skillName + " · " + Math.max(1, Math.ceil((attack.activeAt - now) / 1000)) + "s";
+    } else {
+      bossSkill.classList.add("active");
+      bossSkill.textContent = "◆ " + t("boss.skill.active") + " · " + skillName;
+    }
+  }
+
+  function gridClamp(value, margin = 0) {
+    return Math.max(margin, Math.min(COLS - 1 - margin, value));
+  }
+
+  function uniqueGridCells(cells) {
+    const seen = new Set();
+    return cells.filter(cell => {
+      if (cell.x < 0 || cell.y < 0 || cell.x >= COLS || cell.y >= ROWS) return false;
+      const key = cell.x + "," + cell.y;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function bossAttackCells(attack, now) {
+    let cells = [];
+    if (attack.type === "blades") {
+      cells = attack.cells;
+    } else if (attack.type === "wave") {
+      let line = attack.reverse ? COLS - 1 : 0;
+      if (now >= attack.activeAt) {
+        const progress = Math.max(0, Math.min(1, (now - attack.activeAt) / (attack.until - attack.activeAt)));
+        line = Math.round(progress * (COLS - 1));
+        if (attack.reverse) line = COLS - 1 - line;
+      }
+      for (let i = 0; i < COLS; i++) {
+        const x = attack.axis === "vertical" ? line : i;
+        const y = attack.axis === "vertical" ? i : line;
+        const corridorCoord = attack.axis === "vertical" ? y : x;
+        if (Math.abs(corridorCoord - attack.gap) > 1) cells.push({ x, y });
+      }
+    } else if (attack.type === "psycho") {
+      for (let i = 0; i < COLS; i++) {
+        cells.push({ x: i, y: attack.y });
+        cells.push({ x: attack.x, y: i });
+      }
+    }
+    const blocked = new Set(attack.blocked || []);
+    return uniqueGridCells(cells).filter(cell => !blocked.has(cell.x + "," + cell.y));
+  }
+
+  function bossAttackHits(x, y, now) {
+    return bossAttacks.some(attack =>
+      now >= attack.activeAt && now < attack.until &&
+      bossAttackCells(attack, now).some(cell => cell.x === x && cell.y === y)
+    );
+  }
+
+  function disruptBossAttacks(beamCells, now) {
+    const beamKeys = new Set(beamCells.map(cell => cell.x + "," + cell.y));
+    for (const attack of bossAttacks) {
+      if (now >= attack.until || attack.type === "wave") continue;
+      const blocked = new Set(attack.blocked || []);
+      for (const cell of bossAttackCells(attack, now)) {
+        const key = cell.x + "," + cell.y;
+        if (beamKeys.has(key)) {
+          blocked.add(key);
+          spawnParticles(cell.x, cell.y, attack.type === "psycho" ? "#c47cff" : "#ffd166", 5, 1.6);
+        }
+      }
+      attack.blocked = [...blocked];
+    }
+  }
+
+  function teleportDeoxys() {
+    if (!boss || boss.name !== "DEOXYS") return;
+    const old = { x: boss.x, y: boss.y };
+    const head = snake[0];
+    let pos = null;
+    for (let attempt = 0; attempt < 160; attempt++) {
+      const candidate = { x: 2 + Math.floor(Math.random() * (COLS - 4)), y: 2 + Math.floor(Math.random() * (ROWS - 4)) };
+      if (Math.abs(candidate.x - head.x) + Math.abs(candidate.y - head.y) < 8) continue;
+      const overlapsSnake = snake.some(segment => Math.abs(segment.x - candidate.x) <= 1 && Math.abs(segment.y - candidate.y) <= 1);
+      if (overlapsSnake) continue;
+      pos = candidate;
+      break;
+    }
+    if (!pos) return;
+    spawnRing(old.x, old.y, "#c47cff");
+    spawnParticles(old.x, old.y, "#7cf0ff", 16, 2.2);
+    boss.x = pos.x;
+    boss.y = pos.y;
+    rocks = rocks.filter(r => Math.abs(r.x - boss.x) + Math.abs(r.y - boss.y) > 2);
+    wilds = wilds.filter(w => Math.abs(w.x - boss.x) + Math.abs(w.y - boss.y) > 2);
+    portals = portals.filter(p => Math.abs(p.x - boss.x) + Math.abs(p.y - boss.y) > 1);
+    if (food && insideBossBody(food.x, food.y)) {
+      const newFoodPos = randomCell();
+      food = { ...food, ...newFoodPos };
+    }
+    spawnRing(boss.x, boss.y, "#7cf0ff");
+    spawnParticles(boss.x, boss.y, "#c47cff", 20, 2.5);
+  }
+
+  function createGroudonAttack(now, tier) {
+    const head = snake[0];
+    const lead = 6;
+    const target = {
+      x: gridClamp(head.x + dir.x * lead, 1),
+      y: gridClamp(head.y + dir.y * lead, 1),
+    };
+    const side = { x: -dir.y, y: dir.x };
+    const cells = [];
+    const end = 3 + Math.min(2, tier);
+    for (let step = -2; step <= end; step++) {
+      const center = { x: target.x + dir.x * step, y: target.y + dir.y * step };
+      cells.push(center);
+      if (step % 2 === 0) {
+        const sign = step % 4 === 0 ? 1 : -1;
+        cells.push({ x: center.x + side.x * sign, y: center.y + side.y * sign });
+      }
+    }
+    return { type: "blades", activeAt: now + 1250, until: now + 2500, cells: uniqueGridCells(cells), blocked: [] };
+  }
+
+  function createKyogreAttack(now) {
+    const vertical = boss.attackCycle % 2 === 1;
+    const axis = vertical ? "vertical" : "horizontal";
+    const corridorPrediction = vertical ? snake[0].y + dir.y * 3 : snake[0].x + dir.x * 3;
+    return {
+      type: "wave",
+      axis,
+      gap: gridClamp(corridorPrediction, 2),
+      reverse: boss.attackCycle % 4 >= 2,
+      activeAt: now + 1400,
+      until: now + 3900,
+      blocked: [],
+    };
+  }
+
+  function createDeoxysAttack(now) {
+    const head = snake[0];
+    return {
+      type: "psycho",
+      x: gridClamp(head.x + dir.x * 6, 1),
+      y: gridClamp(head.y + dir.y * 6, 1),
+      activeAt: now + 1250,
+      until: now + 2200,
+      blocked: [],
+    };
+  }
+
   function bossAttack(now) {
     if (!boss || now < boss.nextAttack) return;
-    const count = Math.min(6, 3 + Math.floor(bossCount / 2));
-    const targets = [{ x: snake[0].x, y: snake[0].y }];
-    for (let i = 1; i < count; i++) {
-      const c = safeCell();
-      if (c) targets.push(c);
+    boss.attackCycle++;
+    const tier = Math.floor(Math.max(0, bossCount - 1) / BOSS_TYPES.length);
+    let attack;
+    let interval;
+    if (boss.skill === "groudon") {
+      attack = createGroudonAttack(now, tier);
+      interval = Math.max(2900, 3500 - tier * 150);
+      sfx.meteor();
+    } else if (boss.skill === "kyogre") {
+      attack = createKyogreAttack(now);
+      interval = Math.max(3900, 4550 - tier * 150);
+      sfx.slow();
+    } else {
+      attack = createDeoxysAttack(now);
+      interval = Math.max(3000, 3600 - tier * 120);
+      teleportDeoxys();
+      sfx.beam();
     }
-    for (const c of targets) meteors.push({ x: c.x, y: c.y, landAt: now + 1300, bossAttack: true });
-    boss.nextAttack = now + Math.max(1600, 3000 - bossCount * 120);
-    sfx.meteor();
+    bossAttacks.push(attack);
+    boss.nextAttack = now + interval;
+    spawnPopup(boss.x, boss.y - 2, t("boss.skill." + boss.skill), boss.accent);
+    updateBossSkillHud(now);
   }
 
   function checkProgression() {
     if (state !== "playing") return;
     while (level() >= nextUpgradeLevel) {
       nextUpgradeLevel += 3;
-      grantRandomUpgrade();
+      pendingUpgrades++;
     }
-    if (!boss && level() >= nextBossLevel) startBoss();
-  }
-
-  function grantRandomUpgrade() {
-    const upgrade = UPGRADES[Math.floor(Math.random() * UPGRADES.length)];
-    upgrades[upgrade.id]++;
-    if (upgrade.id === "shield") shield++;
-    elUpgradeChips.innerHTML = Object.entries(upgrades)
-      .filter(([, count]) => count > 0)
-      .map(([upgradeId, count]) => {
-        const item = UPGRADES.find(u => u.id === upgradeId);
-        return `<span class="upgrade-chip" title="${escapeHtml(item.name[lang])}">${item.icon} ${count}</span>`;
-      }).join("");
-    spawnPopup(snake[0].x, snake[0].y - 2, "🎲 " + upgrade.icon + " " + upgrade.name[lang] + " Lv." + upgrades[upgrade.id], "#7cf0ff");
-    sfx.level();
+    if (!boss && !upgradeChoices.length && level() >= nextBossLevel) startBoss();
+    if (!boss) beginUpgradeChoice();
   }
 
   function clearHazards() {
@@ -1157,14 +1776,23 @@
     popups = [];
     rings = [];
     shake = 0;
+    pausedAt = 0;
     boss = null;
+    bossAttacks = [];
     nextBossLevel = 5;
     bossCount = 0;
     upgrades = { beam: 0, shield: 0, combo: 0, mega: 0, lucky: 0 };
     nextUpgradeLevel = 3;
+    pendingUpgrades = 0;
+    upgradeChoices = [];
+    upgradeCalmUntil = 0;
+    shieldGraceUntil = 0;
+    pauseOverlay.classList.add("hidden");
     bossHud.classList.add("hidden");
+    bossSkill.textContent = "";
     elBadges.innerHTML = "";
     elUpgradeChips.innerHTML = "";
+    renderUpgradeHint();
     spawnFood();
     updateHud();
   }
@@ -1176,10 +1804,10 @@
     if (lv <= 2)      ms = 170; // fase 1: santai
     else if (lv <= 4) ms = 156; // fase 2
     else if (lv <= 6) ms = 144; // fase 3
-    else if (lv <= 8) ms = 132; // fase 4
-    else if (lv <= 10) ms = 122; // fase 5
-    else if (lv <= 13) ms = 112; // fase 6
-    else              ms = 104; // fase 7: batas bawah, tetap enak dimainkan
+    else if (lv <= 8) ms = 136; // fase 4: mulai naik secara lebih landai
+    else if (lv <= 10) ms = 128; // fase 5
+    else if (lv <= 13) ms = 120; // fase 6
+    else              ms = 112; // fase 7: batas akhir lebih ramah untuk run panjang
 
     if (evolved) ms -= 5;   // Mega Rayquaza sedikit lebih cepat
     if (speedUp && performance.now() < speedUpUntil) ms = Math.max(75, ms - 22); // ngebut
@@ -1250,12 +1878,21 @@
     const hitMeteor = meteors.some(m => now >= m.landAt && now < m.landAt + 5000 && m.x === nx && m.y === ny);
     const hitWild = wilds.some(w => w.x === nx && w.y === ny);
     const hitBoss = !!(boss && boss.x === nx && boss.y === ny);
+    const hitBossSkill = bossAttackHits(nx, ny, now);
+    const pickedUpgrade = upgradeChoices.find(c => c.x === nx && c.y === ny);
     const growing = food && nx === food.x && ny === food.y;
     const body = growing ? snake : snake.slice(0, -1);
     const hitSelf = body.some(s => s.x === nx && s.y === ny);
 
-    if ((hitRock && !mega) || (hitMeteor && !mega) || hitWild || hitBoss || hitSelf) {
-      if (shield > 0) { shield--; return; } // perisai menahan gerakan ini
+    if ((hitRock && !mega) || (hitMeteor && !mega) || hitWild || hitBoss || hitBossSkill || hitSelf) {
+      if (now < shieldGraceUntil) return;
+      if (shield > 0) {
+        shield--;
+        if (upgrades.shield >= 3) shieldGraceUntil = now + 1000;
+        spawnPopup(head.x, head.y - 1, upgrades.shield >= 3 ? "GUARD 1s" : "SHIELD!", "#76e69a");
+        sfx.shield();
+        return;
+      }
       return gameOver();
     }
 
@@ -1271,6 +1908,8 @@
     } else {
       snake.pop();
     }
+
+    if (pickedUpgrade) selectUpgrade(pickedUpgrade);
 
     if (ateMagikarp) {
       score += 200;
@@ -1316,7 +1955,7 @@
       case "level":   score += 20; sfx.level(); break;
       case "x2":      multiplier = 2; multiplierUntil = now + 8000; sfx.rare(); break;
       case "big":     sfx.rare(); break;
-      case "shield":  shield += 1 + upgrades.shield; sfx.shield(); break;
+      case "shield":  shield = Math.min(3, shield + (upgrades.shield >= 2 ? 2 : 1)); sfx.shield(); break;
       case "slow":    slowmo = true; slowmoUntil = now + 5000; sfx.slow(); break;
       case "speed":   speedUp = true; speedUpUntil = now + 6000; sfx.speed(); break;
       case "clear":   clearHazards(); sfx.clear(); break;
@@ -1327,7 +1966,8 @@
 
   function doEvolve() {
     evolved = true;
-    evolveUntil = performance.now() + 15000 + upgrades.mega * 4000;
+    evolveUntil = performance.now() + 15000 + upgrades.mega * 3000;
+    if (upgrades.mega >= 3) beamCooldown = 0;
     shake = 4;
     const hx = snake[0].x, hy = snake[0].y;
     burst(hx, hy, "#7cf0ff");
@@ -1338,7 +1978,11 @@
 
   function gameOver() {
     state = "over";
+    upgradeChoices = [];
+    bossAttacks = [];
+    renderUpgradeHint();
     bossHud.classList.add("hidden");
+    bossSkill.textContent = "";
     shake = 14;
     sfx.over();
     finalScore.textContent = t("over.scorePrefix") + score;
@@ -1519,6 +2163,62 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
+    // Planet jauh dan jalur Delta Stream memberi kedalaman tanpa mengganggu grid.
+    const planetX = canvas.width * 0.82;
+    const planetY = canvas.height * 0.17;
+    const planetR = canvas.width * 0.095;
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    const planetGlow = ctx.createRadialGradient(planetX - planetR * .25, planetY - planetR * .3, 2, planetX, planetY, planetR);
+    planetGlow.addColorStop(0, "#d8fbff");
+    planetGlow.addColorStop(.32, "#4d8d9e");
+    planetGlow.addColorStop(1, "#142437");
+    ctx.fillStyle = planetGlow;
+    ctx.shadowColor = "#7cf0ff";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(planetX, planetY, planetR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(124,240,255,.35)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(planetX, planetY, planetR * 1.55, planetR * .38, -.25, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(Math.sin(now / 9000) * .08);
+    ctx.strokeStyle = "rgba(55,214,122,.075)";
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, canvas.width * .46, canvas.height * .21, -.34, .15, Math.PI * 1.38);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(124,240,255,.09)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, canvas.width * .42, canvas.height * .17, -.34, .08, Math.PI * 1.45);
+    ctx.stroke();
+    ctx.restore();
+
+    // Satu meteor jauh melintas secara berkala; hanya dekorasi latar.
+    const shootingPhase = (now % 7200) / 7200;
+    if (shootingPhase < .2) {
+      const travel = shootingPhase / .2;
+      const sx = canvas.width * (.1 + travel * .56);
+      const sy = canvas.height * (.16 + travel * .2);
+      const trail = ctx.createLinearGradient(sx - 48, sy - 24, sx, sy);
+      trail.addColorStop(0, "rgba(124,240,255,0)");
+      trail.addColorStop(1, "rgba(216,251,255,.65)");
+      ctx.strokeStyle = trail;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(sx - 48, sy - 24);
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+    }
+
     // Bintang berkelip — posisi deterministik (stabil antar frame), kedipan halus.
     for (let i = 0; i < 72; i++) {
       const sx = (i * 137 + 42 * 53) % canvas.width;
@@ -1552,6 +2252,12 @@
     for (let i = 0; i <= ROWS; i++) {
       ctx.beginPath(); ctx.moveTo(0, i * CELL); ctx.lineTo(canvas.width, i * CELL); ctx.stroke();
     }
+
+    const vignette = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, canvas.width * .26, canvas.width / 2, canvas.height / 2, canvas.width * .72);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,.38)");
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Bingkai tepi (rapi, aksen zamrud).
     ctx.strokeStyle = "rgba(0,0,0,0.5)";
@@ -1766,12 +2472,109 @@
     }
   }
 
+  function drawBossAttacks(now) {
+    for (const attack of bossAttacks) {
+      if (now >= attack.until) continue;
+      const warning = now < attack.activeAt;
+      const pulse = 0.55 + Math.sin(now / 90) * 0.25;
+      const cells = bossAttackCells(attack, now);
+      ctx.save();
+
+      if (attack.type === "wave") {
+        ctx.fillStyle = "rgba(55,214,122,.09)";
+        ctx.strokeStyle = "rgba(118,230,154,.55)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([7, 6]);
+        if (attack.axis === "vertical") {
+          const y = (attack.gap - 1) * CELL;
+          ctx.fillRect(0, y, canvas.width, CELL * 3);
+          ctx.strokeRect(0, y, canvas.width, CELL * 3);
+        } else {
+          const x = (attack.gap - 1) * CELL;
+          ctx.fillRect(x, 0, CELL * 3, canvas.height);
+          ctx.strokeRect(x, 0, CELL * 3, canvas.height);
+        }
+        ctx.setLineDash([]);
+      }
+
+      for (const cell of cells) {
+        const x = cell.x * CELL;
+        const y = cell.y * CELL;
+        const cx = x + CELL / 2;
+        const cy = y + CELL / 2;
+        if (attack.type === "blades") {
+          ctx.strokeStyle = warning ? `rgba(255,209,102,${pulse})` : "rgba(255,94,61,.95)";
+          ctx.fillStyle = warning ? "rgba(239,85,63,.12)" : "rgba(239,85,63,.42)";
+          ctx.lineWidth = warning ? 1.5 : 2.5;
+          ctx.shadowColor = warning ? "#ffd166" : "#ff493d";
+          ctx.shadowBlur = warning ? 4 : 13;
+          ctx.beginPath();
+          ctx.moveTo(cx - CELL * .34, cy + CELL * .34);
+          ctx.lineTo(cx - CELL * .08, cy - CELL * .08);
+          ctx.lineTo(cx + CELL * .04, cy + CELL * .08);
+          ctx.lineTo(cx + CELL * .32, cy - CELL * .36);
+          ctx.stroke();
+          if (!warning) {
+            ctx.beginPath();
+            ctx.moveTo(cx - CELL * .3, cy + CELL * .34);
+            ctx.lineTo(cx, cy - CELL * .43);
+            ctx.lineTo(cx + CELL * .3, cy + CELL * .34);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+        } else if (attack.type === "wave") {
+          ctx.shadowColor = "#6fdcff";
+          ctx.shadowBlur = warning ? 7 : 16;
+          ctx.fillStyle = warning ? `rgba(111,220,255,${.12 + pulse * .12})` : "rgba(50,134,230,.68)";
+          ctx.strokeStyle = warning ? "rgba(158,232,255,.72)" : "rgba(216,251,255,.95)";
+          ctx.lineWidth = warning ? 1.5 : 2;
+          ctx.beginPath();
+          ctx.roundRect(x + 2, y + 2, CELL - 4, CELL - 4, 6);
+          ctx.fill();
+          ctx.stroke();
+          if (!warning) {
+            ctx.fillStyle = "rgba(255,255,255,.8)";
+            ctx.beginPath(); ctx.arc(cx - 4, cy - 3, 2, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 4, cy + 3, 1.5, 0, Math.PI * 2); ctx.fill();
+          }
+        } else {
+          ctx.shadowColor = "#c47cff";
+          ctx.shadowBlur = warning ? 7 : 15;
+          ctx.strokeStyle = warning ? `rgba(196,124,255,${pulse})` : "rgba(124,240,255,.95)";
+          ctx.fillStyle = warning ? "rgba(196,124,255,.1)" : "rgba(123,47,247,.46)";
+          ctx.lineWidth = warning ? 1.5 : 2.5;
+          ctx.fillRect(x + 2, y + 2, CELL - 4, CELL - 4);
+          ctx.strokeRect(x + 3, y + 3, CELL - 6, CELL - 6);
+          ctx.beginPath();
+          ctx.moveTo(cx - 5, cy - 5); ctx.lineTo(cx + 5, cy + 5);
+          ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx - 5, cy + 5);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+  }
+
   function drawBoss(now) {
     if (!boss) return;
     const cx = boss.x * CELL + CELL / 2;
     const cy = boss.y * CELL + CELL / 2;
     const pulse = 1 + Math.sin(now / 180) * 0.06;
     const r = CELL * 0.75 * pulse;
+    ctx.save();
+    ctx.globalAlpha = .5;
+    ctx.fillStyle = "#02050a";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + r * .78, r * 1.05, r * .34, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = .36;
+    ctx.strokeStyle = boss.accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * (1.28 + Math.sin(now / 240) * .08), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
     ctx.save();
     ctx.translate(cx, cy);
     ctx.shadowColor = boss.accent;
@@ -1798,6 +2601,72 @@
     ctx.fillStyle = "rgba(255,255,255,.8)";
     ctx.beginPath(); ctx.arc(0, r * .28, r * .16, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
+  }
+
+  function drawUpgradeChoices(now) {
+    for (const choice of upgradeChoices) {
+      const cx = choice.x * CELL + CELL / 2;
+      const cy = choice.y * CELL + CELL / 2;
+      const pulse = 1 + Math.sin(now / 160 + choice.x) * 0.09;
+      const radius = CELL * 0.47 * pulse;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(now / 1800 + choice.x * .2);
+      ctx.strokeStyle = choice.upgrade.color;
+      ctx.globalAlpha = .48;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 1.18, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        const angle = now / 520 + i * Math.PI * 2 / 3;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(Math.cos(angle) * radius * 1.18, Math.sin(angle) * radius * 1.18, 1.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.rotate(-(now / 1800 + choice.x * .2));
+      ctx.shadowColor = choice.upgrade.color;
+      ctx.shadowBlur = 18;
+      const gem = ctx.createRadialGradient(-radius * .28, -radius * .32, 1, 0, 0, radius * 1.1);
+      gem.addColorStop(0, "#ffffff");
+      gem.addColorStop(.22, choice.upgrade.color);
+      gem.addColorStop(1, "#101820");
+      ctx.fillStyle = gem;
+      ctx.strokeStyle = "rgba(255,255,255,.9)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = Math.PI / 3 * i - Math.PI / 2;
+        const x = Math.cos(angle) * radius, y = Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.globalAlpha = 0.94;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.stroke();
+      ctx.globalAlpha = .42;
+      ctx.beginPath();
+      ctx.moveTo(0, -radius);
+      ctx.lineTo(0, radius);
+      ctx.moveTo(-radius * .86, -radius * .5);
+      ctx.lineTo(radius * .86, radius * .5);
+      ctx.moveTo(radius * .86, -radius * .5);
+      ctx.lineTo(-radius * .86, radius * .5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#101820";
+      ctx.font = "14px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(choice.upgrade.icon, 0, 0);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 7px system-ui, sans-serif";
+      ctx.fillText("Lv." + (upgrades[choice.upgrade.id] + 1), 0, radius + 5);
+      ctx.restore();
+    }
   }
 
   function drawFood() {
@@ -2440,9 +3309,10 @@
       else if (w.type === "dugtrio") drawDugtrio(w.x, w.y);
       else drawDiglett(w.x, w.y);
     }
-    const now = performance.now();
+    const now = state === "paused" ? pausedAt : performance.now();
     for (const p of portals) drawPortal(p.x, p.y);
     for (const m of meteors) drawMeteor(m, now);
+    drawBossAttacks(now);
     if (multiplier > 1 && now < multiplierUntil) drawFrame("rgba(246,201,69,0.5)");
     if (mega && now < megaUntil) drawFrame("rgba(124,240,255,0.6)");
     if (slowmo && now < slowmoUntil) drawFrame("rgba(90,160,255,0.45)");
@@ -2450,6 +3320,7 @@
 
     drawBoss(now);
     drawFood();
+    drawUpgradeChoices(now);
     drawMagikarp();
     drawSnake();
     if (beam && now < beam.until) drawBeam(beam, now);
@@ -2490,7 +3361,7 @@
           size: 2.5 + Math.random() * 2,
         });
       }
-      if (now - lastWildMove >= 900) {
+      if (now >= upgradeCalmUntil && now - lastWildMove >= 900) {
         lastWildMove = now;
         moveWilds();
       }
@@ -2510,11 +3381,13 @@
         magikarpMove = now;
       }
 
+      bossAttacks = bossAttacks.filter(attack => now < attack.until);
       bossAttack(now);
+      updateBossSkillHud(now);
 
       // Draco Meteor (hujan meteor)
       meteors = meteors.filter(m => now < m.landAt + 5000);
-      if (!boss && now - lastMeteorTime >= (weather === "hail" ? 5000 : 10000)) {
+      if (!boss && now >= upgradeCalmUntil && now - lastMeteorTime >= (weather === "hail" ? 5000 : 10000)) {
         for (let i = 0; i < 3; i++) {
           const c = randomCell();
           meteors.push({ x: c.x, y: c.y, landAt: now + 1500 });
@@ -2525,16 +3398,19 @@
 
       // Cuaca (Sunny / Rain / Sandstorm / Hail)
       if (now > weatherUntil) weather = null;
-      if (now - lastWeatherTime >= 15000) {
+      if (now >= upgradeCalmUntil && now - lastWeatherTime >= 15000) {
         const weathers = ["sunny", "rain", "sandstorm", "hail"];
         weather = weathers[Math.floor(Math.random() * weathers.length)];
         weatherUntil = now + 10000;
         lastWeatherTime = now;
       }
     }
-    updateFX();
+    if (state !== "paused") updateFX();
 
-    const rem = multiplierUntil - now;
+    // Saat pause, HUD membaca waktu saat tombol pause ditekan agar semua countdown benar-benar beku.
+    const effectNow = state === "paused" ? pausedAt : now;
+
+    const rem = multiplierUntil - effectNow;
     if (multiplier > 1 && rem > 0) {
       elBadge.classList.add("on");
       elBadge.textContent = "⚡ 2× " + Math.ceil(rem / 1000) + "s";
@@ -2542,30 +3418,33 @@
       multiplier = 1;
       elBadge.classList.remove("on");
     }
-    if (mega && megaUntil - now > 0) {
+    if (mega && megaUntil - effectNow > 0) {
       elMega.classList.add("on");
-      elMega.textContent = "💠 MEGA ×3 " + Math.ceil((megaUntil - now) / 1000) + "s";
+      elMega.textContent = "💠 MEGA ×3 " + Math.ceil((megaUntil - effectNow) / 1000) + "s";
     } else {
       mega = false;
       elMega.classList.remove("on");
     }
-    if (slowmo && slowmoUntil - now > 0) {
+    if (slowmo && slowmoUntil - effectNow > 0) {
       elSlow.classList.add("on");
-      elSlow.textContent = "🍖 SLOW " + Math.ceil((slowmoUntil - now) / 1000) + "s";
+      elSlow.textContent = "🍖 SLOW " + Math.ceil((slowmoUntil - effectNow) / 1000) + "s";
     } else {
       slowmo = false;
       elSlow.classList.remove("on");
     }
-    if (speedUp && speedUpUntil - now > 0) {
+    if (speedUp && speedUpUntil - effectNow > 0) {
       elSpeed.classList.add("on");
-      elSpeed.textContent = "💨 SPEED ×2 " + Math.ceil((speedUpUntil - now) / 1000) + "s";
+      elSpeed.textContent = "💨 SPEED ×2 " + Math.ceil((speedUpUntil - effectNow) / 1000) + "s";
     } else {
       speedUp = false;
       elSpeed.classList.remove("on");
     }
-    elShield.classList.toggle("on", shield > 0);
-    elShield.textContent = shield > 1 ? "🛡 SHIELD ×" + shield : "🛡 SHIELD";
-    if (combo > 1 && comboUntil - now > 0) {
+    const guardActive = shieldGraceUntil - effectNow > 0;
+    elShield.classList.toggle("on", shield > 0 || guardActive);
+    elShield.textContent = guardActive
+      ? "🛡 GUARD " + Math.max(1, Math.ceil((shieldGraceUntil - effectNow) / 1000)) + "s"
+      : (shield > 1 ? "🛡 SHIELD ×" + shield : "🛡 SHIELD");
+    if (combo > 1 && comboUntil - effectNow > 0) {
       elCombo.classList.add("on");
       elCombo.textContent = combo >= 5 ? "🌈 FRENZY ×" + combo : "COMBO ×" + combo;
     } else {
@@ -2604,6 +3483,114 @@
     requestAnimationFrame(loop);
   }
 
+  function shiftPausedDeadline(value, pauseDuration) {
+    return value > 0 ? value + pauseDuration : value;
+  }
+
+  function pauseGame() {
+    if (state !== "playing") return;
+    pausedAt = performance.now();
+    state = "paused";
+    pauseOverlay.classList.remove("hidden");
+  }
+
+  function resumeGame() {
+    if (state !== "paused") return;
+    const now = performance.now();
+    const pauseDuration = Math.max(0, now - pausedAt);
+
+    evolveUntil = shiftPausedDeadline(evolveUntil, pauseDuration);
+    multiplierUntil = shiftPausedDeadline(multiplierUntil, pauseDuration);
+    megaUntil = shiftPausedDeadline(megaUntil, pauseDuration);
+    slowmoUntil = shiftPausedDeadline(slowmoUntil, pauseDuration);
+    speedUpUntil = shiftPausedDeadline(speedUpUntil, pauseDuration);
+    beamCooldown = shiftPausedDeadline(beamCooldown, pauseDuration);
+    weatherUntil = shiftPausedDeadline(weatherUntil, pauseDuration);
+    comboUntil = shiftPausedDeadline(comboUntil, pauseDuration);
+    magikarpMove = shiftPausedDeadline(magikarpMove, pauseDuration);
+    magikarpUntil = shiftPausedDeadline(magikarpUntil, pauseDuration);
+    upgradeCalmUntil = shiftPausedDeadline(upgradeCalmUntil, pauseDuration);
+    shieldGraceUntil = shiftPausedDeadline(shieldGraceUntil, pauseDuration);
+
+    lastTick = shiftPausedDeadline(lastTick, pauseDuration);
+    lastTrail = shiftPausedDeadline(lastTrail, pauseDuration);
+    lastWildMove = shiftPausedDeadline(lastWildMove, pauseDuration);
+    lastMeteorTime = shiftPausedDeadline(lastMeteorTime, pauseDuration);
+    lastWeatherTime = shiftPausedDeadline(lastWeatherTime, pauseDuration);
+    lastMagikarpSpawn = shiftPausedDeadline(lastMagikarpSpawn, pauseDuration);
+
+    for (const meteor of meteors) meteor.landAt += pauseDuration;
+    for (const attack of bossAttacks) {
+      attack.activeAt += pauseDuration;
+      attack.until += pauseDuration;
+    }
+    if (boss) boss.nextAttack += pauseDuration;
+    if (beam) beam.until += pauseDuration;
+
+    pausedAt = 0;
+    state = "playing";
+    pauseOverlay.classList.add("hidden");
+    if (audio && audio.state === "suspended") audio.resume().catch(() => {});
+  }
+
+  function updateFullscreenButton() {
+    if (!elFullscreen) return;
+    if (!document.fullscreenEnabled) {
+      elFullscreen.hidden = true;
+      return;
+    }
+    elFullscreen.hidden = false;
+    const active = !!document.fullscreenElement;
+    elFullscreenLabel.textContent = t(active ? "fullscreen.exit" : "fullscreen.enter");
+    elFullscreen.setAttribute("aria-label", elFullscreenLabel.textContent);
+    elFullscreen.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  function fitFullscreenLayout() {
+    const root = document.documentElement;
+    if (!document.fullscreenElement) {
+      root.style.removeProperty("--fullscreen-size");
+      return;
+    }
+    const wrap = document.querySelector(".wrap");
+    const board = document.querySelector(".board");
+    const horizontalLimit = Math.min(window.innerWidth - 16, 620);
+    let size = Math.max(160, horizontalLimit);
+
+    // Beberapa iterasi diperlukan karena kartu upgrade dapat berganti jumlah baris saat lebar berubah.
+    for (let i = 0; i < 4; i++) {
+      root.style.setProperty("--fullscreen-size", size + "px");
+      const nonBoardHeight = wrap.scrollHeight - board.offsetHeight;
+      const verticalLimit = window.innerHeight - 16 - nonBoardHeight;
+      const nextSize = Math.max(160, Math.min(horizontalLimit, verticalLimit));
+      if (Math.abs(nextSize - size) < 1) break;
+      size = nextSize;
+    }
+    root.style.setProperty("--fullscreen-size", Math.floor(size) + "px");
+  }
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (error) {
+      console.warn("Fullscreen tidak tersedia:", error);
+    }
+  }
+
+  document.addEventListener("fullscreenchange", () => {
+    const active = !!document.fullscreenElement;
+    const justExited = fullscreenWasActive && !active;
+    fullscreenWasActive = active;
+    updateFullscreenButton();
+    if (active) requestAnimationFrame(fitFullscreenLayout);
+    else fitFullscreenLayout();
+    if (justExited && state === "playing") pauseGame();
+  });
+  window.addEventListener("resize", () => {
+    if (document.fullscreenElement) requestAnimationFrame(fitFullscreenLayout);
+  });
+
   // ---------- Input ----------
   function setDirection(name) {
     const d = DIRS[name];
@@ -2612,6 +3599,18 @@
   }
 
   window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (state === "playing") {
+        e.preventDefault();
+        pauseGame();
+      } else if (state === "paused") {
+        e.preventDefault();
+        initAudio();
+        resumeGame();
+      }
+      return;
+    }
+
     // Abaikan kontrol game saat mengetik di field nama player
     if (e.target && e.target.tagName === "INPUT") {
       if (e.key === "Enter" && state === "start") {
@@ -2695,6 +3694,8 @@
 
   document.getElementById("startBtn").addEventListener("click", () => { initAudio(); start(); });
   document.getElementById("restartBtn").addEventListener("click", () => { initAudio(); restart(); });
+  document.getElementById("resumeBtn").addEventListener("click", () => { initAudio(); resumeGame(); });
+  elFullscreen.addEventListener("click", toggleFullscreen);
 
   // Tombol ganti bahasa
   document.querySelectorAll(".lang-toggle button").forEach(btn => {

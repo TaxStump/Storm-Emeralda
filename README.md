@@ -8,6 +8,8 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 
 - **Gerak:** ← ↑ ↓ → atau WASD
 - **Hyper Beam:** Spasi atau tombol ⚡ pada kontrol HP
+- **Pause/Lanjutkan:** Escape
+- **Fullscreen:** tombol ⛶ FULLSCREEN pada komputer
 
 ## Fitur
 
@@ -16,8 +18,8 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 - Item: Berry, Potion, Rare Candy, Thunder Stone, Master Ball, Slowpoke Tail, Extreme Speed, Delta Stream, Meteorite, Mega Stone
 - Hazard & bonus: Draco Meteor, Portal, Golden Magikarp, Shiny item
 - Sistem cuaca (Sunny / Rain / Sandstorm / Hail), Combo, Frenzy, Gym Badges
-- Boss Battle setiap 5 level: Groudon, Kyogre, dan Deoxys
-- Upgrade roguelite otomatis dan acak setiap 3 level tanpa menghentikan permainan
+- Boss Battle setiap 5 level dengan skill unik: Precipice Blades Groudon, Origin Wave Kyogre, dan Psycho Boost + teleport Deoxys
+- Pilihan 1 dari 3 Emerald Blessing setiap 3 level; orb dipilih langsung di arena tanpa menghentikan permainan
 - Leaderboard online mingguan dan sepanjang masa
 
 ## Deploy
