@@ -617,12 +617,7 @@
   .lb-empty { padding: 10px 0; text-align: center; color: #9c917d; font-size: 11px; }
 
   .boss-hud {
-    position: absolute;
-    z-index: 3;
-    top: 10px;
-    left: 50%;
-    width: min(78%, 340px);
-    transform: translateX(-50%);
+    width: 100%;
     padding: 7px 10px;
     border: 1px solid rgba(255,120,100,.7);
     border-radius: 9px;
@@ -630,7 +625,7 @@
     box-shadow: 0 4px 18px rgba(0,0,0,.55);
     pointer-events: none;
   }
-  .boss-hud.hidden { display: none; }
+  .boss-hud.hidden { visibility: hidden; }
   .boss-name {
     display: flex;
     justify-content: space-between;
@@ -663,10 +658,11 @@
 
   .dpad {
     display: none;
-    grid-template-columns: repeat(3, 58px);
-    grid-template-rows: repeat(3, 58px);
+    grid-template-columns: 64px minmax(8px, 1fr) repeat(3, 48px);
+    grid-template-rows: repeat(3, 48px);
     gap: 5px;
-    justify-content: center;
+    width: 100%;
+    touch-action: none;
   }
   .dpad button {
     font-size: 20px;
@@ -679,12 +675,14 @@
     touch-action: manipulation;
   }
   .dpad button:active { transform: translateY(2px); border-bottom-width: 2px; }
-  .dpad .up    { grid-area: 1 / 2; }
-  .dpad .left  { grid-area: 2 / 1; }
-  .dpad .right { grid-area: 2 / 3; }
-  .dpad .down  { grid-area: 3 / 2; }
+  .dpad .up    { grid-area: 1 / 4; }
+  .dpad .left  { grid-area: 2 / 3; }
+  .dpad .right { grid-area: 2 / 5; }
+  .dpad .down  { grid-area: 3 / 4; }
   .dpad .fire {
-    grid-area: 2 / 2;
+    grid-area: 2 / 1;
+    height: 64px;
+    align-self: center;
     font-size: 18px;
     font-weight: 900;
     color: #062a30;
@@ -700,6 +698,8 @@
   }
 
   @media (max-width: 700px), (pointer: coarse) {
+    body { align-items: flex-start; }
+    body::before, body::after, .bg-ornament { animation: none; }
     .dpad { display: grid; }
     .keys { display: none; }
   }
@@ -790,14 +790,14 @@
     <div class="upgrade-hint" id="upgradeHint"></div>
     <div class="beam-hint" id="beamHint"></div>
 
-    <div class="board">
-      <canvas id="game" width="480" height="480"></canvas>
-
-      <div class="boss-hud hidden" id="bossHud">
+    <div class="boss-hud hidden" id="bossHud">
         <div class="boss-name"><span id="bossName">BOSS</span><span id="bossHp">0/0</span></div>
         <div class="boss-track"><div class="boss-fill" id="bossFill"></div></div>
         <div class="boss-skill" id="bossSkill"></div>
-      </div>
+    </div>
+
+    <div class="board">
+      <canvas id="game" width="480" height="480"></canvas>
 
       <div class="overlay" id="startOverlay">
         <h2>STORM EMERALDA</h2>
@@ -856,6 +856,7 @@
 
   // ---------- Konfigurasi ----------
   const COLS = 20, ROWS = 20, CELL = 24;
+  const calmMotion = window.matchMedia("(max-width: 700px), (pointer: coarse), (prefers-reduced-motion: reduce)");
 
   // Leaderboard online (Supabase)
   const SB_URL = "https://iimwrkjdbfifddhcrydd.supabase.co";
@@ -1571,7 +1572,7 @@
         const x = attack.axis === "vertical" ? line : i;
         const y = attack.axis === "vertical" ? i : line;
         const corridorCoord = attack.axis === "vertical" ? y : x;
-        if (Math.abs(corridorCoord - attack.gap) > 1) cells.push({ x, y });
+        if (Math.abs(corridorCoord - attack.gap) > attack.gapRadius) cells.push({ x, y });
       }
     } else if (attack.type === "psycho") {
       for (let i = 0; i < COLS; i++) {
@@ -1663,7 +1664,8 @@
     return {
       type: "wave",
       axis,
-      gap: gridClamp(corridorPrediction, 2),
+      gap: gridClamp(corridorPrediction, 4),
+      gapRadius: 4,
       reverse: boss.attackCycle % 4 >= 2,
       activeAt: now + 1400,
       until: now + 3900,
@@ -1695,7 +1697,8 @@
       sfx.meteor();
     } else if (boss.skill === "kyogre") {
       attack = createKyogreAttack(now);
-      interval = Math.max(3900, 4550 - tier * 150);
+      // Leave recovery time between waves, including later boss rounds.
+      interval = Math.max(6200, 7000 - tier * 150);
       sfx.slow();
     } else {
       attack = createDeoxysAttack(now);
@@ -2481,18 +2484,18 @@
       ctx.save();
 
       if (attack.type === "wave") {
+        const corridorStart = (attack.gap - attack.gapRadius) * CELL;
+        const corridorWidth = (attack.gapRadius * 2 + 1) * CELL;
         ctx.fillStyle = "rgba(55,214,122,.09)";
         ctx.strokeStyle = "rgba(118,230,154,.55)";
         ctx.lineWidth = 1.5;
         ctx.setLineDash([7, 6]);
         if (attack.axis === "vertical") {
-          const y = (attack.gap - 1) * CELL;
-          ctx.fillRect(0, y, canvas.width, CELL * 3);
-          ctx.strokeRect(0, y, canvas.width, CELL * 3);
+          ctx.fillRect(0, corridorStart, canvas.width, corridorWidth);
+          ctx.strokeRect(0, corridorStart, canvas.width, corridorWidth);
         } else {
-          const x = (attack.gap - 1) * CELL;
-          ctx.fillRect(x, 0, CELL * 3, canvas.height);
-          ctx.strokeRect(x, 0, CELL * 3, canvas.height);
+          ctx.fillRect(corridorStart, 0, corridorWidth, canvas.height);
+          ctx.strokeRect(corridorStart, 0, corridorWidth, canvas.height);
         }
         ctx.setLineDash([]);
       }
@@ -3295,6 +3298,7 @@
     drawBackground();
 
     ctx.save();
+    if (calmMotion.matches) shake = 0;
     if (shake > 0) {
       ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
       shake *= 0.85;
