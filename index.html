@@ -23,7 +23,7 @@
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     overflow-x: hidden;
     isolation: isolate;
     background: #060a12;
@@ -192,6 +192,17 @@
     backdrop-filter: blur(10px);
   }
   .hud .stat { display: flex; flex-direction: column; line-height: 1.05; }
+  .status-effects {
+    display: flex;
+    flex: 0 0 100%;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+  .status-effects > * { flex-shrink: 0; }
   .hud .label {
     font-size: 9px;
     letter-spacing: 1.2px;
@@ -213,7 +224,6 @@
     font-size: 12px;
     border-radius: 7px;
     padding: 3px 8px;
-    animation: pulse 0.6s infinite alternate;
   }
   .badge.on { display: flex; }
   .badge.mega {
@@ -245,7 +255,6 @@
     font-size: 12px;
     border-radius: 7px;
     padding: 3px 8px;
-    animation: pulse 0.45s infinite alternate;
   }
   .combo.on { display: flex; }
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
@@ -262,7 +271,7 @@
     justify-content: center;
     flex-wrap: wrap;
     gap: 4px;
-    min-height: 0;
+    min-height: 22px;
   }
   .upgrade-chip {
     padding: 2px 6px;
@@ -274,7 +283,10 @@
     font-weight: 800;
   }
   .upgrade-hint {
-    min-height: 0;
+    order: 20;
+    flex: none;
+    height: 100px;
+    overflow-y: auto;
     text-align: center;
     color: #d8fbff;
     font-size: 10px;
@@ -329,7 +341,9 @@
     font-size: 11px;
     letter-spacing: .5px;
     color: #7ee8a0;
-    min-height: 14px;
+    height: 16px;
+    flex: none;
+    line-height: 16px;
   }
   .beam-hint.cooling { color: #9c917d; }
   .nature-hud {
@@ -673,7 +687,7 @@
     text-align: center;
     text-shadow: 0 1px 4px rgba(0,0,0,.8);
   }
-  .boss-skill.warning { color: #ffe071; animation: pulse .42s infinite alternate; }
+  .boss-skill.warning { color: #ffe071; }
   .boss-skill.active { color: #ff8b7c; }
   .boss-skill.recovery { color: #76e69a; }
 
@@ -741,6 +755,7 @@
   @media (prefers-reduced-motion: reduce) {
     body::before, body::after, .bg-ornament { animation: none; }
   }
+  body::before, body::after, .bg-ornament { animation: none; }
 
   :fullscreen { overflow: hidden; }
   :fullscreen body {
@@ -798,6 +813,7 @@
       <div class="stat"><span class="label" data-i18n="hud.score">Skor</span><span class="value" id="score">0</span></div>
       <div class="stat"><span class="label">Level</span><span class="value" id="level">1</span></div>
       <div class="stat"><span class="label">High Score</span><span class="value" id="high">0</span></div>
+      <div class="status-effects">
       <div class="combo" id="combo">COMBO ×2</div>
       <div class="badge" id="badge">⚡ 2× POIN</div>
       <div class="badge mega" id="megaBadge">💠 MEGA ×3</div>
@@ -805,6 +821,7 @@
       <div class="badge slow" id="slowBadge">🍖 SLOW</div>
       <div class="badge speed" id="speedBadge">💨 SPEED ×2</div>
       <div class="badge weather" id="weatherBadge">☀️</div>
+      </div>
     </div>
 
     <div class="badges" id="badges"></div>
@@ -885,7 +902,6 @@
 
   // ---------- Konfigurasi ----------
   const COLS = 20, ROWS = 20, CELL = 24;
-  const calmMotion = window.matchMedia("(max-width: 700px), (pointer: coarse), (prefers-reduced-motion: reduce)");
 
   // Leaderboard online (Supabase)
   const SB_URL = "https://iimwrkjdbfifddhcrydd.supabase.co";
@@ -1150,7 +1166,6 @@
   let badgeCount = 0;
   let lastWildMove = 0;
   let particles = [], popups = [], rings = [];
-  let shake = 0;
   let state = "start";
   let pausedAt = 0;
   let fullscreenWasActive = false;
@@ -1672,7 +1687,6 @@
     updateBossHud();
     updateBossSkillHud(performance.now());
     spawnPopup(boss.x, boss.y - 2, t("boss.appears"), type.accent);
-    shake = 6;
     sfx.meteor();
   }
 
@@ -1681,7 +1695,6 @@
     boss.hp = Math.max(0, boss.hp - amount);
     burst(boss.x, boss.y, boss.accent);
     spawnPopup(boss.x, boss.y - 1, "-" + amount, "#ffffff");
-    shake = 7;
     updateBossHud();
     if (boss.hp <= 0) defeatBoss();
   }
@@ -1944,7 +1957,6 @@
     terrain = [];
     natureBalance = 0;
     nextTerrain = performance.now() + 8500;
-    shake = 8;
   }
 
   function reset() {
@@ -1999,7 +2011,6 @@
     particles = [];
     popups = [];
     rings = [];
-    shake = 0;
     pausedAt = 0;
     boss = null;
     bossAttacks = [];
@@ -2203,7 +2214,6 @@
     evolved = true;
     evolveUntil = performance.now() + 15000 + upgrades.mega * 3000;
     if (upgrades.mega >= 3) beamCooldown = 0;
-    shake = 4;
     const hx = snake[0].x, hy = snake[0].y;
     burst(hx, hy, "#7cf0ff");
     spawnRing(hx, hy, "#f6c945");
@@ -2221,7 +2231,6 @@
     renderUpgradeHint();
     bossHud.classList.add("hidden");
     bossSkill.textContent = "";
-    shake = 14;
     sfx.over();
     finalScore.textContent = t("over.scorePrefix") + score;
 
@@ -3584,12 +3593,6 @@
     drawBackground();
 
     ctx.save();
-    if (calmMotion.matches) shake = 0;
-    if (shake > 0) {
-      ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
-      shake *= 0.85;
-      if (shake < 0.5) shake = 0;
-    }
 
     for (const r of rocks) drawRock(r.x, r.y);
     for (const w of wilds) {
