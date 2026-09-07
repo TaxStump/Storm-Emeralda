@@ -332,6 +332,22 @@
     min-height: 14px;
   }
   .beam-hint.cooling { color: #9c917d; }
+  .nature-hud {
+    padding: 7px 10px;
+    border: 1px solid rgba(118,230,154,.3);
+    border-radius: 9px;
+    background: rgba(9,20,27,.9);
+    font-size: 10px;
+  }
+  .nature-labels, .nature-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nature-labels { color: #9ee8ff; font-weight: 800; }
+  .nature-labels span:first-child { color: #ffd166; }
+  .nature-track { position: relative; height: 7px; margin: 6px 0; border-radius: 8px; background: linear-gradient(90deg, #d76742, #76e69a 45%, #76e69a 55%, #3286e6); }
+  .nature-marker { position: absolute; top: -2px; left: 50%; width: 3px; height: 11px; background: white; transform: translateX(-50%); border-radius: 2px; }
+  .nature-status { flex: 1; min-width: 0; line-height: 1.4; height: 42px; display: flex; align-items: center; }
+  .air-lock-btn { flex: none; width: 132px; min-height: 40px; padding: 5px 7px; border: 1px solid #76e69a; border-radius: 8px; background: #173b30; color: #d8ffe8; font: inherit; font-weight: 800; cursor: pointer; touch-action: manipulation; }
+  .air-lock-btn:disabled { opacity: .6; cursor: default; }
+  .air-lock-btn.active { background: #28664e; opacity: 1; }
 
   /* ---- Ornamen Pokémon ---- */
   .pokeball {
@@ -450,7 +466,9 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     align-items: center;
     gap: 10px;
     text-align: center;
@@ -469,7 +487,9 @@
     border-radius: 10px;
     pointer-events: none;
   }
-  .overlay > * { position: relative; z-index: 1; }
+  .overlay > * { position: relative; z-index: 1; flex-shrink: 0; }
+  .overlay > :first-child { margin-top: auto; }
+  .overlay > :last-child { margin-bottom: auto; }
   .overlay.hidden { display: none; }
 
   .overlay h2 {
@@ -655,6 +675,7 @@
   }
   .boss-skill.warning { color: #ffe071; animation: pulse .42s infinite alternate; }
   .boss-skill.active { color: #ff8b7c; }
+  .boss-skill.recovery { color: #76e69a; }
 
   .dpad {
     display: none;
@@ -791,6 +812,12 @@
     <div class="upgrade-hint" id="upgradeHint"></div>
     <div class="beam-hint" id="beamHint"></div>
 
+    <div class="nature-hud">
+      <div class="nature-labels"><span>GROUDON</span><span data-i18n="nature.title">KESEIMBANGAN ALAM</span><span>KYOGRE</span></div>
+      <div class="nature-track" id="natureMeter" role="meter" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><span class="nature-marker" id="natureMarker"></span></div>
+      <div class="nature-actions"><span class="nature-status" id="natureStatus"></span><button class="air-lock-btn" id="airLockBtn" type="button" disabled>AIR LOCK · 0%</button></div>
+    </div>
+
     <div class="boss-hud hidden" id="bossHud">
         <div class="boss-name"><span id="bossName">BOSS</span><span id="bossHp">0/0</span></div>
         <div class="boss-track"><div class="boss-fill" id="bossFill"></div></div>
@@ -803,6 +830,11 @@
       <div class="overlay" id="startOverlay">
         <h2>STORM EMERALDA</h2>
         <p data-i18n-html="start.desc">Kendalikan <b>Rayquaza</b>, kumpulkan item Pokémon,<br>makan <b>Meteorite</b> untuk jadi <b>Mega Rayquaza</b>!</p>
+        <div class="name-field">
+          <label data-i18n="name.label">NAMA PLAYER</label>
+          <input type="text" id="playerName" maxlength="20" placeholder="Masukkan nama..." data-i18n-ph="name.ph" autocomplete="off" />
+        </div>
+        <button class="btn" id="startBtn" data-i18n="start.btn">MULAI</button>
         <div class="legend">
           <span data-i18n="legend.berry">🫐 Beri = poin</span> <span data-i18n="legend.potion">🧪 Potion = perisai</span> <span>⚡ 2×</span><br>
           <span>💠 Mega ×3</span> <span data-i18n="legend.speed">💨 Extreme Speed = ngebut ×2</span><br>
@@ -811,6 +843,7 @@
           <span data-i18n="legend.delta">🟢 Delta Stream = bersihkan</span> <span>⚡ Hyper Beam [Space]</span><br>
           <span data-i18n="legend.weather">🌦️ Cuaca berganti (Sunny/Rain/Sand/Hail)</span> <span data-i18n="legend.frenzy">🌈 Frenzy di combo ×5</span><br>
           <span data-i18n="legend.boss">⚠ Boss setiap 5 level — serang dengan Hyper Beam</span>
+          <br><span data-i18n="legend.nature">◆ Orb biru melawan panas; orb jingga melawan hujan. Air Lock [Q] meredakan bahaya 5 detik.</span>
         </div>
         <div class="keys">
           <span class="key">←</span><span class="key">↑</span>
@@ -818,11 +851,6 @@
           <span style="padding-top:3px" data-i18n="keys.or">atau</span>
           <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
         </div>
-        <div class="name-field">
-          <label data-i18n="name.label">NAMA PLAYER</label>
-          <input type="text" id="playerName" maxlength="20" placeholder="Masukkan nama..." data-i18n-ph="name.ph" autocomplete="off" />
-        </div>
-        <button class="btn" id="startBtn" data-i18n="start.btn">MULAI</button>
       </div>
 
       <div class="overlay pause-overlay hidden" id="pauseOverlay">
@@ -897,6 +925,17 @@
       "boss.defeated": "BOSS DIKALAHKAN!",
       "boss.skill.warning": "BERSIAP",
       "boss.skill.active": "SERANGAN AKTIF",
+      "boss.recovery": "CELAH! HYPER BEAM +1 DAMAGE",
+      "nature.title": "KESEIMBANGAN ALAM",
+      "nature.balanced": "Seimbang · ambil orb ◆ untuk mengisi Air Lock",
+      "nature.land": "Panas · hindari retakan! Ambil orb biru ◆",
+      "nature.ocean": "Hujan · arus memperlambat. Ambil orb jingga ◆",
+      "nature.calm": "Air Lock · cuaca dan bahaya alam diredakan",
+      "nature.restored": "ALAM SEIMBANG!",
+      "nature.charge": "AIR LOCK +",
+      "air.ready": "AIR LOCK [Q] · SIAP",
+      "air.help": "Redakan cuaca, retakan, arus, meteor, dan serangan Groudon/Kyogre selama 5 detik. Dinding, tubuh, dan Pokémon tetap berbahaya.",
+      "legend.nature": "◆ Orb biru melawan panas; orb jingga melawan hujan. Air Lock [Q] meredakan bahaya 5 detik.",
       "boss.skill.groudon": "PRECIPICE BLADES",
       "boss.skill.kyogre": "ORIGIN WAVE",
       "boss.skill.deoxys": "PSYCHO BOOST",
@@ -943,6 +982,17 @@
       "boss.defeated": "BOSS DEFEATED!",
       "boss.skill.warning": "GET READY",
       "boss.skill.active": "ATTACK ACTIVE",
+      "boss.recovery": "OPENING! HYPER BEAM +1 DAMAGE",
+      "nature.title": "NATURE BALANCE",
+      "nature.balanced": "Balanced · collect ◆ orbs to charge Air Lock",
+      "nature.land": "Heat · avoid fissures! Collect blue ◆ orbs",
+      "nature.ocean": "Rain · currents slow movement. Collect orange ◆ orbs",
+      "nature.calm": "Air Lock · weather and natural hazards suppressed",
+      "nature.restored": "BALANCE RESTORED!",
+      "nature.charge": "AIR LOCK +",
+      "air.ready": "AIR LOCK [Q] · READY",
+      "air.help": "Suppress weather, fissures, currents, meteors, and Groudon/Kyogre attacks for 5 seconds. Walls, body, and Pokémon remain dangerous.",
+      "legend.nature": "◆ Blue orbs counter heat; orange orbs counter rain. Air Lock [Q] calms hazards for 5 seconds.",
       "boss.skill.groudon": "PRECIPICE BLADES",
       "boss.skill.kyogre": "ORIGIN WAVE",
       "boss.skill.deoxys": "PSYCHO BOOST",
@@ -984,6 +1034,7 @@
     renderUpgradeHint();
     renderUpgradeChips();
     updateFullscreenButton();
+    updateNatureHud(state === "paused" ? pausedAt : performance.now());
     if (boss) updateBossSkillHud(state === "paused" ? pausedAt : performance.now());
   }
 
@@ -1088,6 +1139,9 @@
   let lastMeteorTime = 0;
   let beam = null, beamCooldown = 0;
   let weather = null, weatherUntil = 0, lastWeatherTime = 0;
+  let natureBalance = 0, natureTurn = 0, nextNaturePulse = 0;
+  let natureOrbs = [], terrain = [], nextNatureOrb = 0, nextTerrain = 0;
+  let airLockCharge = 0, airLockUntil = 0;
   let combo = 0, comboUntil = 0;
   let rocks = [];
   let wilds = [];
@@ -1121,6 +1175,10 @@
   const elBeamHint = document.getElementById("beamHint");
   const elFire     = document.getElementById("fireBtn");
   const elWeather  = document.getElementById("weatherBadge");
+  const elNatureMeter = document.getElementById("natureMeter");
+  const elNatureMarker = document.getElementById("natureMarker");
+  const elNatureStatus = document.getElementById("natureStatus");
+  const elAirLock = document.getElementById("airLockBtn");
   const elCombo   = document.getElementById("combo");
   const elBadges  = document.getElementById("badges");
   const elUpgradeChips = document.getElementById("upgradeChips");
@@ -1219,15 +1277,22 @@
            portals.some(p => p.x === x && p.y === y) ||
            meteors.some(m => m.x === x && m.y === y) ||
            upgradeChoices.some(c => c.x === x && c.y === y) ||
+           natureOrbs.some(c => c.x === x && c.y === y) ||
+           terrain.some(c => c.x === x && c.y === y) ||
+           bossAttacks.some(attack => performance.now() < attack.until && bossAttackCells(attack, performance.now()).some(c => c.x === x && c.y === y)) ||
            insideBossBody(x, y) ||
            (magikarp && magikarp.x === x && magikarp.y === y);
   }
 
   function randomCell() {
-    let x, y;
-    do { x = Math.floor(Math.random() * COLS); y = Math.floor(Math.random() * ROWS); }
-    while (occupied(x, y));
-    return { x, y };
+    for (let i = 0; i < 200; i++) {
+      const x = Math.floor(Math.random() * COLS), y = Math.floor(Math.random() * ROWS);
+      if (!occupied(x, y)) return { x, y };
+    }
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      if (!occupied(x, y)) return { x, y };
+    }
+    return null;
   }
 
   function safeCell() {
@@ -1250,6 +1315,8 @@
       portals.some(p => p.x === x && p.y === y) ||
       meteors.some(m => m.x === x && m.y === y) ||
       (food && food.x === x && food.y === y) ||
+      natureOrbs.some(c => c.x === x && c.y === y) ||
+      terrain.some(c => c.x === x && c.y === y) ||
       insideBossBody(x, y) ||
       (magikarp && magikarp.x === x && magikarp.y === y);
     const start = snake[0];
@@ -1352,7 +1419,111 @@
 
   function spawnFood() {
     const pos = randomCell();
-    food = { ...pos, type: pickFood(), shiny: Math.random() < Math.min(0.3, 0.15 + upgrades.lucky * 0.05) };
+    food = pos ? { ...pos, type: pickFood(), shiny: Math.random() < Math.min(0.3, 0.15 + upgrades.lucky * 0.05) } : null;
+  }
+
+  // Nature energy does not grow the snake: it is a separate route choice.
+  function airLockActive(now) { return now < airLockUntil; }
+
+  function effectiveWeather(now = performance.now()) {
+    if (airLockActive(now)) return null;
+    if (natureBalance <= -25) return "sunny";
+    if (natureBalance >= 25) return "rain";
+    return now < weatherUntil ? weather : null;
+  }
+
+  function changeNature(amount) {
+    natureBalance = Math.max(-100, Math.min(100, natureBalance + amount));
+    // A weather change removes old terrain before any new warning can appear.
+    const kind = natureBalance <= -25 ? "fissure" : natureBalance >= 25 ? "current" : null;
+    terrain = terrain.filter(cell => cell.kind === kind);
+  }
+
+  function collectNatureOrb(orb, now) {
+    const before = Math.abs(natureBalance);
+    changeNature(orb.polarity * 30);
+    const restored = Math.abs(natureBalance) < before;
+    const charge = restored ? 30 : 10;
+    airLockCharge = Math.min(100, airLockCharge + charge);
+    natureOrbs = [];
+    nextNatureOrb = now + 3500;
+    spawnRing(orb.x, orb.y, "#76e69a");
+    spawnPopup(orb.x, orb.y - 1, t("nature.charge") + charge + "%", "#76e69a");
+    if (restored && Math.abs(natureBalance) < 25) {
+      weather = null;
+      weatherUntil = 0;
+      lastWeatherTime = now;
+      spawnPopup(orb.x, orb.y - 2, t("nature.restored"), "#d8ffe8");
+    }
+    sfx.rare();
+  }
+
+  function activateAirLock() {
+    if (state !== "playing" || airLockCharge < 100) return;
+    const now = performance.now();
+    if (airLockActive(now)) return;
+    airLockCharge = 0;
+    airLockUntil = now + 5000;
+    terrain = [];
+    meteors = [];
+    lastMeteorTime = now;
+    nextTerrain = airLockUntil + 2500;
+    if (boss && boss.skill !== "deoxys") {
+      bossAttacks = [];
+      boss.recoveryAt = now;
+      boss.nextAttack = Math.max(boss.nextAttack, airLockUntil + 1400);
+    }
+    spawnRing(snake[0].x, snake[0].y, "#76e69a");
+    spawnPopup(snake[0].x, snake[0].y - 1, "AIR LOCK", "#d8ffe8");
+    sfx.clear();
+    updateNatureHud(now);
+  }
+
+  function updateNature(now) {
+    if (now >= nextNaturePulse && !airLockActive(now)) {
+      natureTurn++;
+      const influence = boss?.skill === "groudon" ? -1 : boss?.skill === "kyogre" ? 1
+        : Math.sign(natureBalance) || (natureTurn % 2 ? -1 : 1);
+      changeNature(influence * 25);
+      nextNaturePulse = now + 12000;
+    }
+    if (!natureOrbs.length && now >= nextNatureOrb && !upgradeChoices.length) {
+      for (const polarity of [-1, 1]) {
+        const cell = safeCell();
+        if (cell) natureOrbs.push({ ...cell, polarity });
+      }
+      if (natureOrbs.length < 2) natureOrbs = [];
+      // Retry without blocking the game if a crowded board has no free cells.
+      nextNatureOrb = now + 3500;
+    }
+    terrain = terrain.filter(cell => now < cell.until);
+    if (airLockActive(now) || boss || level() < 3 || now < upgradeCalmUntil || now < nextTerrain) return;
+    nextTerrain = now + 8500;
+    const kind = natureBalance <= -25 ? "fissure" : natureBalance >= 25 ? "current" : null;
+    if (!kind) return;
+    // Three isolated cells maximum; no extra meteor burst during this event.
+    terrain = [];
+    for (let i = 0; i < 3; i++) {
+      const cell = safeCell();
+      if (cell) terrain.push({ ...cell, kind, activeAt: now + 2000, until: now + 6000 });
+    }
+    lastMeteorTime = now;
+  }
+
+  function updateNatureHud(now) {
+    const active = airLockActive(now);
+    const key = active ? "nature.calm" : natureBalance <= -25 ? "nature.land"
+      : natureBalance >= 25 ? "nature.ocean" : "nature.balanced";
+    elNatureStatus.textContent = t(key);
+    elNatureMarker.style.left = (natureBalance + 100) / 2 + "%";
+    elNatureMeter.setAttribute("aria-valuenow", String(natureBalance));
+    elNatureMeter.setAttribute("aria-label", t("nature.title"));
+    elNatureMeter.setAttribute("aria-valuetext", t(key));
+    elAirLock.disabled = state !== "playing" || active || airLockCharge < 100;
+    elAirLock.classList.toggle("active", active);
+    elAirLock.title = t("air.help");
+    elAirLock.textContent = active ? "AIR LOCK · " + Math.ceil((airLockUntil - now) / 1000) + "s"
+      : airLockCharge >= 100 ? t("air.ready") : "AIR LOCK · " + airLockCharge + "%";
   }
 
   function syncRocks() {
@@ -1402,7 +1573,7 @@
   }
 
   function moveWilds() {
-    if (weather === "rain") return; // hujan: Pokémon liar sembunyi
+    if (effectiveWeather() === "rain") return; // hujan: Pokémon liar sembunyi
     const dirs = [DIRS.up, DIRS.down, DIRS.left, DIRS.right];
     const head = snake[0];
     for (const w of wilds) {
@@ -1429,6 +1600,7 @@
   }
 
   function fireBeam() {
+    if (state !== "playing") return;
     const now = performance.now();
     if (beamCooldown > now) return;
     beamCooldown = now + (5000 - upgrades.beam * 600);
@@ -1448,12 +1620,13 @@
       rocks = rocks.filter(r => !(r.x === c.x && r.y === c.y));
       wilds = wilds.filter(w => !(w.x === c.x && w.y === c.y));
       meteors = meteors.filter(m => !(m.x === c.x && m.y === c.y));
+      terrain = terrain.filter(m => !(m.x === c.x && m.y === c.y));
       spawnParticles(c.x, c.y, "#7cf0ff");
     }
     disruptBossAttacks(cells, now);
     if (boss && cells.some(c => c.x === boss.x && c.y === boss.y)) {
       const upgradeDamage = Math.max(0, upgrades.beam - 1);
-      damageBoss(1 + upgradeDamage + (evolved ? 1 : 0));
+      damageBoss(1 + upgradeDamage + (evolved ? 1 : 0) + (bossRecovering(now) ? 1 : 0));
     }
     beam = { cells, until: now + 250 };
     sfx.beam();
@@ -1462,22 +1635,38 @@
   function startBoss() {
     const type = BOSS_TYPES[bossCount % BOSS_TYPES.length];
     const head = snake[0];
+    const validPosition = c => c && c.x >= 2 && c.x < COLS - 2 && c.y >= 2 && c.y < ROWS - 2
+      && Math.abs(c.x - head.x) + Math.abs(c.y - head.y) >= 7
+      && !snake.some(s => Math.abs(s.x - c.x) <= 1 && Math.abs(s.y - c.y) <= 1);
     let pos = null;
     for (let i = 0; i < 100; i++) {
       const c = safeCell();
-      if (c && Math.abs(c.x - head.x) + Math.abs(c.y - head.y) >= 7) { pos = c; break; }
+      if (validPosition(c)) { pos = c; break; }
     }
-    pos = pos || { x: head.x < COLS / 2 ? COLS - 4 : 3, y: head.y < ROWS / 2 ? ROWS - 4 : 3 };
+    if (!pos) {
+      for (let y = 2; y < ROWS - 2 && !pos; y++) for (let x = 2; x < COLS - 2; x++) {
+        if (validPosition({ x, y }) && !occupied(x, y)) { pos = { x, y }; break; }
+      }
+    }
+    if (!pos) return; // Retry progression after the player opens space.
     const hp = 7 + bossCount * 3;
-    boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp, nextAttack: performance.now() + 2200, attackCycle: 0 };
+    const now = performance.now();
+    boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp,
+      nextAttack: Math.max(now + 2200, type.skill !== "deoxys" ? airLockUntil + 1400 : 0),
+      recoveryAt: 0, attackCycle: 0 };
     bossAttacks = [];
+    terrain = [];
+    meteors = [];
+    if (natureOrbs.some(orb => insideBossBody(orb.x, orb.y))) natureOrbs = [];
+    if (type.skill === "groudon") changeNature(-30);
+    if (type.skill === "kyogre") changeNature(30);
     bossCount++;
     rocks = rocks.filter(r => Math.abs(r.x - boss.x) + Math.abs(r.y - boss.y) > 2);
     wilds = wilds.filter(w => Math.abs(w.x - boss.x) + Math.abs(w.y - boss.y) > 2);
     portals = portals.filter(p => Math.abs(p.x - boss.x) + Math.abs(p.y - boss.y) > 1);
     if (food && insideBossBody(food.x, food.y)) {
       const newFoodPos = randomCell();
-      food = { ...food, ...newFoodPos };
+      food = newFoodPos ? { ...food, ...newFoodPos } : null;
     }
     bossHud.classList.remove("hidden");
     updateBossHud();
@@ -1507,6 +1696,10 @@
     boss = null;
     bossAttacks = [];
     nextBossLevel += 5;
+    changeNature(-Math.sign(natureBalance) * Math.min(30, Math.abs(natureBalance)));
+    airLockCharge = Math.min(100, airLockCharge + 25);
+    nextTerrain = performance.now() + 5000;
+    lastMeteorTime = performance.now();
     bossHud.classList.add("hidden");
     bossSkill.textContent = "";
     meteors = meteors.filter(m => !m.bossAttack);
@@ -1521,6 +1714,10 @@
     bossFill.style.width = (boss.hp / boss.maxHp * 100) + "%";
   }
 
+  function bossRecovering(now) {
+    return !!boss && boss.recoveryAt > 0 && now >= boss.recoveryAt && now < boss.nextAttack;
+  }
+
   function updateBossSkillHud(now) {
     if (!boss) {
       bossSkill.textContent = "";
@@ -1530,6 +1727,11 @@
     const attack = bossAttacks.find(item => now < item.until);
     const skillName = t("boss.skill." + boss.skill);
     bossSkill.className = "boss-skill";
+    if (bossRecovering(now)) {
+      bossSkill.classList.add("recovery");
+      bossSkill.textContent = t("boss.recovery") + " · " + Math.ceil((boss.nextAttack - now) / 1000) + "s";
+      return;
+    }
     if (!attack) {
       bossSkill.textContent = skillName + " · " + t("boss.tip." + boss.skill);
       return;
@@ -1587,6 +1789,7 @@
 
   function bossAttackHits(x, y, now) {
     return bossAttacks.some(attack =>
+      !(airLockActive(now) && attack.type !== "psycho") &&
       now >= attack.activeAt && now < attack.until &&
       bossAttackCells(attack, now).some(cell => cell.x === x && cell.y === y)
     );
@@ -1626,12 +1829,13 @@
     spawnParticles(old.x, old.y, "#7cf0ff", 16, 2.2);
     boss.x = pos.x;
     boss.y = pos.y;
+    if (natureOrbs.some(orb => insideBossBody(orb.x, orb.y))) natureOrbs = [];
     rocks = rocks.filter(r => Math.abs(r.x - boss.x) + Math.abs(r.y - boss.y) > 2);
     wilds = wilds.filter(w => Math.abs(w.x - boss.x) + Math.abs(w.y - boss.y) > 2);
     portals = portals.filter(p => Math.abs(p.x - boss.x) + Math.abs(p.y - boss.y) > 1);
     if (food && insideBossBody(food.x, food.y)) {
       const newFoodPos = randomCell();
-      food = { ...food, ...newFoodPos };
+      food = newFoodPos ? { ...food, ...newFoodPos } : null;
     }
     spawnRing(boss.x, boss.y, "#7cf0ff");
     spawnParticles(boss.x, boss.y, "#c47cff", 20, 2.5);
@@ -1688,6 +1892,7 @@
 
   function bossAttack(now) {
     if (!boss || now < boss.nextAttack) return;
+    if (airLockActive(now) && boss.skill !== "deoxys") return;
     boss.attackCycle++;
     const tier = Math.floor(Math.max(0, bossCount - 1) / BOSS_TYPES.length);
     let attack;
@@ -1708,7 +1913,10 @@
       sfx.beam();
     }
     bossAttacks.push(attack);
-    boss.nextAttack = now + interval;
+    boss.recoveryAt = attack.until;
+    boss.nextAttack = Math.max(now + interval, attack.until + 2200);
+    if (boss.skill === "groudon") changeNature(-10);
+    if (boss.skill === "kyogre") changeNature(10);
     spawnPopup(boss.x, boss.y - 2, t("boss.skill." + boss.skill), boss.accent);
     updateBossSkillHud(now);
   }
@@ -1733,6 +1941,9 @@
     weather = null;
     weatherUntil = 0;
     lastWeatherTime = performance.now();
+    terrain = [];
+    natureBalance = 0;
+    nextTerrain = performance.now() + 8500;
     shake = 8;
   }
 
@@ -1765,6 +1976,15 @@
     weather = null;
     weatherUntil = 0;
     lastWeatherTime = 0;
+    natureBalance = 0;
+    natureTurn = 0;
+    nextNaturePulse = performance.now() + 12000;
+    natureOrbs = [];
+    terrain = [];
+    nextNatureOrb = performance.now() + 3500;
+    nextTerrain = performance.now() + 12000;
+    airLockCharge = 0;
+    airLockUntil = 0;
     combo = 0;
     comboUntil = 0;
     rocks = [];
@@ -1797,8 +2017,10 @@
     elBadges.innerHTML = "";
     elUpgradeChips.innerHTML = "";
     renderUpgradeHint();
+    food = null;
     spawnFood();
     updateHud();
+    updateNatureHud(performance.now());
   }
 
   function level() { return Math.floor(score / 100) + 1; }
@@ -1816,6 +2038,9 @@
     if (evolved) ms -= 5;   // Mega Rayquaza sedikit lebih cepat
     if (speedUp && performance.now() < speedUpUntil) ms = Math.max(75, ms - 22); // ngebut
     if (slowmo && performance.now() < slowmoUntil) ms = Math.min(260, ms + 80);  // lambat
+    const now = performance.now();
+    if (!airLockActive(now) && terrain.some(c => c.kind === "current" && now >= c.activeAt && now < c.until
+      && c.x === snake[0].x && c.y === snake[0].y)) ms += 35;
     return Math.max(75, ms);
   }
 
@@ -1879,16 +2104,19 @@
 
     const now = performance.now();
     const hitRock = rocks.some(r => r.x === nx && r.y === ny);
-    const hitMeteor = meteors.some(m => now >= m.landAt && now < m.landAt + 5000 && m.x === nx && m.y === ny);
+    const hitMeteor = !airLockActive(now) && meteors.some(m => now >= m.landAt && now < m.landAt + 5000 && m.x === nx && m.y === ny);
+    const hitTerrain = !airLockActive(now) && terrain.some(c => c.kind === "fissure" && now >= c.activeAt
+      && now < c.until && c.x === nx && c.y === ny);
     const hitWild = wilds.some(w => w.x === nx && w.y === ny);
     const hitBoss = !!(boss && boss.x === nx && boss.y === ny);
     const hitBossSkill = bossAttackHits(nx, ny, now);
     const pickedUpgrade = upgradeChoices.find(c => c.x === nx && c.y === ny);
+    const pickedNature = natureOrbs.find(c => c.x === nx && c.y === ny);
     const growing = food && nx === food.x && ny === food.y;
     const body = growing ? snake : snake.slice(0, -1);
     const hitSelf = body.some(s => s.x === nx && s.y === ny);
 
-    if ((hitRock && !mega) || (hitMeteor && !mega) || hitWild || hitBoss || hitBossSkill || hitSelf) {
+    if ((hitRock && !mega) || (hitMeteor && !mega) || (hitTerrain && !mega) || hitWild || hitBoss || hitBossSkill || hitSelf) {
       if (now < shieldGraceUntil) return;
       if (shield > 0) {
         shield--;
@@ -1914,6 +2142,8 @@
     }
 
     if (pickedUpgrade) selectUpgrade(pickedUpgrade);
+    if (pickedNature) collectNatureOrb(pickedNature, now);
+    if (!food) spawnFood();
 
     if (ateMagikarp) {
       score += 200;
@@ -1939,7 +2169,8 @@
     const frenzyMul = (combo >= 5) ? 2 : 1;
     const comboBonus = (combo - 1) * 5;
     let gained = Math.round(t.points * multiplier * megaMul * shinyMul * speedMul * frenzyMul) + comboBonus;
-    if (weather === "sunny") gained += 5;
+    if (effectiveWeather(now) === "sunny") gained += 5;
+    airLockCharge = Math.min(100, airLockCharge + 5);
     score += gained;
 
     const col = colorFor(t.kind);
@@ -1984,6 +2215,9 @@
     state = "over";
     upgradeChoices = [];
     bossAttacks = [];
+    natureOrbs = [];
+    terrain = [];
+    airLockUntil = 0;
     renderUpgradeHint();
     bossHud.classList.add("hidden");
     bossSkill.textContent = "";
@@ -2566,6 +2800,14 @@
     const cy = boss.y * CELL + CELL / 2;
     const pulse = 1 + Math.sin(now / 180) * 0.06;
     const r = CELL * 0.75 * pulse;
+    if (bossRecovering(now)) {
+      ctx.save();
+      ctx.strokeStyle = "#76e69a";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.arc(cx, cy, CELL * 1.15, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
     ctx.save();
     ctx.globalAlpha = .5;
     ctx.fillStyle = "#02050a";
@@ -2604,6 +2846,47 @@
     ctx.beginPath(); ctx.arc(r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "rgba(255,255,255,.8)";
     ctx.beginPath(); ctx.arc(0, r * .28, r * .16, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawNature(now) {
+    ctx.save();
+    if (!airLockActive(now)) for (const cell of terrain) {
+      const x = cell.x * CELL, y = cell.y * CELL;
+      const warning = now < cell.activeAt;
+      const fissure = cell.kind === "fissure";
+      ctx.fillStyle = fissure ? (warning ? "rgba(255,190,70,.12)" : "rgba(230,85,40,.4)") : "rgba(70,160,230,.2)";
+      ctx.strokeStyle = warning ? "#ffe071" : fissure ? "#ff9765" : "#9ee8ff";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash(warning ? [3, 3] : []);
+      ctx.fillRect(x + 2, y + 2, CELL - 4, CELL - 4);
+      ctx.strokeRect(x + 2, y + 2, CELL - 4, CELL - 4);
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      if (fissure) {
+        ctx.moveTo(x + 14, y + 4); ctx.lineTo(x + 9, y + 10);
+        ctx.lineTo(x + 15, y + 14); ctx.lineTo(x + 9, y + 20);
+      } else {
+        for (let j = 0; j < 2; j++) {
+          ctx.moveTo(x + 5, y + 8 + j * 7);
+          ctx.bezierCurveTo(x + 10, y + 3 + j * 7, x + 14, y + 13 + j * 7, x + 19, y + 8 + j * 7);
+        }
+      }
+      ctx.stroke();
+    }
+    for (const orb of natureOrbs) {
+      const cx = (orb.x + .5) * CELL, cy = (orb.y + .5) * CELL;
+      ctx.fillStyle = orb.polarity < 0 ? "#ed8b49" : "#64baff";
+      ctx.strokeStyle = "#f3faff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 10); ctx.lineTo(cx + 9, cy);
+      ctx.lineTo(cx, cy + 10); ctx.lineTo(cx - 9, cy); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#071018";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "bold 10px sans-serif";
+      ctx.fillText(orb.polarity < 0 ? "G" : "K", cx, cy + .5);
+    }
     ctx.restore();
   }
 
@@ -2674,6 +2957,7 @@
   }
 
   function drawFood() {
+    if (!food) return;
     if (!food) return;
     const now = performance.now();
     const cx = food.x * CELL + CELL / 2;
@@ -3259,6 +3543,7 @@
   }
 
   function drawWeather(now) {
+    const weather = effectiveWeather(now);
     if (!weather) return;
     if (weather === "sunny") ctx.fillStyle = "rgba(255,180,60,0.08)";
     else if (weather === "rain") ctx.fillStyle = "rgba(90,160,255,0.10)";
@@ -3315,6 +3600,7 @@
       else drawDiglett(w.x, w.y);
     }
     const now = state === "paused" ? pausedAt : performance.now();
+    drawNature(now);
     for (const p of portals) drawPortal(p.x, p.y);
     for (const m of meteors) drawMeteor(m, now);
     drawBossAttacks(now);
@@ -3322,6 +3608,7 @@
     if (mega && now < megaUntil) drawFrame("rgba(124,240,255,0.6)");
     if (slowmo && now < slowmoUntil) drawFrame("rgba(90,160,255,0.45)");
     if (speedUp && now < speedUpUntil) drawFrame("rgba(255,150,50,0.5)");
+    if (airLockActive(now)) drawFrame("rgba(118,230,154,0.6)");
 
     drawBoss(now);
     drawFood();
@@ -3339,6 +3626,7 @@
 
   function loop(now) {
     if (state === "playing") {
+      updateNature(now);
       // Mega Rayquaza hanya 15 detik, lalu kembali normal
       if (evolved && now > evolveUntil) {
         evolved = false;
@@ -3350,6 +3638,12 @@
       if (now - lastTick >= speedMs()) {
         lastTick = now;
         tick();
+        // A fatal tick must not spawn another boss attack or hazard this frame.
+        if (state !== "playing") {
+          draw();
+          requestAnimationFrame(loop);
+          return;
+        }
       }
       // Trail partikel di belakang ekor saat ngebut (Extreme Speed) atau Mega.
       if ((speedUp || mega) && now - lastTrail >= 40) {
@@ -3392,9 +3686,10 @@
 
       // Draco Meteor (hujan meteor)
       meteors = meteors.filter(m => now < m.landAt + 5000);
-      if (!boss && now >= upgradeCalmUntil && now - lastMeteorTime >= (weather === "hail" ? 5000 : 10000)) {
+      if (!boss && !airLockActive(now) && !terrain.length && now >= upgradeCalmUntil && now - lastMeteorTime >= (effectiveWeather(now) === "hail" ? 5000 : 10000)) {
         for (let i = 0; i < 3; i++) {
           const c = randomCell();
+          if (!c) break;
           meteors.push({ x: c.x, y: c.y, landAt: now + 1500 });
         }
         lastMeteorTime = now;
@@ -3403,7 +3698,7 @@
 
       // Cuaca (Sunny / Rain / Sandstorm / Hail)
       if (now > weatherUntil) weather = null;
-      if (now >= upgradeCalmUntil && now - lastWeatherTime >= 15000) {
+      if (!airLockActive(now) && Math.abs(natureBalance) < 25 && now >= upgradeCalmUntil && now - lastWeatherTime >= 15000) {
         const weathers = ["sunny", "rain", "sandstorm", "hail"];
         weather = weathers[Math.floor(Math.random() * weathers.length)];
         weatherUntil = now + 10000;
@@ -3414,6 +3709,7 @@
 
     // Saat pause, HUD membaca waktu saat tombol pause ditekan agar semua countdown benar-benar beku.
     const effectNow = state === "paused" ? pausedAt : now;
+    updateNatureHud(effectNow);
 
     const rem = multiplierUntil - effectNow;
     if (multiplier > 1 && rem > 0) {
@@ -3477,9 +3773,10 @@
       elFire.textContent = "⚡";
     }
 
-    if (weather) {
+    const currentWeather = effectiveWeather(effectNow);
+    if (currentWeather) {
       elWeather.classList.add("on");
-      elWeather.textContent = (weather === "sunny" ? "☀️ SUNNY" : weather === "rain" ? "🌧️ RAIN" : weather === "sandstorm" ? "🌪️ SANDSTORM" : "❄️ HAIL");
+      elWeather.textContent = (currentWeather === "sunny" ? "☀️ SUNNY" : currentWeather === "rain" ? "🌧️ RAIN" : currentWeather === "sandstorm" ? "🌪️ SANDSTORM" : "❄️ HAIL");
     } else {
       elWeather.classList.remove("on");
     }
@@ -3511,6 +3808,10 @@
     speedUpUntil = shiftPausedDeadline(speedUpUntil, pauseDuration);
     beamCooldown = shiftPausedDeadline(beamCooldown, pauseDuration);
     weatherUntil = shiftPausedDeadline(weatherUntil, pauseDuration);
+    airLockUntil = shiftPausedDeadline(airLockUntil, pauseDuration);
+    nextNaturePulse = shiftPausedDeadline(nextNaturePulse, pauseDuration);
+    nextNatureOrb = shiftPausedDeadline(nextNatureOrb, pauseDuration);
+    nextTerrain = shiftPausedDeadline(nextTerrain, pauseDuration);
     comboUntil = shiftPausedDeadline(comboUntil, pauseDuration);
     magikarpMove = shiftPausedDeadline(magikarpMove, pauseDuration);
     magikarpUntil = shiftPausedDeadline(magikarpUntil, pauseDuration);
@@ -3525,11 +3826,18 @@
     lastMagikarpSpawn = shiftPausedDeadline(lastMagikarpSpawn, pauseDuration);
 
     for (const meteor of meteors) meteor.landAt += pauseDuration;
+    for (const cell of terrain) {
+      cell.activeAt += pauseDuration;
+      cell.until += pauseDuration;
+    }
     for (const attack of bossAttacks) {
       attack.activeAt += pauseDuration;
       attack.until += pauseDuration;
     }
-    if (boss) boss.nextAttack += pauseDuration;
+    if (boss) {
+      boss.nextAttack += pauseDuration;
+      boss.recoveryAt = shiftPausedDeadline(boss.recoveryAt, pauseDuration);
+    }
     if (beam) beam.until += pauseDuration;
 
     pausedAt = 0;
@@ -3631,6 +3939,10 @@
       W: "up", S: "down", A: "left", D: "right",
     };
     const name = map[e.key];
+    if (e.key.toLowerCase() === "q") {
+      e.preventDefault();
+      if (state === "playing" && !e.repeat) { initAudio(); activateAirLock(); }
+    }
     if (name) {
       e.preventDefault();
       initAudio();
@@ -3655,6 +3967,7 @@
   });
 
   // Tombol Hyper Beam (laser) di layar sentuh.
+  elAirLock.addEventListener("click", () => { initAudio(); activateAirLock(); });
   elFire.addEventListener("click", () => {
     initAudio();
     if (state === "start") start();
