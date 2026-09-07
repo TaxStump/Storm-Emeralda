@@ -89,6 +89,7 @@
     filter: blur(24px);
     pointer-events: none;
   }
+  .game-info { display: contents; }
 
   header { text-align: center; }
 
@@ -780,6 +781,32 @@
     flex: none;
     box-shadow: 0 24px 90px rgba(0,0,0,.82), 0 0 52px rgba(55,214,122,.16);
   }
+  @media (min-width: 800px) {
+    :fullscreen .wrap {
+      display: grid;
+      grid-template-columns: var(--fullscreen-size) 300px;
+      grid-template-rows: var(--fullscreen-size);
+      width: calc(var(--fullscreen-size) + 316px);
+      gap: 16px;
+    }
+    :fullscreen .board { grid-column: 1; grid-row: 1; width: var(--fullscreen-size); align-self: start; }
+    :fullscreen .game-info {
+      display: flex;
+      flex-direction: column;
+      grid-column: 2;
+      grid-row: 1;
+      height: var(--fullscreen-size);
+      gap: 6px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 2px 4px;
+      scrollbar-width: thin;
+    }
+    :fullscreen .game-info > * { flex-shrink: 0; }
+    :fullscreen header h1 { font-size: 20px; letter-spacing: 1px; }
+    :fullscreen .upgrade-hint { height: auto; min-height: 100px; overflow: visible; }
+    :fullscreen .upgrade-options { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -796,6 +823,7 @@
   <span class="bg-ornament pokeball" aria-hidden="true" style="top:34%;right:5%;width:20px;height:20px;opacity:.1;animation-delay:1.8s"></span>
   <span class="bg-ornament sky-diamond" aria-hidden="true" style="top:90%;right:15%;color:#f6c945;animation-delay:.8s"></span>
   <div class="wrap">
+    <div class="game-info">
     <header>
       <h1><span class="pokeball"></span> STORM <span class="ball">EMERALDA</span> <span class="pokeball"></span></h1>
       <div class="divider"><span class="line"></span><span class="pokeball"></span><span class="line"></span></div>
@@ -839,6 +867,8 @@
         <div class="boss-name"><span id="bossName">BOSS</span><span id="bossHp">0/0</span></div>
         <div class="boss-track"><div class="boss-fill" id="bossFill"></div></div>
         <div class="boss-skill" id="bossSkill"></div>
+    </div>
+
     </div>
 
     <div class="board">
@@ -3866,6 +3896,11 @@
     const root = document.documentElement;
     if (!document.fullscreenElement) {
       root.style.removeProperty("--fullscreen-size");
+      return;
+    }
+    if (window.innerWidth >= 800) {
+      const size = Math.floor(Math.min(window.innerHeight - 24, window.innerWidth - 340));
+      root.style.setProperty("--fullscreen-size", Math.max(160, size) + "px");
       return;
     }
     const wrap = document.querySelector(".wrap");
