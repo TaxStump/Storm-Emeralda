@@ -679,7 +679,12 @@
     transition: width .18s ease;
   }
   .boss-skill {
-    min-height: 14px;
+    height: 39px;
+    min-height: 39px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 5px;
     color: #ffd9a8;
     font-size: 9px;
@@ -880,6 +885,25 @@
   .collection-dialog button:focus-visible { outline:3px solid #ffe2a5; outline-offset:3px; }
   .unlock-toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:100; max-width:calc(100vw - 24px); padding:12px 18px; border:1px solid #8de4b5; border-radius:14px; background:#102b25f5; color:#efffe6; font-size:12px; box-shadow:0 8px 32px #0008; pointer-events:none; }
   @media(max-width:480px) { .collection-dialog { padding:16px; } .wardrobe-grid,.album-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .collection-head { top:-16px; } .collection-head h2 { font-size:17px; } .collection-hero { gap:6px; } .collection-hero canvas { width:110px; } }
+  .combat-hud { border:1px solid #3b6655; border-radius:12px; padding:10px; background:linear-gradient(120deg,#142d25,#14202d); }
+  .combat-heading { display:flex; align-items:center; gap:10px; }
+  .combat-heading > div { flex:1; min-width:0; }
+  .combat-heading strong { display:block; font-size:10px; letter-spacing:.08em; color:#d8f4bb; }
+  .combat-heading progress { width:100%; height:6px; margin:8px 0 0; accent-color:#b6e890; }
+  .ascent-btn { min-width:98px; min-height:44px; border:1px solid #829653; color:#d9ecb8; background:#213c30; border-radius:9px; font:700 11px "Segoe UI",sans-serif; cursor:pointer; }
+  .ascent-btn:disabled { opacity:.55; cursor:default; }
+  .ascent-btn.ready { color:#10281f; border-color:#e4eea3; background:linear-gradient(120deg,#e5ed9a,#78dfb4); box-shadow:0 0 16px #8bdfb12b; }
+  .combat-note { display:block; color:#adc3b7; font-size:10px; line-height:1.5; margin-top:6px; }
+  .combat-guide { margin-top:8px; border-top:1px solid #345044; padding-top:5px; }
+  .combat-guide summary { cursor:pointer; color:#acd7c4; font-size:10px; padding:5px 0; }
+  .synergy-row { padding:8px 0; border-top:1px solid #30463e; color:#a9b9b7; font-size:10px; line-height:1.5; }
+  .synergy-row b { color:#bfcad2; display:block; font-size:11px; }
+  .synergy-row.active b { color:#daf29c; }
+  .synergy-row small { display:block; color:#9ab8ac; }
+  .upgrade-option em { display:block; margin-top:5px; color:#dbefa7; font-size:9px; font-style:normal; }
+  .dpad .ultimate { grid-column:3; grid-row:3; font-size:12px; color:#d5efb6; border-color:#829653; }
+  .dpad .ultimate.ready { color:#132a20; background:#b8e797; }
+  .dpad .ultimate:disabled { opacity:.4; }
 </style>
 </head>
 <body>
@@ -943,6 +967,12 @@
     <div class="upgrade-hint" id="upgradeHint"></div>
     <div class="beam-hint" id="beamHint"></div>
 
+    <div class="combat-hud">
+      <div class="combat-heading"><div><strong>DRAGON ASCENT</strong><progress id="ascentMeter" max="100" value="0" aria-label="Dragon Ascent"></progress></div><button id="ascentBtn" class="ascent-btn" type="button" disabled>R · 0%</button></div>
+      <small class="combat-note" data-i18n="ascent.brief"></small>
+      <details class="combat-guide"><summary id="synergySummary"></summary><div id="synergyList"></div><small class="combat-note" data-i18n="ascent.help"></small></details>
+    </div>
+
     <div class="nature-hud">
       <div class="nature-labels"><span>GROUDON</span><span data-i18n="nature.title">KESEIMBANGAN ALAM</span><span>KYOGRE</span></div>
       <div class="nature-track" id="natureMeter" role="meter" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><span class="nature-marker" id="natureMarker"></span></div>
@@ -978,6 +1008,7 @@
           <span data-i18n="legend.weather">🌦️ Cuaca berganti (Sunny/Rain/Sand/Hail)</span> <span data-i18n="legend.frenzy">🌈 Frenzy di combo ×5</span><br>
           <span data-i18n="legend.boss">⚠ Boss setiap 5 level — serang dengan Hyper Beam</span>
           <br><span data-i18n="legend.nature">◆ Orb biru melawan panas; orb jingga melawan hujan. Air Lock [Q] meredakan bahaya 5 detik.</span>
+          <br><span data-i18n="legend.combat"></span>
         </div>
         </details>
         <div class="keys">
@@ -1017,6 +1048,7 @@
       <button class="fire"  id="fireBtn" type="button" aria-label="Hyper Beam">⚡</button>
       <button class="right" data-dir="right">▶</button>
       <button class="down"  data-dir="down">▼</button>
+      <button class="ultimate" id="ascentTouchBtn" type="button" disabled aria-label="Dragon Ascent">R</button>
     </div>
   </div>
 
@@ -1240,6 +1272,38 @@
     "mission.pillar":"Above the clouds", "mission.pillar.desc":"Reach level 4 and visit Sky Pillar.",
     "mission.cosmos":"Star dreamer", "mission.cosmos.desc":"Reach level 12 and visit the Cosmic Garden."
   });
+  Object.assign(I18N.id, {
+    "ascent.brief":"Isi energi lewat item dan pertarungan. Tekan R saat 100%.",
+    "ascent.help":"Dragon Ascent: serangan 3 lajur ke depan, membersihkan bahaya dan memutus serangan boss, termasuk ombak. Damage boss 4 (+1 saat Mega). Tidak memindahkan tubuh atau membuat kebal; dinding dan tubuh sendiri tetap berbahaya. Energi: item +8, combo ≥5 +4, Beam mengenai boss +8, boss kalah +25.",
+    "ascent.ready":"R · SIAP", "ascent.full":"DRAGON ASCENT SIAP · R", "ascent.cast":"DRAGON ASCENT",
+    "synergy.title":"SINERGI BUILD", "synergy.active":"AKTIF", "synergy.locked":"BELUM AKTIF", "synergy.unlock":"Membuka sinergi",
+    "synergy.fork":"Prism Fork", "synergy.fork.req":"Hyper Core 2 + Frenzy Link 1", "synergy.fork.desc":"Hyper Beam bercabang ke dua sisi, 3 petak di depan, sepanjang 6 petak per sisi. Boss hanya menerima satu hit per tembakan.",
+    "synergy.mirror":"Mirror Guard", "synergy.mirror.req":"Emerald Guard 2 + Hyper Core 1", "synergy.mirror.desc":"Saat Shield pecah akibat serangan boss, petak serangan itu dinetralkan dan boss menerima 2 damage pantulan. Tidak memantulkan tabrakan tubuh, dinding, atau batu.",
+    "synergy.resonance":"Astral Resonance", "synergy.resonance.req":"Meteor Resonance 1 + Shiny Aura 2", "synergy.resonance.desc":"Setiap item memberi tambahan 4 energi Ascent. Saat Mega, Ascent memberi tambahan 1 damage boss.",
+    "synergy.reflected":"MIRROR GUARD · PANTUL",
+    "boss.phase":"FASE", "boss.awakening":"FASE 2 · BERSIAP", "boss.transition":"Perubahan fase — serangan lama dihentikan",
+    "boss.skill.groudon2":"TWIN PRECIPICE", "boss.skill.kyogre2":"TWIN ORIGIN WAVE", "boss.skill.deoxys2":"PSYCHO NOVA",
+    "boss.tip.groudon2":"Hindari dua jalur retakan yang ditandai",
+    "boss.tip.kyogre2":"Dua ombak berlawanan; koridor hijau tetap aman",
+    "boss.tip.deoxys2":"Keluar dari dua garis diagonal bertanda silang",
+    "legend.combat":"Dragon Ascent [R] saat energi penuh. Boss berganti pola pada 50% HP. Buka Sinergi Build untuk melihat kombinasi upgrade."
+  });
+  Object.assign(I18N.en, {
+    "ascent.brief":"Charge through items and combat. Press R at 100%.",
+    "ascent.help":"Dragon Ascent: a 3-lane forward strike that clears hazards and disrupts boss attacks, including waves. Boss damage 4 (+1 while Mega). No movement or invulnerability; walls and your body remain dangerous. Energy: item +8, combo ≥5 +4, Beam hitting boss +8, boss defeat +25.",
+    "ascent.ready":"R · READY", "ascent.full":"DRAGON ASCENT READY · R", "ascent.cast":"DRAGON ASCENT",
+    "synergy.title":"BUILD SYNERGIES", "synergy.active":"ACTIVE", "synergy.locked":"LOCKED", "synergy.unlock":"Unlocks synergy",
+    "synergy.fork":"Prism Fork", "synergy.fork.req":"Hyper Core 2 + Frenzy Link 1", "synergy.fork.desc":"Hyper Beam branches sideways 3 cells ahead, extending 6 cells to each side. Each shot can hit a boss only once.",
+    "synergy.mirror":"Mirror Guard", "synergy.mirror.req":"Emerald Guard 2 + Hyper Core 1", "synergy.mirror.desc":"When a boss attack breaks a Shield, that attack cell is neutralized and 2 damage reflects to the boss. Body, wall and rock collisions do not reflect.",
+    "synergy.resonance":"Astral Resonance", "synergy.resonance.req":"Meteor Resonance 1 + Shiny Aura 2", "synergy.resonance.desc":"Each item grants 4 extra Ascent energy. While Mega, Ascent deals 1 extra boss damage.",
+    "synergy.reflected":"MIRROR GUARD · REFLECT",
+    "boss.phase":"PHASE", "boss.awakening":"PHASE 2 · GET READY", "boss.transition":"Phase change — previous attacks cleared",
+    "boss.skill.groudon2":"TWIN PRECIPICE", "boss.skill.kyogre2":"TWIN ORIGIN WAVE", "boss.skill.deoxys2":"PSYCHO NOVA",
+    "boss.tip.groudon2":"Avoid both marked fissure paths",
+    "boss.tip.kyogre2":"Opposing waves; the green corridor stays safe",
+    "boss.tip.deoxys2":"Leave both cross-marked diagonal lines",
+    "legend.combat":"Dragon Ascent [R] at full energy. Boss patterns change at 50% HP. Open Build Synergies to plan upgrade combinations."
+  });
   let lang = (() => {
     try { return localStorage.getItem("storm-emeralda-lang") || "id"; } catch (e) { return "id"; }
   })();
@@ -1267,6 +1331,9 @@
     updateFullscreenButton();
     updateJourney();
     updatePreferences();
+    updateCombatHud();
+    renderSynergies();
+    if (boss) updateBossHud();
     updateCollectionHint();
     if (document.getElementById("collectionDialog").open) renderCollection();
     updateNatureHud(state === "paused" ? pausedAt : performance.now());
@@ -1387,6 +1454,8 @@
   let meteors = [];
   let lastMeteorTime = 0;
   let beam = null, beamCooldown = 0;
+  let ascentCharge = 0, ascent = null, reflection = null;
+  let lastCombatHudKey = "", lastSynergyKey = "";
   let weather = null, weatherUntil = 0, lastWeatherTime = 0;
   let natureBalance = 0, natureTurn = 0, nextNaturePulse = 0;
   let natureOrbs = [], terrain = [], nextNatureOrb = 0, nextTerrain = 0;
@@ -1776,7 +1845,10 @@
       const item = choice.upgrade;
       const rank = upgrades[item.id] + 1;
       const effect = item.levels[lang][rank - 1];
-      return `<span class="upgrade-option" style="--upgrade-color:${item.color}"><b>${item.icon} ${escapeHtml(item.name[lang])} · Lv.${rank}</b><small>${escapeHtml(effect)}</small></span>`;
+      const future = { ...upgrades, [item.id]:rank };
+      const unlocks = SYNERGIES.filter(s => !synergyActive(s.id) && synergyActive(s.id,future));
+      const hint = unlocks.length ? `<em>${t("synergy.unlock")}: ${unlocks.map(s=>t("synergy."+s.id)).join(" + ")}</em>` : "";
+      return `<span class="upgrade-option" style="--upgrade-color:${item.color}"><b>${item.icon} ${escapeHtml(item.name[lang])} · Lv.${rank}</b><small>${escapeHtml(effect)}</small>${hint}</span>`;
     });
     elUpgradeHint.innerHTML = `<strong>${escapeHtml(t("upgrade.choose"))}</strong><span class="upgrade-options">${options.join("")}</span>`;
     if (document.fullscreenElement) requestAnimationFrame(fitFullscreenLayout);
@@ -1802,6 +1874,7 @@
     upgradeChoices = [];
     renderUpgradeHint();
     renderUpgradeChips();
+    renderSynergies();
     sfx.evolve();
   }
 
@@ -1991,6 +2064,97 @@
     }
   }
 
+  const SYNERGIES = [
+    {id:"fork", needs:{beam:2,combo:1}},
+    {id:"mirror", needs:{shield:2,beam:1}},
+    {id:"resonance", needs:{mega:1,lucky:2}}
+  ];
+  function synergyActive(id, build = upgrades) {
+    const synergy=SYNERGIES.find(s=>s.id===id);
+    return !!synergy && Object.entries(synergy.needs).every(([key,rank])=>build[key]>=rank);
+  }
+  function renderSynergies() {
+    const key=lang+"|"+Object.values(upgrades).join("|");
+    if(key===lastSynergyKey) return;
+    lastSynergyKey=key;
+    const count=SYNERGIES.filter(s=>synergyActive(s.id)).length;
+    document.getElementById("synergySummary").textContent=t("synergy.title")+" · "+count+"/3";
+    document.getElementById("synergyList").innerHTML=SYNERGIES.map(s=>{
+      const active=synergyActive(s.id);
+      return `<div class="synergy-row ${active?"active":""}"><b>${t("synergy."+s.id)} · ${t(active?"synergy.active":"synergy.locked")}</b><small>${t("synergy."+s.id+".req")}</small>${t("synergy."+s.id+".desc")}</div>`;
+    }).join("");
+  }
+  function updateCombatHud() {
+    const key=[lang,state,ascentCharge].join("|");
+    if(key===lastCombatHudKey) return;
+    lastCombatHudKey=key;
+    const button=document.getElementById("ascentBtn"),meter=document.getElementById("ascentMeter");
+    button.disabled=state!=="playing" || ascentCharge<100;
+    button.classList.toggle("ready",ascentCharge>=100);
+    button.textContent=ascentCharge>=100?t("ascent.ready"):"R · "+ascentCharge+"%";
+    button.title=t("ascent.help");
+    button.setAttribute("aria-label","Dragon Ascent · "+ascentCharge+"% · R");
+    const touch=document.getElementById("ascentTouchBtn");
+    touch.disabled=button.disabled;touch.classList.toggle("ready",ascentCharge>=100);
+    touch.textContent=ascentCharge>=100?"R ✦":"R "+ascentCharge+"%";
+    touch.setAttribute("aria-label",button.getAttribute("aria-label"));touch.title=t("ascent.help");
+    meter.value=ascentCharge;
+  }
+  function gainAscent(amount) {
+    const previous=ascentCharge;
+    ascentCharge=Math.max(0,Math.min(100,ascentCharge+amount));
+    if(previous<100 && ascentCharge===100 && state==="playing") {
+      spawnPopup(snake[0].x,snake[0].y-2,t("ascent.full"),"#d9f5a0");
+      popups[popups.length-1].tag="ascentReady";
+    }
+    updateCombatHud();
+  }
+  function shotRays(origin, aim, wide, fork = false) {
+    const rays=[], perpendicular={x:-aim.y,y:aim.x};
+    function addRay(from,direction,length=COLS,branch=false) {
+      const cells=[];
+      for(let i=1;i<=length;i++) {
+        const x=from.x+direction.x*i,y=from.y+direction.y*i;
+        if(x<0||y<0||x>=COLS||y>=ROWS) break;
+        cells.push({x,y});
+      }
+      if(cells.length) rays.push({origin:{...from},direction:{...direction},cells,branch});
+    }
+    for(const offset of wide?[-1,0,1]:[0]) addRay({x:origin.x+perpendicular.x*offset,y:origin.y+perpendicular.y*offset},aim);
+    const pivot={x:origin.x+aim.x*3,y:origin.y+aim.y*3};
+    if(fork && pivot.x>=0 && pivot.y>=0 && pivot.x<COLS && pivot.y<ROWS) {
+      addRay(pivot,perpendicular,6,true);addRay(pivot,{x:-perpendicular.x,y:-perpendicular.y},6,true);
+    }
+    return rays;
+  }
+  function clearCombatCells(cells, color) {
+    const keys=new Set(cells.map(c=>c.x+","+c.y));
+    const outside=c=>!keys.has(c.x+","+c.y);
+    rocks=rocks.filter(outside);wilds=wilds.filter(outside);meteors=meteors.filter(outside);terrain=terrain.filter(outside);
+    const stride=Math.max(1,Math.ceil(cells.length/12));
+    for(let i=0;i<cells.length;i+=stride) spawnParticles(cells[i].x,cells[i].y,color,3,1.8);
+  }
+  function activateAscent() {
+    if(state!=="playing" || ascentCharge<100) return;
+    const now=performance.now(),origin={...snake[0]},aim={...(turnQueue[0]||dir)};
+    const rays=shotRays(origin,aim,true),cells=uniqueGridCells(rays.flatMap(ray=>ray.cells));
+    if(!cells.length) return; // Do not waste a charge when facing outside the board.
+    ascentCharge=0;
+    popups=popups.filter(p=>p.tag!=="ascentReady");
+    ascent={origin,direction:aim,rays,cells,wide:true,duration:650,until:now+650,ultimate:true};
+    clearCombatCells(cells,"#c8f398");
+    disruptBossAttacks(cells,now,true);
+    if(boss && cells.some(c=>c.x===boss.x&&c.y===boss.y)) damageBoss(4+(evolved?1:0)+(evolved&&synergyActive("resonance")?1:0));
+    spawnRing(origin.x,origin.y,"#e8efad");spawnPopup(origin.x,origin.y-2,t("ascent.cast"),"#e8efad");
+    sfx.evolve();sfx.beam();updateCombatHud();
+  }
+  function reflectBossAttack(step, now) {
+    if(!boss || !synergyActive("mirror") || !step.hitBossSkill || step.hitBoss || step.hitSelf || step.hitRock || step.hitWild) return;
+    reflection={from:{...snake[0]},to:{x:boss.x,y:boss.y},until:now+400};
+    disruptBossAttacks([{x:step.nx,y:step.ny}],now,true);
+    spawnPopup(snake[0].x,snake[0].y-2,t("synergy.reflected"),"#e7c2ff");
+    damageBoss(2);updateHud();
+  }
   function fireBeam() {
     if (state !== "playing") return;
     const now = performance.now();
@@ -1999,29 +2163,16 @@
 
     const hx = snake[0].x, hy = snake[0].y;
     const aim = turnQueue[0] || dir;
-    const px = -aim.y, py = aim.x; // follow the immediately visible steering direction
-    const offs = evolved ? [-1, 0, 1] : [0]; // 3 baris saat Mega, 1 baris saat normal
-    const cells = [];
-    for (const off of offs) {
-      for (let i = 1; ; i++) {
-        const x = hx + aim.x * i + px * off, y = hy + aim.y * i + py * off;
-        if (x < 0 || y < 0 || x >= COLS || y >= ROWS) break;
-        cells.push({ x, y });
-      }
-    }
-    for (const c of cells) {
-      rocks = rocks.filter(r => !(r.x === c.x && r.y === c.y));
-      wilds = wilds.filter(w => !(w.x === c.x && w.y === c.y));
-      meteors = meteors.filter(m => !(m.x === c.x && m.y === c.y));
-      terrain = terrain.filter(m => !(m.x === c.x && m.y === c.y));
-      spawnParticles(c.x, c.y, "#7cf0ff");
-    }
+    const rays=shotRays({x:hx,y:hy},aim,evolved,synergyActive("fork"));
+    const cells=uniqueGridCells(rays.flatMap(ray=>ray.cells));
+    clearCombatCells(cells,"#7cf0ff");
     disruptBossAttacks(cells, now);
     if (boss && cells.some(c => c.x === boss.x && c.y === boss.y)) {
       const upgradeDamage = Math.max(0, upgrades.beam - 1);
+      gainAscent(8);
       damageBoss(1 + upgradeDamage + (evolved ? 1 : 0) + (bossRecovering(now) ? 1 : 0));
     }
-    beam = { cells, origin: { x: hx, y: hy }, direction: { ...aim }, wide: evolved, until: now + 250 };
+    beam = { cells, rays, origin: { x: hx, y: hy }, direction: { ...aim }, wide: evolved, until: now + 250 };
     sfx.beam();
   }
 
@@ -2046,7 +2197,7 @@
     const now = performance.now();
     boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp,
       nextAttack: Math.max(now + 2200, type.skill !== "deoxys" ? airLockUntil + 1400 : 0),
-      recoveryAt: 0, attackCycle: 0, hitTaken:false };
+      recoveryAt: 0, attackCycle: 0, hitTaken:false, phase:1, phaseUntil:0 };
     bossAttacks = [];
     terrain = [];
     meteors = [];
@@ -2073,12 +2224,22 @@
     boss.hp = Math.max(0, boss.hp - amount);
     burst(boss.x, boss.y, boss.accent);
     spawnPopup(boss.x, boss.y - 1, "-" + amount, "#ffffff");
+    if (boss.hp <= 0) { defeatBoss(); return; }
+    if (boss.phase===1 && boss.hp<=boss.maxHp/2) {
+      const now=performance.now();
+      boss.phase=2;boss.phaseUntil=now+1800;boss.nextAttack=boss.phaseUntil;
+      boss.recoveryAt=0;bossAttacks=[];
+      meteors=meteors.filter(m=>!m.bossAttack);
+      spawnRing(boss.x,boss.y,"#ffe19b");
+      spawnPopup(boss.x,boss.y-2,t("boss.awakening"),"#ffe19b");
+      updateBossSkillHud(now);
+    }
     updateBossHud();
-    if (boss.hp <= 0) defeatBoss();
   }
 
   function defeatBoss() {
     runBosses++;
+    gainAscent(25);
     const defeated = boss;
     trackCollection({ bosses:collection.stats.bosses+1, clean:collection.stats.clean+(defeated.hitTaken?0:1) });
     const bonus = 250 + bossCount * 75;
@@ -2102,9 +2263,10 @@
 
   function updateBossHud() {
     if (!boss) return;
-    bossName.textContent = boss.name;
+    bossName.textContent = boss.name+" · "+t("boss.phase")+" "+(boss.phase||1)+"/2";
     bossHp.textContent = boss.hp + "/" + boss.maxHp;
     bossFill.style.width = (boss.hp / boss.maxHp * 100) + "%";
+    bossFill.style.background = boss.phase===2 ? "linear-gradient(90deg,#e67648,#ffe39c)" : "";
   }
 
   function bossRecovering(now) {
@@ -2112,29 +2274,33 @@
   }
 
   function updateBossSkillHud(now) {
+    function show(text,mode="") {
+      setText(bossSkill,text);
+      for(const name of ["warning","active","recovery"]) setClass(bossSkill,name,name===mode);
+    }
     if (!boss) {
-      bossSkill.textContent = "";
-      bossSkill.className = "boss-skill";
+      show("");
       return;
     }
     const attack = bossAttacks.find(item => now < item.until);
-    const skillName = t("boss.skill." + boss.skill);
-    bossSkill.className = "boss-skill";
+    const skillId=boss.skill+(boss.phase===2?"2":"");
+    const skillName = t("boss.skill." + skillId);
+    if(now<boss.phaseUntil) {
+      show(t("boss.transition")+" · "+Math.ceil((boss.phaseUntil-now)/1000)+"s","warning");
+      return;
+    }
     if (bossRecovering(now)) {
-      bossSkill.classList.add("recovery");
-      bossSkill.textContent = t("boss.recovery") + " · " + Math.ceil((boss.nextAttack - now) / 1000) + "s";
+      show(t("boss.recovery") + " · " + Math.ceil((boss.nextAttack - now) / 1000) + "s","recovery");
       return;
     }
     if (!attack) {
-      bossSkill.textContent = skillName + " · " + t("boss.tip." + boss.skill);
+      show(skillName + " · " + t("boss.tip." + skillId));
       return;
     }
     if (now < attack.activeAt) {
-      bossSkill.classList.add("warning");
-      bossSkill.textContent = "⚠ " + t("boss.skill.warning") + " · " + skillName + " · " + Math.max(1, Math.ceil((attack.activeAt - now) / 1000)) + "s";
+      show("⚠ " + t("boss.skill.warning") + " · " + skillName + " · " + Math.max(1, Math.ceil((attack.activeAt - now) / 1000)) + "s","warning");
     } else {
-      bossSkill.classList.add("active");
-      bossSkill.textContent = "◆ " + t("boss.skill.active") + " · " + skillName;
+      show("◆ " + t("boss.skill.active") + " · " + skillName,"active");
     }
   }
 
@@ -2164,16 +2330,21 @@
         line = Math.round(progress * (COLS - 1));
         if (attack.reverse) line = COLS - 1 - line;
       }
-      for (let i = 0; i < COLS; i++) {
-        const x = attack.axis === "vertical" ? line : i;
-        const y = attack.axis === "vertical" ? i : line;
+      for(const waveLine of attack.twin?[line,COLS-1-line]:[line]) for (let i = 0; i < COLS; i++) {
+        const x = attack.axis === "vertical" ? waveLine : i;
+        const y = attack.axis === "vertical" ? i : waveLine;
         const corridorCoord = attack.axis === "vertical" ? y : x;
         if (Math.abs(corridorCoord - attack.gap) > attack.gapRadius) cells.push({ x, y });
       }
     } else if (attack.type === "psycho") {
       for (let i = 0; i < COLS; i++) {
-        cells.push({ x: i, y: attack.y });
-        cells.push({ x: attack.x, y: i });
+        if(attack.diagonal) {
+          cells.push({x:i,y:attack.y+(i-attack.x)});
+          cells.push({x:i,y:attack.y-(i-attack.x)});
+        } else {
+          cells.push({ x: i, y: attack.y });
+          cells.push({ x: attack.x, y: i });
+        }
       }
     }
     const blocked = new Set(attack.blocked || []);
@@ -2188,11 +2359,16 @@
     );
   }
 
-  function disruptBossAttacks(beamCells, now) {
+  function disruptBossAttacks(beamCells, now, includeWaves = false) {
     const beamKeys = new Set(beamCells.map(cell => cell.x + "," + cell.y));
     for (const attack of bossAttacks) {
-      if (now >= attack.until || attack.type === "wave") continue;
+      if (now >= attack.until || (attack.type === "wave" && !includeWaves)) continue;
       const blocked = new Set(attack.blocked || []);
+      if(attack.type==="wave") {
+        // Remember cleared cells for the entire sweep, not just the current wave front.
+        for(const key of beamKeys) blocked.add(key);
+        attack.blocked=[...blocked];continue;
+      }
       for (const cell of bossAttackCells(attack, now)) {
         const key = cell.x + "," + cell.y;
         if (beamKeys.has(key)) {
@@ -2252,7 +2428,14 @@
         cells.push({ x: center.x + side.x * sign, y: center.y + side.y * sign });
       }
     }
-    return { type: "blades", activeAt: now + 1250, until: now + 2500, cells: uniqueGridCells(cells), blocked: [] };
+    const second=boss.phase===2;
+    if(second) {
+      const first=cells.slice();
+      const inside=target.x+side.x*3>=1&&target.x+side.x*3<COLS-1&&target.y+side.y*3>=1&&target.y+side.y*3<ROWS-1;
+      const offset=inside?3:-3;
+      for(const cell of first) cells.push({x:cell.x+side.x*offset,y:cell.y+side.y*offset});
+    }
+    return { type: "blades", activeAt: now + (second?1500:1250), until: now + (second?2900:2500), cells: uniqueGridCells(cells), blocked: [] };
   }
 
   function createKyogreAttack(now) {
@@ -2263,10 +2446,11 @@
       type: "wave",
       axis,
       gap: gridClamp(corridorPrediction, 4),
-      gapRadius: 4,
+      gapRadius: boss.phase===2?3:4,
+      twin: boss.phase===2,
       reverse: boss.attackCycle % 4 >= 2,
-      activeAt: now + 1400,
-      until: now + 3900,
+      activeAt: now + (boss.phase===2?1600:1400),
+      until: now + (boss.phase===2?4100:3900),
       blocked: [],
     };
   }
@@ -2275,16 +2459,17 @@
     const head = snake[0];
     return {
       type: "psycho",
+      diagonal: boss.phase===2,
       x: gridClamp(head.x + dir.x * 6, 1),
       y: gridClamp(head.y + dir.y * 6, 1),
-      activeAt: now + 1250,
-      until: now + 2200,
+      activeAt: now + (boss.phase===2?1500:1250),
+      until: now + (boss.phase===2?2700:2200),
       blocked: [],
     };
   }
 
   function bossAttack(now) {
-    if (!boss || now < boss.nextAttack) return;
+    if (!boss || now < boss.nextAttack || now < boss.phaseUntil) return;
     if (airLockActive(now) && boss.skill !== "deoxys") return;
     boss.attackCycle++;
     const tier = Math.floor(Math.max(0, bossCount - 1) / BOSS_TYPES.length);
@@ -2310,7 +2495,7 @@
     boss.nextAttack = Math.max(now + interval, attack.until + 2200);
     if (boss.skill === "groudon") changeNature(-10);
     if (boss.skill === "kyogre") changeNature(10);
-    spawnPopup(boss.x, boss.y - 2, t("boss.skill." + boss.skill), boss.accent);
+    spawnPopup(boss.x, boss.y - 2, t("boss.skill." + boss.skill+(boss.phase===2?"2":"")), boss.accent);
     updateBossSkillHud(now);
   }
 
@@ -2340,6 +2525,8 @@
   }
 
   function reset() {
+    ascentCharge=0;ascent=null;reflection=null;
+    lastCombatHudKey="";lastSynergyKey="";
     biomeIndex = 0; biomeFrom = 0; biomeChangedAt = 0;
     dragonAngle = 0;
     dragonVisualAt = performance.now();
@@ -2421,6 +2608,7 @@
     bossSkill.textContent = "";
     elBadges.innerHTML = "";
     elUpgradeChips.innerHTML = "";
+    renderSynergies();
     renderUpgradeHint();
     food = null;
     spawnFood();
@@ -2450,6 +2638,7 @@
   }
 
   function updateJourney() {
+    updateCombatHud();
     syncBiome();
     if (state === "playing" && level() > collection.stats.level) trackCollection({level:level()});
     const signature = [lang, state, score, !!boss, nextUpgradeLevel, nextBossLevel, runItems, runBestCombo, runBosses, ...Object.values(upgrades)].join("|");
@@ -2532,7 +2721,7 @@
     const blocked = (hitRock && !mega) || (hitMeteor && !mega) || (hitTerrain && !mega)
       || hitWild || hitBoss || hitBossSkill || hitSelf;
     const reason = hitSelf ? "self" : hitBoss || hitBossSkill ? "boss" : hitWild ? "wild" : "hazard";
-    return { nx, ny, entry, portal, growing, blocked, reason, pickedUpgrade, pickedNature };
+    return { nx, ny, entry, portal, growing, blocked, reason, pickedUpgrade, pickedNature, hitBossSkill, hitBoss, hitSelf, hitRock, hitWild };
   }
 
   function tick(movementAt = performance.now()) {
@@ -2554,6 +2743,7 @@
         if (upgrades.shield >= 3) shieldGraceUntil = now + 1000;
         spawnPopup(head.x, head.y - 1, upgrades.shield >= 3 ? "GUARD 1s" : "SHIELD!", "#76e69a");
         sfx.shield();
+        reflectBossAttack(step,now);
         return;
       }
       return gameOver(step.reason);
@@ -2603,6 +2793,7 @@
     comboUntil = now + 3000 + upgrades.combo * 1000;
     runItems++;
     runBestCombo = Math.max(runBestCombo, combo);
+    gainAscent(8+(combo>=5?4:0)+(synergyActive("resonance")?4:0));
     trackCollection({ berries:collection.stats.berries+(["oran","pinap","pecha"].includes(t.kind)?1:0), combo:Math.max(collection.stats.combo,combo) });
 
     const megaMul = mega ? 3 : 1;
@@ -2657,6 +2848,7 @@
     flushCollection();
     deathReason = reason;
     state = "over";
+    ascent=null;reflection=null;
     turnQueue = [];
     updateJourney();
     upgradeChoices = [];
@@ -3290,7 +3482,7 @@
     for (const attack of bossAttacks) {
       if (now >= attack.until) continue;
       const warning = now < attack.activeAt;
-      const pulse = 0.55 + Math.sin(now / 90) * 0.25;
+      const pulse = reducedMotion.matches ? .7 : 0.65 + Math.sin(now / 240) * 0.15;
       const cells = bossAttackCells(attack, now);
       ctx.save();
 
@@ -3321,7 +3513,7 @@
           ctx.fillStyle = warning ? "rgba(239,85,63,.12)" : "rgba(239,85,63,.42)";
           ctx.lineWidth = warning ? 1.5 : 2.5;
           ctx.shadowColor = warning ? "#ffd166" : "#ff493d";
-          ctx.shadowBlur = warning ? 4 : 13;
+          ctx.shadowBlur = richEffects && !reducedMotion.matches ? (warning ? 3 : 8) : 0;
           ctx.beginPath();
           ctx.moveTo(cx - CELL * .34, cy + CELL * .34);
           ctx.lineTo(cx - CELL * .08, cy - CELL * .08);
@@ -3339,7 +3531,7 @@
           }
         } else if (attack.type === "wave") {
           ctx.shadowColor = "#6fdcff";
-          ctx.shadowBlur = warning ? 7 : 16;
+          ctx.shadowBlur = richEffects && !reducedMotion.matches ? (warning ? 3 : 8) : 0;
           ctx.fillStyle = warning ? `rgba(111,220,255,${.12 + pulse * .12})` : "rgba(50,134,230,.68)";
           ctx.strokeStyle = warning ? "rgba(158,232,255,.72)" : "rgba(216,251,255,.95)";
           ctx.lineWidth = warning ? 1.5 : 2;
@@ -3354,7 +3546,7 @@
           }
         } else {
           ctx.shadowColor = "#c47cff";
-          ctx.shadowBlur = warning ? 7 : 15;
+          ctx.shadowBlur = richEffects && !reducedMotion.matches ? (warning ? 3 : 8) : 0;
           ctx.strokeStyle = warning ? `rgba(196,124,255,${pulse})` : "rgba(124,240,255,.95)";
           ctx.fillStyle = warning ? "rgba(196,124,255,.1)" : "rgba(123,47,247,.46)";
           ctx.lineWidth = warning ? 1.5 : 2.5;
@@ -3376,6 +3568,10 @@
     const cy = boss.y * CELL + CELL / 2;
     const pulse = reducedMotion.matches ? 1 : 1 + Math.sin(now / 180) * 0.06;
     const r = CELL * 0.75 * pulse;
+    if(boss.phase===2) {
+      ctx.save();ctx.strokeStyle=now<boss.phaseUntil?"#ffe4a6":"#f6a465";ctx.lineWidth=2;
+      ctx.setLineDash([6,5]);ctx.beginPath();ctx.arc(cx,cy,r*1.5,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
     if (bossRecovering(now)) {
       ctx.save();
       ctx.strokeStyle = "#76e69a";
@@ -4240,25 +4436,28 @@
   }
 
   function drawBeam(beam, now) {
-    const a = 1 - (now - (beam.until - 250)) / 250;
+    const duration=beam.duration||250;
+    const a = Math.max(0,Math.min(1,(beam.until-now)/duration));
     ctx.save();
     ctx.globalAlpha = Math.max(0, a);
     const {origin, direction} = beam;
     const offsets = beam.wide ? [-1, 0, 1] : [0];
     const px = -direction.y, py = direction.x;
+    const rays=beam.rays||offsets.map(offset=>({direction,cells:beam.cells.filter(c=>(c.x-origin.x)*px+(c.y-origin.y)*py===offset)}));
     ctx.lineCap = "round";
-    for (const offset of offsets) {
-      const lane = beam.cells.filter(c => (c.x - origin.x) * px + (c.y - origin.y) * py === offset);
+    for (const ray of rays) {
+      const lane=ray.cells,direction=ray.direction,px=-direction.y,py=direction.x;
       if (!lane.length) continue;
       const first = lane[0], last = lane[lane.length - 1];
-      const x1 = (first.x + .5 - direction.x * .45) * CELL;
-      const y1 = (first.y + .5 - direction.y * .45) * CELL;
+      const x1 = (ray.branch?ray.origin.x+.5:first.x + .5 - direction.x * .45) * CELL;
+      const y1 = (ray.branch?ray.origin.y+.5:first.y + .5 - direction.y * .45) * CELL;
       const x2 = (last.x + .5 + direction.x * .45) * CELL;
       const y2 = (last.y + .5 + direction.y * .45) * CELL;
-      for (const [width, color] of [[18,"rgba(71,207,255,.24)"],[10,"#67e4ff"],[3.5,"#f3ffff"]]) {
+      const layers=beam.ultimate?[[22,"rgba(134,229,142,.2)"],[11,"#bbef9b"],[3.5,"#fff4ce"]]:[[18,"rgba(71,207,255,.24)"],[10,"#67e4ff"],[3.5,"#f3ffff"]];
+      for (const [width, color] of layers) {
         ctx.strokeStyle = color;
         ctx.lineWidth = width * (.65 + a * .35);
-        ctx.shadowColor = "#70eaff";
+        ctx.shadowColor = beam.ultimate?"#c9ef95":"#70eaff";
         ctx.shadowBlur = richEffects ? width : 0;
         ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
       }
@@ -4274,7 +4473,24 @@
         ctx.stroke();
       }
     }
+    if(beam.ultimate && richEffects) {
+      const center=rays[Math.floor(rays.length/2)];
+      if(center?.cells.length) {
+        const travel=reducedMotion.matches?1:1-a;
+        const first=center.cells[0],last=center.cells[center.cells.length-1];
+        ctx.save();ctx.shadowBlur=0;ctx.translate((first.x+(last.x-first.x)*travel+.5)*CELL,(first.y+(last.y-first.y)*travel+.5)*CELL);
+        ctx.rotate(Math.atan2(direction.y,direction.x));ctx.drawImage(dragonPart("head",PALETTE.megarayquaza,true),-40,-40,80,80);ctx.restore();
+      }
+    }
     ctx.restore();
+  }
+
+  function drawReflection(now) {
+    if(!reflection || now>=reflection.until) return;
+    const {from,to}=reflection;
+    ctx.save();ctx.globalAlpha=Math.min(1,(reflection.until-now)/400);
+    ctx.strokeStyle="#e7c2ff";ctx.lineWidth=3;ctx.setLineDash([7,4]);
+    ctx.beginPath();ctx.moveTo((from.x+.5)*CELL,(from.y+.5)*CELL);ctx.lineTo((to.x+.5)*CELL,(to.y+.5)*CELL);ctx.stroke();ctx.restore();
   }
 
   function drawWeather(now) {
@@ -4347,6 +4563,8 @@
     drawMagikarp();
     drawSnake(rendered, now);
     if (beam && now < beam.until) drawBeam(beam, now);
+    if (ascent && now < ascent.until) drawBeam(ascent, now);
+    drawReflection(now);
     drawRings();
     drawParticles();
     drawPopups();
@@ -4357,6 +4575,8 @@
 
   function loop(now) {
     if (state === "playing") {
+      if(ascent && now>=ascent.until) ascent=null;
+      if(reflection && now>=reflection.until) reflection=null;
       updateNature(now);
       // Mega Rayquaza hanya 15 detik, lalu kembali normal
       if (evolved && now > evolveUntil) {
@@ -4449,6 +4669,7 @@
     if (comboFill.style.transform !== comboScale) comboFill.style.transform = comboScale;
     setAttribute(document.getElementById("comboMeter"), "aria-valuenow", Math.round(comboPercent));
     updateNatureHud(effectNow);
+    updateCombatHud();
 
     const rem = multiplierUntil - effectNow;
     if (multiplier > 1 && rem > 0) {
@@ -4581,8 +4802,11 @@
     if (boss) {
       boss.nextAttack += pauseDuration;
       boss.recoveryAt = shiftPausedDeadline(boss.recoveryAt, pauseDuration);
+      boss.phaseUntil = shiftPausedDeadline(boss.phaseUntil, pauseDuration);
     }
     if (beam) beam.until += pauseDuration;
+    if (ascent) ascent.until += pauseDuration;
+    if (reflection) reflection.until += pauseDuration;
 
     pausedAt = 0;
     state = "playing";
@@ -4671,7 +4895,7 @@
   window.addEventListener("keydown", (e) => {
     if (document.getElementById("collectionDialog").open) return;
     // Collection is keyboard-accessible without changing the existing gameplay shortcuts.
-    if ((e.key === " " || e.key === "Enter") && e.target.id === "collectionBtn") return;
+    if ((e.key === " " || e.key === "Enter") && (["collectionBtn","ascentBtn","ascentTouchBtn"].includes(e.target.id) || e.target.tagName==="SUMMARY")) return;
     if (e.key === "Escape") {
       if (state === "playing") {
         e.preventDefault();
@@ -4699,6 +4923,10 @@
       W: "up", S: "down", A: "left", D: "right",
     };
     const name = map[e.key];
+    if (e.key.toLowerCase() === "r") {
+      e.preventDefault();
+      if (state === "playing" && !e.repeat) { initAudio(); activateAscent(); }
+    }
     if (e.key.toLowerCase() === "q") {
       e.preventDefault();
       if (state === "playing" && !e.repeat) { initAudio(); activateAirLock(); }
@@ -4734,6 +4962,7 @@
 
   // Tombol Hyper Beam (laser) di layar sentuh.
   elAirLock.addEventListener("click", () => { initAudio(); activateAirLock(); });
+  for(const id of ["ascentBtn","ascentTouchBtn"]) document.getElementById(id).addEventListener("click", () => { initAudio();activateAscent(); });
   elFire.addEventListener("click", () => {
     initAudio();
     if (state === "start") start();
