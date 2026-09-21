@@ -807,6 +807,22 @@
     :fullscreen .upgrade-hint { height: auto; min-height: 100px; overflow: visible; }
     :fullscreen .upgrade-options { grid-template-columns: 1fr; }
   }
+  .journey { padding: 10px 12px; border: 1px solid #254639; border-radius: 10px; background: linear-gradient(120deg,#102a24,#101b2b); }
+  .journey-heading { display: flex; justify-content: space-between; gap: 10px; font-size: 10px; color: #b5cfc8; }
+  .journey-heading strong { color: #83efb1; }
+  .journey progress { display: block; width: 100%; height: 6px; margin: 7px 0; border: 0; border-radius: 6px; overflow: hidden; background: #081612; accent-color: #55dfa0; }
+  .journey progress::-webkit-progress-bar { background: #081612; }
+  .journey progress::-webkit-progress-value { background: linear-gradient(90deg,#32b779,#a0f6cc); }
+  .journey small { display: block; color: #9fbbb6; font-size: 10px; line-height: 1.5; }
+  .utility-btn { min-height: 34px; padding: 5px 10px; border: 1px solid #375348; border-radius: 7px; background: #11251f; color: #c4f4dc; font: inherit; font-size: 10px; font-weight: 800; cursor: pointer; }
+  .utility-btn:disabled { opacity: .4; cursor: default; }
+  button:focus-visible, input:focus-visible { outline: 2px solid #8bf1be; outline-offset: 3px; }
+  .run-summary { width: min(100%,320px); display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 8px 0 16px; }
+  .run-summary div { padding: 10px 4px; border: 1px solid #315447; border-radius: 9px; background: #10271fcc; }
+  .run-summary strong { display: block; color: #8bf1be; font-size: 21px; }
+  .run-summary span { color: #b9cfc4; font-size: 10px; }
+  .upgrade-hint:empty { display: none; }
+  @media (pointer: coarse) { .utility-btn, .lang-toggle button { min-height: 44px; } }
 </style>
 </head>
 <body>
@@ -830,6 +846,7 @@
     </header>
 
     <div class="utility-bar">
+      <button class="utility-btn" id="pauseBtn" type="button" disabled data-i18n="pause.button">PAUSE · ESC</button>
       <button class="fullscreen-btn" id="fullscreenBtn" type="button"><span class="fs-icon">⛶</span><span id="fullscreenLabel">FULLSCREEN</span></button>
       <div class="lang-toggle">
         <button data-lang="id">ID</button>
@@ -852,6 +869,11 @@
       </div>
     </div>
 
+    <div class="journey">
+      <div class="journey-heading"><strong data-i18n="journey.title">PERJALANAN EMERALD</strong><span id="levelProgressLabel"></span></div>
+      <progress id="levelProgress" max="100" value="0" aria-label="Level"></progress>
+      <small id="journeyNext"></small>
+    </div>
     <div class="badges" id="badges"></div>
     <div class="upgrade-chips" id="upgradeChips"></div>
     <div class="upgrade-hint" id="upgradeHint"></div>
@@ -910,6 +932,11 @@
       <div class="overlay hidden" id="overOverlay">
         <h2 data-i18n="over.title">RAYQUAZA FAINTED!</h2>
         <p class="big" id="finalScore">Skor: 0</p>
+        <div class="run-summary">
+          <div><strong id="runItems">0</strong><span data-i18n="run.items">Item</span></div>
+          <div><strong id="runCombo">0</strong><span data-i18n="run.combo">Combo terbaik</span></div>
+          <div><strong id="runBosses">0</strong><span data-i18n="run.bosses">Boss dikalahkan</span></div>
+        </div>
         <p id="newRecord" class="hidden" style="color:#f6c945;font-weight:700" data-i18n="over.record">★ Rekor baru!</p>
         <div class="leaderboard hidden" id="leaderboard"></div>
         <button class="btn" id="restartBtn" data-i18n="over.btn">MAIN LAGI</button>
@@ -940,6 +967,15 @@
   // ---------- i18n (Bahasa Indonesia / English) ----------
   const I18N = {
     id: {
+      "pause.button": "PAUSE · ESC",
+      "journey.title": "PERJALANAN EMERALD",
+      "journey.level": "Level berikutnya",
+      "journey.upgrade": "Upgrade di level",
+      "journey.boss": "Boss di level",
+      "journey.fight": "Boss aktif · cari celah lalu tembak Hyper Beam",
+      "run.items": "Item",
+      "run.combo": "Combo terbaik",
+      "run.bosses": "Boss dikalahkan",
       "hud.score": "Skor",
       "start.desc": "Kendalikan <b>Rayquaza</b>, kumpulkan item Pokémon,<br>makan <b>Meteorite</b> untuk jadi <b>Mega Rayquaza</b>!",
       "legend.berry": "🫐 Beri = poin",
@@ -997,6 +1033,15 @@
       "fullscreen.exit": "KELUAR FULLSCREEN"
     },
     en: {
+      "pause.button": "PAUSE · ESC",
+      "journey.title": "EMERALD JOURNEY",
+      "journey.level": "Next level",
+      "journey.upgrade": "Upgrade at level",
+      "journey.boss": "Boss at level",
+      "journey.fight": "Boss active · find an opening and fire Hyper Beam",
+      "run.items": "Items",
+      "run.combo": "Best combo",
+      "run.bosses": "Bosses defeated",
       "hud.score": "Score",
       "start.desc": "Control <b>Rayquaza</b>, collect Pokémon items,<br>eat a <b>Meteorite</b> to become <b>Mega Rayquaza</b>!",
       "legend.berry": "🫐 Berry = points",
@@ -1080,6 +1125,7 @@
     renderUpgradeHint();
     renderUpgradeChips();
     updateFullscreenButton();
+    updateJourney();
     updateNatureHud(state === "paused" ? pausedAt : performance.now());
     if (boss) updateBossSkillHud(state === "paused" ? pausedAt : performance.now());
   }
@@ -1172,6 +1218,8 @@
 
   // ---------- State ----------
   let snake, dir, nextDir, food;
+  let turnQueue = [];
+  let runItems = 0, runBestCombo = 0, runBosses = 0;
   let score = 0, high = 0;
   let evolved = false;
   let snakeShiny = false;
@@ -1730,6 +1778,7 @@
   }
 
   function defeatBoss() {
+    runBosses++;
     const defeated = boss;
     const bonus = 250 + bossCount * 75;
     score += bonus;
@@ -1990,6 +2039,10 @@
   }
 
   function reset() {
+    turnQueue = [];
+    runItems = 0;
+    runBestCombo = 0;
+    runBosses = 0;
     const cy = Math.floor(ROWS / 2);
     snake = [
       { x: Math.floor(COLS / 2), y: cy },
@@ -2085,7 +2138,24 @@
     return Math.max(75, ms);
   }
 
+  function updateJourney() {
+    const progress = document.getElementById("levelProgress");
+    progress.value = score % 100;
+    progress.setAttribute("aria-label", t("journey.level") + " " + (level() + 1));
+    document.getElementById("levelProgressLabel").textContent = (score % 100) + " / 100";
+    document.getElementById("journeyNext").textContent = boss ? t("journey.fight")
+      : (Object.values(upgrades).some(value => value < 3) ? t("journey.upgrade") + " " + nextUpgradeLevel + " · " : "")
+        + t("journey.boss") + " " + nextBossLevel;
+    document.getElementById("runItems").textContent = runItems;
+    document.getElementById("runCombo").textContent = "×" + runBestCombo;
+    document.getElementById("runBosses").textContent = runBosses;
+    const pauseButton = document.getElementById("pauseBtn");
+    pauseButton.disabled = state !== "playing" && state !== "paused";
+    pauseButton.textContent = t(state === "paused" ? "pause.resume" : "pause.button");
+  }
+
   function updateHud() {
+    updateJourney();
     elScore.textContent = score;
     elLevel.textContent = level();
     elHigh.textContent = Math.max(high, score);
@@ -2122,6 +2192,7 @@
 
   // ---------- Logika game ----------
   function tick() {
+    if (turnQueue.length) nextDir = turnQueue.shift();
     if (!(nextDir.x === -dir.x && nextDir.y === -dir.y)) dir = nextDir;
 
     const head = snake[0];
@@ -2196,6 +2267,7 @@
 
     updateHud();
     checkProgression();
+    updateJourney();
   }
 
   function eat(f) {
@@ -2203,6 +2275,8 @@
     const now = performance.now();
     if (now < comboUntil) combo++; else combo = 1;
     comboUntil = now + 3000 + upgrades.combo * 1000;
+    runItems++;
+    runBestCombo = Math.max(runBestCombo, combo);
 
     const megaMul = mega ? 3 : 1;
     const shinyMul = f.shiny ? 3 : 1;
@@ -2253,6 +2327,8 @@
 
   function gameOver() {
     state = "over";
+    turnQueue = [];
+    updateJourney();
     upgradeChoices = [];
     bossAttacks = [];
     natureOrbs = [];
@@ -3826,6 +3902,9 @@
     if (state !== "playing") return;
     pausedAt = performance.now();
     state = "paused";
+    turnQueue = [];
+    nextDir = dir;
+    updateJourney();
     pauseOverlay.classList.remove("hidden");
   }
 
@@ -3876,6 +3955,7 @@
     pausedAt = 0;
     state = "playing";
     pauseOverlay.classList.add("hidden");
+    updateJourney();
     if (audio && audio.state === "suspended") audio.resume().catch(() => {});
   }
 
@@ -3945,8 +4025,10 @@
   // ---------- Input ----------
   function setDirection(name) {
     const d = DIRS[name];
-    if (!d) return;
-    nextDir = d;
+    if (!d || state !== "playing" || turnQueue.length >= 2) return;
+    const previous = turnQueue.length ? turnQueue[turnQueue.length - 1] : dir;
+    if ((d.x === previous.x && d.y === previous.y) || (d.x === -previous.x && d.y === -previous.y)) return;
+    turnQueue.push(d);
   }
 
   window.addEventListener("keydown", (e) => {
@@ -4051,6 +4133,13 @@
   document.getElementById("startBtn").addEventListener("click", () => { initAudio(); start(); });
   document.getElementById("restartBtn").addEventListener("click", () => { initAudio(); restart(); });
   document.getElementById("resumeBtn").addEventListener("click", () => { initAudio(); resumeGame(); });
+  document.getElementById("pauseBtn").addEventListener("click", () => {
+    if (state === "playing") pauseGame();
+    else if (state === "paused") resumeGame();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pauseGame();
+  });
   elFullscreen.addEventListener("click", toggleFullscreen);
 
   // Tombol ganti bahasa
@@ -4074,6 +4163,7 @@
     lastTrail = performance.now();
     startOverlay.classList.add("hidden");
     overOverlay.classList.add("hidden");
+    updateJourney();
   }
 
   function restart() {
@@ -4086,6 +4176,7 @@
     lastWeatherTime = performance.now();
     lastTrail = performance.now();
     overOverlay.classList.add("hidden");
+    updateJourney();
   }
 
   // ---------- Jalan ----------
