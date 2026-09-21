@@ -1525,7 +1525,6 @@
     // Replacing the card preserves keyboard focus on the selected item.
     document.querySelector(`[data-cosmetic="${id}"]`)?.focus();
   }
-  let chibiEatAt = 0, chibiBeamUntil = 0;
   let biomeIndex = 0, biomeFrom = 0, biomeChangedAt = 0;
   const BIOMES = ["sky","pillar","storm","cosmos"];
   const biomeLayers = new Map();
@@ -1997,7 +1996,6 @@
     const now = performance.now();
     if (beamCooldown > now) return;
     beamCooldown = now + (5000 - upgrades.beam * 600);
-    chibiBeamUntil = now + 450;
 
     const hx = snake[0].x, hy = snake[0].y;
     const aim = turnQueue[0] || dir;
@@ -2048,7 +2046,7 @@
     const now = performance.now();
     boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp,
       nextAttack: Math.max(now + 2200, type.skill !== "deoxys" ? airLockUntil + 1400 : 0),
-      recoveryAt: 0, attackCycle: 0, hitTaken:false, hurtUntil:0 };
+      recoveryAt: 0, attackCycle: 0, hitTaken:false };
     bossAttacks = [];
     terrain = [];
     meteors = [];
@@ -2073,7 +2071,6 @@
   function damageBoss(amount) {
     if (!boss) return;
     boss.hp = Math.max(0, boss.hp - amount);
-    boss.hurtUntil = performance.now() + 280;
     burst(boss.x, boss.y, boss.accent);
     spawnPopup(boss.x, boss.y - 1, "-" + amount, "#ffffff");
     updateBossHud();
@@ -2343,7 +2340,6 @@
   }
 
   function reset() {
-    chibiEatAt = 0; chibiBeamUntil = 0;
     biomeIndex = 0; biomeFrom = 0; biomeChangedAt = 0;
     dragonAngle = 0;
     dragonVisualAt = performance.now();
@@ -2607,7 +2603,6 @@
     comboUntil = now + 3000 + upgrades.combo * 1000;
     runItems++;
     runBestCombo = Math.max(runBestCombo, combo);
-    chibiEatAt = now;
     trackCollection({ berries:collection.stats.berries+(["oran","pinap","pecha"].includes(t.kind)?1:0), combo:Math.max(collection.stats.combo,combo) });
 
     const megaMul = mega ? 3 : 1;
@@ -3375,81 +3370,12 @@
     }
   }
 
-  const bossSprites = new Map();
-  function bossSprite(type, expression) {
-    const key=type.name+"|"+expression;
-    if(bossSprites.has(key)) return bossSprites.get(key);
-    const sprite=document.createElement("canvas");sprite.width=sprite.height=128;
-    const c=sprite.getContext("2d");c.scale(2,2);c.translate(32,32);c.lineJoin="round";c.lineCap="round";
-    const outline="#263040", skin=c.createLinearGradient(0,-20,0,21);
-    skin.addColorStop(0,type.name==="KYOGRE"?"#85caff":"#ffbaa0");skin.addColorStop(.4,type.color);skin.addColorStop(1,type.name==="KYOGRE"?"#32669c":"#b94e55");
-    function oval(x,y,rx,ry,fill,stroke=outline) {c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=1.2;c.stroke();}}
-    function shape(points,fill) {c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fillStyle=fill;c.fill();c.strokeStyle=outline;c.lineWidth=1.1;c.stroke();}
-    if(type.name==="GROUDON") {
-      // Stubby paws, ivory back plates, oversized rounded head.
-      for(const sign of [-1,1]) {
-        c.save();c.scale(sign,1);
-        shape([[10,-11],[19,-12],[15,-4],[23,0],[16,5],[20,12],[11,13]],"#ffe5c3");
-        oval(13,9,6,7,skin);oval(9,20,7,4,skin);
-        for(let i=0;i<3;i++) oval(5+i*3,22,1,2,"#fff2d6",null);
-        c.restore();
-      }
-      oval(0,10,12,12,skin);oval(0,12,7,8,"#f3d6bf",null);
-      c.strokeStyle="#c38e88";c.lineWidth=1;for(const y of [8,12,16]){c.beginPath();c.moveTo(-5,y);c.lineTo(5,y);c.stroke();}
-      oval(0,-5,16,14,skin);
-      shape([[-13,-13],[-11,-22],[-4,-16]],type.color);shape([[13,-13],[11,-22],[4,-16]],type.color);
-      c.strokeStyle="#9b4750";c.lineWidth=1.3;c.beginPath();c.moveTo(-12,-11);c.lineTo(-7,-14);c.lineTo(-3,-12);c.moveTo(12,-11);c.lineTo(7,-14);c.lineTo(3,-12);c.stroke();
-      oval(0,2,9,5,"#f2a088",null);
-    } else if(type.name==="KYOGRE") {
-      for(const sign of [-1,1]) {
-        c.save();c.scale(sign,1);
-        c.beginPath();c.moveTo(10,-6);c.bezierCurveTo(18,-12,25,-8,28,6);c.quadraticCurveTo(22,15,13,7);c.closePath();c.fillStyle=skin;c.fill();c.strokeStyle=outline;c.lineWidth=1.3;c.stroke();
-        c.strokeStyle="#ef929c";c.lineWidth=1.5;c.beginPath();c.moveTo(15,-3);c.lineTo(22,1);c.lineTo(24,7);c.stroke();
-        for(let i=0;i<3;i++) oval(19+i*3,7-i,1.5,2,"#e3f3f6",null);
-        shape([[3,13],[13,22],[4,22],[0,19]],type.color);c.restore();
-      }
-      oval(0,0,16,17,skin);oval(0,8,10,7,"#e2f1eb",null);
-      c.strokeStyle="#ec939f";c.lineWidth=1.5;c.beginPath();c.moveTo(-11,-9);c.lineTo(-7,-13);c.lineTo(-3,-9);c.moveTo(11,-9);c.lineTo(7,-13);c.lineTo(3,-9);c.stroke();
-      oval(0,-13,3,1,"#a9e4ff",null);
-    } else {
-      for(const sign of [-1,1]) {
-        c.save();c.scale(sign,1);
-        c.strokeStyle=outline;c.lineWidth=7;c.beginPath();c.moveTo(9,5);c.bezierCurveTo(23,0,11,18,23,17);c.stroke();c.strokeStyle=sign===1?"#7dcbd0":"#ef947d";c.lineWidth=4;c.stroke();
-        c.strokeStyle="#6bb8c4";c.lineWidth=4;c.beginPath();c.moveTo(5,13);c.lineTo(7,22);c.lineTo(11,23);c.stroke();c.restore();
-      }
-      oval(0,8,10,11,skin);
-      shape([[0,2],[5,8],[0,14],[-5,8]],"#8ee2d1");oval(0,8,2,3,"#a691d5",null);
-      c.beginPath();c.moveTo(0,-23);c.bezierCurveTo(6,-21,17,-14,15,-4);c.quadraticCurveTo(12,5,0,5);c.quadraticCurveTo(-12,5,-15,-4);c.bezierCurveTo(-17,-14,-6,-21,0,-23);c.fillStyle=skin;c.fill();c.strokeStyle=outline;c.lineWidth=1.3;c.stroke();
-      c.fillStyle="#78bdcb";c.beginPath();c.ellipse(0,-8,10,9,0,0,Math.PI*2);c.fill();
-      shape([[0,-20],[4,-12],[0,-8],[-4,-12]],"#91d2d3");
-    }
-    const eyeY=type.name==="KYOGRE"?-2:-5;
-    for(const sign of [-1,1]) {
-      const x=sign*6;
-      if(expression==="hurt") {
-        c.strokeStyle=outline;c.lineWidth=1.6;c.beginPath();c.moveTo(x-sign*2,eyeY-2);c.lineTo(x+sign,eyeY);c.lineTo(x-sign*2,eyeY+2);c.stroke();
-      } else if(expression==="tired") {
-        c.strokeStyle=outline;c.lineWidth=1.6;c.beginPath();c.moveTo(x-2.5,eyeY);c.quadraticCurveTo(x,eyeY+3,x+2.5,eyeY);c.stroke();
-      } else {
-        oval(x,eyeY,3.7,4.5,"#fff0c9",null);oval(x,eyeY+.5,2.5,3.3,outline,null);oval(x+.8,eyeY-1,1.1,1.2,"#ffffff",null);
-        if(expression==="warn") {c.strokeStyle=outline;c.lineWidth=1.5;c.beginPath();c.moveTo(x-sign*3,eyeY-5);c.lineTo(x+sign*2,eyeY-3);c.stroke();}
-      }
-      oval(sign*10,eyeY+5,2.5,1.3,"#f2a6b5",null);
-    }
-    c.strokeStyle=outline;c.lineWidth=1.1;c.beginPath();c.moveTo(-2,eyeY+7);c.quadraticCurveTo(0,eyeY+(expression==="hurt"?5:9),2,eyeY+7);c.stroke();
-    c.globalAlpha=.38;oval(-6,-14,3,1.6,"#ffffff",null);c.globalAlpha=1;
-    bossSprites.set(key,sprite);return sprite;
-  }
   function drawBoss(now) {
     if (!boss) return;
     const cx = boss.x * CELL + CELL / 2;
     const cy = boss.y * CELL + CELL / 2;
-    const attack=bossAttacks.find(item=>now<item.until);
-    const warning=!!attack && now<attack.activeAt;
-    const hurt=now<boss.hurtUntil, recovering=bossRecovering(now);
-    const expression=hurt?"hurt":recovering?"tired":attack?"warn":"idle";
-    const pulse = reducedMotion.matches?1:1+Math.sin(visualTime()/280)*.025;
-    const r = CELL * .95;
+    const pulse = reducedMotion.matches ? 1 : 1 + Math.sin(now / 180) * 0.06;
+    const r = CELL * 0.75 * pulse;
     if (bossRecovering(now)) {
       ctx.save();
       ctx.strokeStyle = "#76e69a";
@@ -3468,18 +3394,34 @@
     ctx.strokeStyle = boss.accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(cx, cy, r * (1.28 + (reducedMotion.matches?0:Math.sin(now / 240) * .08)), 0, Math.PI * 2);
+    ctx.arc(cx, cy, r * (1.28 + (reducedMotion.matches ? 0 : Math.sin(now / 240) * .08)), 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
     ctx.save();
-    const recoil=hurt&&!reducedMotion.matches?Math.sin(now/24)*1.6:0;
-    ctx.translate(cx+recoil, cy);ctx.scale(pulse,pulse);
-    ctx.drawImage(bossSprite(boss,expression),-32,-32,64,64);
-    if(warning) {
-      ctx.fillStyle="#ffe1a1";ctx.strokeStyle="#553b30";ctx.lineWidth=1;
-      ctx.beginPath();ctx.arc(19,-23,7,0,Math.PI*2);ctx.fill();ctx.stroke();
-      ctx.fillStyle="#4c3830";ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("!",19,-22.5);
+    ctx.translate(cx, cy);
+    ctx.shadowColor = boss.accent;
+    ctx.shadowBlur = richEffects ? 18 : 0;
+    ctx.fillStyle = boss.color;
+    ctx.strokeStyle = "#160b10";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    if (boss.name === "KYOGRE") {
+      ctx.moveTo(-r * 1.25, 0); ctx.quadraticCurveTo(0, -r, r * 1.25, 0);
+      ctx.quadraticCurveTo(0, r * .8, -r * 1.25, 0);
+    } else if (boss.name === "DEOXYS") {
+      ctx.moveTo(0, -r * 1.25); ctx.lineTo(r * .75, r * .75);
+      ctx.lineTo(0, r * .35); ctx.lineTo(-r * .75, r * .75); ctx.closePath();
+    } else {
+      ctx.moveTo(-r, r * .6); ctx.lineTo(-r * .75, -r * .8);
+      ctx.lineTo(0, -r * 1.1); ctx.lineTo(r * .75, -r * .8);
+      ctx.lineTo(r, r * .6); ctx.closePath();
     }
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = boss.accent;
+    ctx.beginPath(); ctx.arc(-r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.8)";
+    ctx.beginPath(); ctx.arc(0, r * .28, r * .16, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
@@ -3915,10 +3857,10 @@
   }
 
   const PALETTE = {
-    rayquaza: { top: "#b0edc1", mid: "#52b982", bottom: "#276c50", outline: "#163f35", horn: "#ffe28c", fin: "#e18c9b" },
-    megarayquaza: { top: "#d1f3b1", mid: "#61bf85", bottom: "#286454", outline: "#173e36", horn: "#ffe59b", fin: "#edc777" },
-    shinyrayquaza: { top: "#bdc7d5", mid: "#657487", bottom: "#313e50", outline: "#1b293a", horn: "#ffe08d", fin: "#d888a0" },
-    shinymegarayquaza: { top: "#cad3e0", mid: "#748091", bottom: "#333e50", outline: "#1c2938", horn: "#ffe9ac", fin: "#f2cd85" },
+    rayquaza: { top: "#8bd5af", mid: "#32966b", bottom: "#124536", outline: "#071e20", horn: "#f6d66d", fin: "#cb6474" },
+    megarayquaza: { top: "#a0e4bc", mid: "#2c8b69", bottom: "#102e2b", outline: "#061a1c", horn: "#ffda7b", fin: "#edb954" },
+    shinyrayquaza: { top: "#939ead", mid: "#414d5b", bottom: "#1b242f", outline: "#080f16", horn: "#f8d474", fin: "#bd556d" },
+    shinymegarayquaza: { top: "#a4adbb", mid: "#4d5867", bottom: "#171f2b", outline: "#080e16", horn: "#ffe19b", fin: "#edae57" },
     pastel: { top:"#e2f9d6", mid:"#8dd5b7", bottom:"#4f9687", outline:"#29584e", horn:"#fff0bd", fin:"#efb2c3" },
     pastelmega: { top:"#f0f9d1", mid:"#a4dcb9", bottom:"#5b9b86", outline:"#355a4f", horn:"#fff0bd", fin:"#efd19d" },
   };
@@ -3985,8 +3927,8 @@
     });
   }
 
-  function dragonPart(kind, pal, megaForm, expression = "idle") {
-    const key = kind + "|" + pal.mid + "|" + megaForm + (kind === "head" ? "|"+expression : "");
+  function dragonPart(kind, pal, megaForm) {
+    const key = kind + "|" + pal.mid + "|" + megaForm;
     if (dragonSprites.has(key)) return dragonSprites.get(key);
     const sprite = document.createElement("canvas");
     sprite.width = sprite.height = 128;
@@ -4001,52 +3943,37 @@
     const skin = c.createLinearGradient(0, -12, 0, 12);
     skin.addColorStop(0, pal.top); skin.addColorStop(.4, pal.mid); skin.addColorStop(1, pal.bottom);
     if (kind === "head") {
-      // A broad, round face and short swept horns keep Rayquaza recognizable but chibi.
+      // Paired swept horns, pointed jaw and narrow eyes: normal and Mega silhouettes differ.
       for (const sign of [-1, 1]) {
         c.save(); c.scale(1, sign);
-        c.beginPath(); c.moveTo(-5,-8);
-        c.quadraticCurveTo(-11,-13,-16,megaForm ? -18 : -15);
-        c.quadraticCurveTo(-18,-10,-12,-4); c.closePath();
-        c.fillStyle=skin; c.fill(); c.strokeStyle=megaForm ? pal.horn : pal.outline; c.lineWidth=1.3; c.stroke();
-        if (megaForm) {
-          c.beginPath(); c.moveTo(-1,-10); c.quadraticCurveTo(-5,-19,1,-16);
-          c.lineTo(8,-9); c.closePath(); c.fillStyle=pal.mid;c.fill();c.strokeStyle=pal.horn;c.stroke();
-        }
+        polygon([[-5,-5],[-20,megaForm ? -16 : -12],[-13,-3]], skin, megaForm ? pal.horn : pal.outline);
+        polygon([[-11,-5],[-17,megaForm ? -13 : -10],[-8,-5]], pal.top, null);
+        if (megaForm) polygon([[-2,-7],[-9,-18],[3,-9],[11,-7]], pal.mid, pal.horn, 1);
         c.restore();
       }
-      c.beginPath(); c.moveTo(-14,-3);
-      c.bezierCurveTo(-15,-13,-5,-15,4,-12);
-      c.bezierCurveTo(12,-11,17,-5,16,0);
-      c.bezierCurveTo(17,5,12,11,4,12);
-      c.bezierCurveTo(-5,15,-15,13,-14,3); c.closePath();
-      c.fillStyle=skin; c.fill(); c.strokeStyle=pal.outline;c.lineWidth=1.6;c.stroke();
-      // Round golden eyes, bright catchlights and a little blush replace the stern expression.
+      polygon([[-12,-6],[-4,-11],[5,-8],[15,-3],[16,3],[5,8],[-4,11],[-12,6]], skin);
+      // Red jaw margins with a dark mouth and tiny fangs on each side.
       for (const sign of [-1,1]) {
         c.save(); c.scale(1,sign);
-        if(expression==="blink" || expression==="happy") {
-          c.strokeStyle="#21443a";c.lineWidth=1.7;c.beginPath();c.moveTo(1,-6);
-          c.quadraticCurveTo(4,expression==="happy"?-10:-4,7,-6);c.stroke();
-        } else {
-          c.fillStyle=pal.horn;c.beginPath();c.ellipse(4,-6,4.4,4.7,0,0,Math.PI*2);c.fill();
-          c.fillStyle="#15332f";c.beginPath();c.ellipse(4.7,-6,3.2,3.8,0,0,Math.PI*2);c.fill();
-          c.fillStyle="#ffffff";c.beginPath();c.arc(5.8,-7.1,1.4,0,Math.PI*2);c.fill();
-          c.fillStyle="#f4ffe5";c.beginPath();c.arc(3.6,-4.8,.65,0,Math.PI*2);c.fill();
-          if(expression==="focus") {c.strokeStyle=pal.outline;c.lineWidth=2;c.beginPath();c.moveTo(0,-10);c.lineTo(7,-8);c.stroke();}
-        }
-        c.globalAlpha=.72;c.fillStyle="#f0a4b0";c.beginPath();c.ellipse(-1,-10,2.7,1.5,-.1,0,Math.PI*2);c.fill();
+        polygon([[2,5],[15,2],[10,6],[-2,8]], "#662b38", pal.fin, .9);
+        polygon([[6,4],[8,4],[6,6]], "#fff4cd", null);
+        polygon([[11,3],[13,2.7],[11,4.5]], "#fff4cd", null);
+        polygon([[-2,-6],[7,-5],[2,-2],[-3,-3]], "#0b2528", null);
+        polygon([[0,-5.5],[4,-5],[1,-3]], "#ffdf69", null);
+        c.fillStyle = "#121e20"; c.fillRect(1,-5.2,1,2);
+        c.strokeStyle = pal.top; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(-4,-7); c.lineTo(6,-6); c.stroke();
         c.restore();
       }
-      polygon([[-11,0],[-6,-3],[1,0],[-6,3]], pal.horn, null);
-      if(megaForm) polygon([[-8,0],[-5,-1.4],[-1,0],[-5,1.4]], pal.mid, null);
-      c.fillStyle="#d4f0b8";c.beginPath();c.ellipse(11,0,4,4.4,0,0,Math.PI*2);c.fill();
-      c.fillStyle=pal.outline;c.beginPath();c.arc(12,-1.4,.65,0,Math.PI*2);c.arc(12,1.4,.65,0,Math.PI*2);c.fill();
-      c.strokeStyle=pal.outline;c.lineWidth=.9;c.beginPath();c.moveTo(13.6,-2.2);c.quadraticCurveTo(16,0,13.6,2.2);c.stroke();
-      c.globalAlpha=.5;c.fillStyle="#ffffff";c.beginPath();c.ellipse(-7,-7,3.3,1.6,-.6,0,Math.PI*2);c.fill();c.globalAlpha=1;
+      polygon([[-9,0],[-2,-3],[12,0],[-2,3]], pal.horn, null);
+      polygon([[-6,0],[-1,-1.3],[8,0],[-1,1.3]], pal.mid, null);
+      if (megaForm) polygon([[5,0],[12,-2],[20,0],[12,2]], pal.mid, pal.horn, 1);
+      c.fillStyle = pal.outline;
+      c.beginPath(); c.arc(12,-1.8,.8,0,Math.PI*2); c.arc(12,1.8,.8,0,Math.PI*2); c.fill();
     } else if (kind === "fin") {
       for (const sign of [-1,1]) {
         c.save(); c.scale(1,sign);
-        c.beginPath();c.moveTo(5,6);c.quadraticCurveTo(-1,9,-7,megaForm?15:13);
-        c.quadraticCurveTo(-11,14,-6,7);c.closePath();c.fillStyle=skin;c.fill();c.strokeStyle=pal.fin;c.lineWidth=1.5;c.stroke();
+        polygon([[5,6],[-9,megaForm ? 18 : 15],[-7,7]], skin, pal.fin, 1.5);
         c.strokeStyle = pal.top; c.lineWidth = .8;
         c.beginPath(); c.moveTo(1,8); c.lineTo(-7,12); c.stroke();
         c.restore();
@@ -4054,10 +3981,8 @@
     } else if (kind === "arms") {
       for (const sign of [-1,1]) {
         c.save(); c.scale(1,sign);
-        c.beginPath();c.moveTo(2,6);c.quadraticCurveTo(-5,8,-3,12);
-        c.quadraticCurveTo(2,16,7,12);c.quadraticCurveTo(7,10,2,10);c.lineTo(5,8);c.closePath();
-        c.fillStyle=skin;c.fill();c.strokeStyle=pal.outline;c.lineWidth=1.2;c.stroke();
-        for (const x of [1,4,6]) polygon([[x,12],[x+1,14.5],[x+2,12]], "#fff7df", pal.outline, .6);
+        polygon([[2,6],[-3,9],[-2,14],[5,15],[7,12],[2,11],[5,8]], skin);
+        for (const x of [2,5,7]) polygon([[x,13],[x+1,17],[x+2,13]], "#edf5d7", pal.outline, .7);
         c.restore();
       }
     } else if (kind === "tail") {
@@ -4080,21 +4005,15 @@
     return sprite;
   }
 
-  function placeDragonPart(kind, point, angle, pal, scale = 1, expression = "idle") {
+  function placeDragonPart(kind, point, angle, pal, scale = 1) {
     ctx.save(); ctx.translate(point.x, point.y); ctx.rotate(angle); ctx.scale(scale, scale);
-    ctx.drawImage(dragonPart(kind, pal, evolved, expression), -32, -32, 64, 64); ctx.restore();
+    ctx.drawImage(dragonPart(kind, pal, evolved), -32, -32, 64, 64); ctx.restore();
   }
 
   function playerPalette() {
     if(snakeShiny) return evolved?PALETTE.shinymegarayquaza:PALETTE.shinyrayquaza;
     if(collection.equipped.palette==="pastel") return evolved?PALETTE.pastelmega:PALETTE.pastel;
     return evolved?PALETTE.megarayquaza:PALETTE.rayquaza;
-  }
-  function chibiExpression(now) {
-    if(now<chibiBeamUntil) return "focus";
-    if(chibiEatAt>0 && now-chibiEatAt<550) return "happy";
-    if(combo>=5 && now<comboUntil) return "happy";
-    return !reducedMotion.matches && visualTime()%4300>4130?"blink":"idle";
   }
   function drawAccessory(c, id, time) {
     c.save();c.lineJoin="round";c.lineCap="round";
@@ -4141,7 +4060,7 @@
       c.save();c.translate(x,y);c.rotate(angle);c.drawImage(dragonPart("ring",pal,evolved),-32,-32,64,64);c.restore();
     }
     if(collection.equipped.trail!=="none") {c.fillStyle="#ffe2ad";c.font="24px serif";c.fillText(collection.equipped.trail==="stars"?"✧":"≋",174,112);}
-    c.translate(165,54);c.scale(2,2);c.drawImage(dragonPart("head",pal,evolved,"idle"),-32,-32,64,64);drawAccessory(c,collection.equipped.accessory,0);c.restore();
+    c.translate(165,54);c.scale(2,2);c.drawImage(dragonPart("head",pal,evolved),-32,-32,64,64);drawAccessory(c,collection.equipped.accessory,0);c.restore();
     document.getElementById("collectionPreview").setAttribute("aria-label", t("collection.look")+": "+Object.values(collection.equipped).map(id=>t("cosmetic."+id)).join(", "));
   }
 
@@ -4204,7 +4123,7 @@
     const pal = playerPalette();
     const chunks = dragonSpines(rendered);
     const angle = dragonHeading(now);
-    const expression=chibiExpression(now), time=visualTime();
+    const time=visualTime();
     drawCosmeticTrail(chunks,time);
     for (let group=chunks.length-1;group>=0;group--) {
       const points=chunks[group], tail=group===chunks.length-1;
@@ -4229,8 +4148,7 @@
     const head=chunks[0][0];
     const neck=chunks[0].find(p=>p.distance>=19);
     if(neck) placeDragonPart("arms",neck,neck.angle+(reducedMotion.matches?0:Math.sin(time/230)*.08),pal,.85);
-    const chew=!reducedMotion.matches&&chibiEatAt>0&&now-chibiEatAt<550?Math.sin((now-chibiEatAt)/550*Math.PI)*.075:0;
-    placeDragonPart("head",head,angle,pal,1+chew,expression);
+    placeDragonPart("head",head,angle,pal);
     ctx.save();ctx.translate(head.x,head.y);ctx.rotate(angle);drawAccessory(ctx,collection.equipped.accessory,time);ctx.restore();
     if(snakeShiny && richEffects) drawSparkles(head.x,head.y);
     if(shield) {
@@ -4624,8 +4542,6 @@
     const pauseDuration = Math.max(0, now - pausedAt);
     steeringStartedAt = shiftPausedDeadline(steeringStartedAt, pauseDuration);
     dragonVisualAt = shiftPausedDeadline(dragonVisualAt, pauseDuration);
-    chibiEatAt = shiftPausedDeadline(chibiEatAt, pauseDuration);
-    chibiBeamUntil = shiftPausedDeadline(chibiBeamUntil, pauseDuration);
     biomeChangedAt = shiftPausedDeadline(biomeChangedAt, pauseDuration);
     lastFxFrame = now;
 
@@ -4664,7 +4580,6 @@
     }
     if (boss) {
       boss.nextAttack += pauseDuration;
-      boss.hurtUntil = shiftPausedDeadline(boss.hurtUntil, pauseDuration);
       boss.recoveryAt = shiftPausedDeadline(boss.recoveryAt, pauseDuration);
     }
     if (beam) beam.until += pauseDuration;
@@ -4943,10 +4858,8 @@
   // Pre-rasterize the finite art set before play: eating/unlocking never builds a sprite.
   for(const [name,pal] of Object.entries(PALETTE)) {
     const form=name.includes("mega");
-    for(const part of ["fin","arms","tail","ring"]) dragonPart(part,pal,form);
-    for(const expression of ["idle","blink","happy","focus"]) dragonPart("head",pal,form,expression);
+    for(const part of ["head","fin","arms","tail","ring"]) dragonPart(part,pal,form);
   }
-  for(const type of BOSS_TYPES) for(const expression of ["idle","warn","hurt","tired"]) bossSprite(type,expression);
   for(let i=0;i<4;i++) biomeLayer(i);
   requestAnimationFrame(loop);
 })();
