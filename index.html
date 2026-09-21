@@ -1287,7 +1287,7 @@
   let snake, dir, nextDir, food;
   let turnQueue = [];
   let runItems = 0, runBestCombo = 0, runBosses = 0;
-  let previousSnake = [], moveStartedAt = 0, moveDuration = 170;
+  let moveDuration = 170, steeringFrom = null, steeringStartedAt = 0;
   let lastJourneyKey = "", lastNatureHudKey = "";
   let lastFxFrame = 0, deathReason = "hazard";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1798,12 +1798,13 @@
     beamCooldown = now + (5000 - upgrades.beam * 600);
 
     const hx = snake[0].x, hy = snake[0].y;
-    const px = -dir.y, py = dir.x; // arah tegak lurus
+    const aim = turnQueue[0] || dir;
+    const px = -aim.y, py = aim.x; // follow the immediately visible steering direction
     const offs = evolved ? [-1, 0, 1] : [0]; // 3 baris saat Mega, 1 baris saat normal
     const cells = [];
     for (const off of offs) {
       for (let i = 1; ; i++) {
-        const x = hx + dir.x * i + px * off, y = hy + dir.y * i + py * off;
+        const x = hx + aim.x * i + px * off, y = hy + aim.y * i + py * off;
         if (x < 0 || y < 0 || x >= COLS || y >= ROWS) break;
         cells.push({ x, y });
       }
@@ -1820,7 +1821,7 @@
       const upgradeDamage = Math.max(0, upgrades.beam - 1);
       damageBoss(1 + upgradeDamage + (evolved ? 1 : 0) + (bossRecovering(now) ? 1 : 0));
     }
-    beam = { cells, origin: { x: hx, y: hy }, direction: { ...dir }, wide: evolved, until: now + 250 };
+    beam = { cells, origin: { x: hx, y: hy }, direction: { ...aim }, wide: evolved, until: now + 250 };
     sfx.beam();
   }
 
@@ -2138,8 +2139,8 @@
   }
 
   function reset() {
-    previousSnake = [];
-    moveStartedAt = 0;
+    steeringFrom = null;
+    steeringStartedAt = 0;
     moveDuration = 170;
     lastJourneyKey = "";
     lastNatureHudKey = "";
@@ -2300,30 +2301,16 @@
   }
 
   // ---------- Logika game ----------
-  function tick(movementAt = performance.now()) {
-    if (turnQueue.length) nextDir = turnQueue.shift();
-    if (!(nextDir.x === -dir.x && nextDir.y === -dir.y)) dir = nextDir;
-
+  function inspectStep(direction, now) {
     const head = snake[0];
-    let nx = head.x + dir.x;
-    let ny = head.y + dir.y;
-
-    // dinding selalu fatal
-    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) return gameOver("wall");
-
-    // portal teleport
+    let nx = head.x + direction.x, ny = head.y + direction.y;
+    const entry = { x: nx, y: ny };
+    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) return { blocked: true, reason: "wall", entry };
     const portal = portals.find(p => p.x === nx && p.y === ny);
     if (portal) {
       const other = portals.find(p => p !== portal);
-      if (other) {
-        spawnParticles(nx, ny, "#7cf0ff");
-        nx = other.x;
-        ny = other.y;
-        sfx.portal();
-      }
+      if (other) { nx = other.x; ny = other.y; }
     }
-
-    const now = performance.now();
     const hitRock = rocks.some(r => r.x === nx && r.y === ny);
     const hitMeteor = !airLockActive(now) && meteors.some(m => now >= m.landAt && now < m.landAt + 5000 && m.x === nx && m.y === ny);
     const hitTerrain = !airLockActive(now) && terrain.some(c => c.kind === "fissure" && now >= c.activeAt
@@ -2336,8 +2323,24 @@
     const growing = food && nx === food.x && ny === food.y;
     const body = growing ? snake : snake.slice(0, -1);
     const hitSelf = body.some(s => s.x === nx && s.y === ny);
+    const blocked = (hitRock && !mega) || (hitMeteor && !mega) || (hitTerrain && !mega)
+      || hitWild || hitBoss || hitBossSkill || hitSelf;
+    const reason = hitSelf ? "self" : hitBoss || hitBossSkill ? "boss" : hitWild ? "wild" : "hazard";
+    return { nx, ny, entry, portal, growing, blocked, reason, pickedUpgrade, pickedNature };
+  }
 
-    if ((hitRock && !mega) || (hitMeteor && !mega) || (hitTerrain && !mega) || hitWild || hitBoss || hitBossSkill || hitSelf) {
+  function tick(movementAt = performance.now()) {
+    lastTick = movementAt;
+    steeringFrom = null;
+    steeringStartedAt = 0;
+    if (turnQueue.length) nextDir = turnQueue.shift();
+    if (!(nextDir.x === -dir.x && nextDir.y === -dir.y)) dir = nextDir;
+    const now = performance.now();
+    const step = inspectStep(dir, now);
+    const { nx, ny, growing, pickedUpgrade, pickedNature } = step;
+    const head = snake[0];
+    if (step.reason === "wall") return gameOver("wall");
+    if (step.blocked) {
       if (now < shieldGraceUntil) return;
       if (shield > 0) {
         shield--;
@@ -2346,13 +2349,16 @@
         sfx.shield();
         return;
       }
-      return gameOver(hitSelf ? "self" : hitBoss || hitBossSkill ? "boss" : hitWild ? "wild" : "hazard");
+      return gameOver(step.reason);
+    }
+
+    if (step.portal) {
+      spawnParticles(step.entry.x, step.entry.y, "#7cf0ff");
+      sfx.portal();
     }
 
     const ateMagikarp = !!(magikarp && nx === magikarp.x && ny === magikarp.y);
 
-    previousSnake = snake.map(segment => ({ ...segment }));
-    moveStartedAt = movementAt;
     snake.unshift({ x: nx, y: ny });
     if (growing) {
       eat(food);
@@ -2628,14 +2634,22 @@
 
   // Rendering positions never enter collision or spawning calculations.
   function renderedSnake(now) {
-    if (reducedMotion.matches || state === "over" || !previousSnake.length) return snake;
-    const amount = Math.min(1, Math.max(0, (now - moveStartedAt) / moveDuration));
-    return snake.map((current, index) => {
-      const previous = previousSnake[Math.min(index, previousSnake.length - 1)];
-      // Portals jump immediately instead of visually crossing occupied cells.
-      if (Math.abs(current.x - previous.x) + Math.abs(current.y - previous.y) > 1) return current;
-      return { x: previous.x + (current.x - previous.x) * amount, y: previous.y + (current.y - previous.y) * amount };
+    if (reducedMotion.matches || (state !== "playing" && state !== "paused")) return snake;
+    // Look toward the pending step rather than drawing one logical cell behind it.
+    // A new input redirects from the exact on-screen position; the grid clock never speeds up.
+    const step = inspectStep(turnQueue[0] || dir, now);
+    const start = steeringFrom ? steeringStartedAt : lastTick;
+    const duration = Math.max(1, lastTick + moveDuration - start);
+    const amount = Math.min(1, Math.max(0, (now - start) / duration));
+    const rendered = snake.map((current, index) => {
+      const from = steeringFrom?.[index] || current;
+      const target = step.blocked ? current : index === 0 ? step.entry : snake[index - 1];
+      // The head approaches a portal entrance; the logical tick alone performs teleportation.
+      if (Math.abs(target.x - current.x) + Math.abs(target.y - current.y) > 1) return current;
+      return { x: from.x + (target.x - from.x) * amount, y: from.y + (target.y - from.y) * amount };
     });
+    if (step.growing && !step.blocked) rendered.push({ ...snake[snake.length - 1] });
+    return rendered;
   }
 
   function drawAtmosphere(now, head) {
@@ -3597,7 +3611,7 @@
     ctx.save();
     ctx.lineCap = "round";
     ctx.lineWidth = CELL * 0.52;
-    for (let i = 1; i < snake.length; i++) {
+    for (let i = 1; i < rendered.length; i++) {
       const a = rendered[i - 1], b = rendered[i];
       if (Math.hypot(b.x - a.x, b.y - a.y) > 1.5) continue; // portal
       const ax = a.x * CELL + CELL / 2, ay = a.y * CELL + CELL / 2;
@@ -3613,14 +3627,14 @@
     ctx.restore();
 
     // Segmen badan (ekor → leher).
-    for (let i = snake.length - 1; i >= 1; i--) {
+    for (let i = rendered.length - 1; i >= 1; i--) {
       const seg = rendered[i];
       drawChibiSegment(seg.x, seg.y, CELL * 0.78, pal, rainbow, i);
     }
 
     // Kepala (lebih besar, chibi).
     const h = rendered[0];
-    drawChibiHead(h.x * CELL + CELL / 2, h.y * CELL + CELL / 2, CELL * 0.95, pal, rainbow);
+    drawChibiHead(h.x * CELL + CELL / 2, h.y * CELL + CELL / 2, CELL * 0.95, pal, rainbow, turnQueue[0] || dir);
 
     if (shield) {
       const cx = h.x * CELL + CELL / 2, cy = h.y * CELL + CELL / 2;
@@ -3704,7 +3718,8 @@
     ctx.restore();
   }
 
-  function drawChibiHead(cx, cy, s, pal, rainbow) {
+  function drawChibiHead(cx, cy, s, pal, rainbow, heading) {
+    const dir = heading;
     const x0 = cx - s / 2, y0 = cy - s / 2;
     const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
     if (rainbow) {
@@ -3720,7 +3735,7 @@
     // Kumis emas + sparkle saat Mega; sparkle emas juga untuk shiny (di belakang kepala).
     if (evolved) {
       drawSparkles(cx, cy);
-      drawWhiskers(cx, cy, s, pal);
+      drawWhiskers(cx, cy, s, pal, heading);
     } else if (snakeShiny) {
       drawSparkles(cx, cy);
     }
@@ -3818,7 +3833,8 @@
   }
 
   // Kumis emas khas Mega Rayquaza: 2 helai menjuntai dari kepala ke belakang.
-  function drawWhiskers(cx, cy, s, pal) {
+  function drawWhiskers(cx, cy, s, pal, heading) {
+    const dir = heading;
     const time = visualTime();
     const bx = -dir.x, by = -dir.y; // arah belakang (lawan arah gerak)
     const px = -by, py = bx;        // tegak lurus
@@ -4187,8 +4203,6 @@
     if (state !== "playing") return;
     pausedAt = performance.now();
     state = "paused";
-    turnQueue = [];
-    nextDir = dir;
     updateJourney();
     pauseOverlay.classList.remove("hidden");
   }
@@ -4197,7 +4211,7 @@
     if (state !== "paused") return;
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
-    moveStartedAt = shiftPausedDeadline(moveStartedAt, pauseDuration);
+    steeringStartedAt = shiftPausedDeadline(steeringStartedAt, pauseDuration);
     lastFxFrame = now;
 
     evolveUntil = shiftPausedDeadline(evolveUntil, pauseDuration);
@@ -4315,6 +4329,11 @@
     if (!d || state !== "playing" || turnQueue.length >= 2) return;
     const previous = turnQueue.length ? turnQueue[turnQueue.length - 1] : dir;
     if ((d.x === previous.x && d.y === previous.y) || (d.x === -previous.x && d.y === -previous.y)) return;
+    if (!turnQueue.length) {
+      const now = performance.now();
+      steeringFrom = renderedSnake(now);
+      steeringStartedAt = now;
+    }
     turnQueue.push(d);
   }
 
@@ -4352,9 +4371,10 @@
     }
     if (name) {
       e.preventDefault();
+      if (e.repeat) return;
       initAudio();
       if (state === "start") start();
-      else if (state === "playing") setDirection(name);
+      if (state === "playing") setDirection(name);
     }
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
@@ -4365,13 +4385,18 @@
     }
   });
 
-  document.getElementById("dpad").addEventListener("click", (e) => {
+  function pressDirection(e) {
     const btn = e.target.closest("button[data-dir]");
     if (!btn) return;
+    if (e.type === "pointerdown" && e.button !== 0) return;
+    if (e.type === "click" && e.detail !== 0) return; // pointerdown already handled it
+    e.preventDefault();
     initAudio();
     if (state === "start") start();
-    else if (state === "playing") setDirection(btn.dataset.dir);
-  });
+    if (state === "playing") setDirection(btn.dataset.dir);
+  }
+  document.getElementById("dpad").addEventListener("pointerdown", pressDirection);
+  document.getElementById("dpad").addEventListener("click", pressDirection);
 
   // Tombol Hyper Beam (laser) di layar sentuh.
   elAirLock.addEventListener("click", () => { initAudio(); activateAirLock(); });
@@ -4394,27 +4419,36 @@
   (function initSwipe() {
     const board = document.querySelector(".board");
     let sx = 0, sy = 0;
+    let swiping = false;
     const THRESH = 24; // jarak minimum (px) agar dianggap swipe, bukan tap
 
     board.addEventListener("touchstart", (e) => {
-      if (state !== "playing") return;
+      swiping = state === "playing" && e.touches.length === 1;
+      if (!swiping) return;
       const t = e.touches[0];
       sx = t.clientX; sy = t.clientY;
     }, { passive: true });
 
     board.addEventListener("touchmove", (e) => {
-      if (state === "playing" && e.touches.length === 1) e.preventDefault();
+      if (e.touches.length !== 1) { swiping = false; return; }
+      if (state === "playing") e.preventDefault();
+      readSwipe(e.touches[0]);
     }, { passive: false });
 
-    board.addEventListener("touchend", (e) => {
-      if (state !== "playing") return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - sx, dy = t.clientY - sy;
+    function readSwipe(touch) {
+      if (!swiping || state !== "playing" || !touch) return;
+      const dx = touch.clientX - sx, dy = touch.clientY - sy;
       const adx = Math.abs(dx), ady = Math.abs(dy);
       if (Math.max(adx, ady) < THRESH) return;
+      swiping = false; // one gesture, one turn; touchend must not enqueue a duplicate
       if (adx > ady) setDirection(dx > 0 ? "right" : "left");
       else setDirection(dy > 0 ? "down" : "up");
+    }
+    board.addEventListener("touchend", (e) => {
+      readSwipe(e.changedTouches[0]);
+      swiping = false;
     }, { passive: true });
+    board.addEventListener("touchcancel", () => { swiping = false; }, { passive: true });
   })();
 
   document.getElementById("startBtn").addEventListener("click", () => { initAudio(); start(); });
