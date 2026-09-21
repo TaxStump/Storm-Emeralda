@@ -850,6 +850,36 @@
   .run-summary span { color: #b9cfc4; font-size: 10px; }
   .upgrade-hint:empty { display: none; }
   @media (pointer: coarse) { .utility-btn, .lang-toggle button { min-height: 44px; } }
+  .collection-bar { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid #29483e; border-radius:12px; background:#0d211f; min-width:0; }
+  .collection-bar > div { flex:1; min-width:0; }
+  .collection-bar strong { display:block; color:#a8e9d0; font-size:11px; }
+  .collection-bar small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#afbacb; font-size:10px; margin-top:3px; }
+  .collection-bar button { flex:none; }
+  .collection-dialog { color:#edf7ef; width:min(700px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); padding:22px; border:1px solid #4b8170; border-radius:22px; background:radial-gradient(ellipse at top right,#203e43,transparent 65%),#101923; box-shadow:0 24px 90px #0009; overflow:auto; }
+  .collection-dialog::backdrop { background:#030a13c9; }
+  .collection-head { display:flex; justify-content:space-between; align-items:center; gap:12px; position:sticky; top:-22px; z-index:2; background:#14242b; padding:10px 0; }
+  .collection-head h2 { margin:0; font-size:20px; letter-spacing:.04em; }
+  .collection-dialog p { color:#afc3c7; font-size:12px; line-height:1.6; }
+  .collection-dialog h3 { margin:22px 0 10px; font-size:13px; letter-spacing:.1em; color:#ffe2a5; }
+  .collection-hero { display:flex; align-items:center; gap:16px; margin:16px 0; padding:12px; background:#08131f88; border:1px solid #355452; border-radius:16px; }
+  .collection-hero canvas { width:130px; height:100px; flex:none; }
+  .collection-hero strong { display:block; color:#c6f5d8; }
+  #collectionSummary { white-space:pre-line; }
+  .wardrobe-grid,.album-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+  .cosmetic-card,.mission-card { min-width:0; border:1px solid #344654; border-radius:13px; padding:12px; background:#14232e; color:#e5edf0; text-align:left; }
+  .cosmetic-card { cursor:pointer; font:inherit; min-height:96px; }
+  .cosmetic-card:disabled { cursor:default; opacity:.55; }
+  .cosmetic-card[aria-pressed=true] { border-color:#83e4b4; background:#1c3c36; box-shadow:inset 0 0 0 1px #83e4b4; }
+  .cosmetic-card b,.mission-card b { display:block; font-size:12px; margin:6px 0; }
+  .cosmetic-card small,.mission-card small { display:block; font-size:10px; line-height:1.5; color:#b4c9cf; }
+  .cosmetic-icon { display:inline-flex; width:32px; height:26px; align-items:center; justify-content:center; font-size:23px; color:#ffe2a5; }
+  .mission-card.earned { border-color:#70906e; background:linear-gradient(140deg,#26372b,#162b2e); }
+  .mission-card .sticker { font-size:25px; filter:grayscale(1); opacity:.4; }
+  .mission-card.earned .sticker { filter:none; opacity:1; }
+  .mission-card progress { width:100%; height:5px; accent-color:#8fe0b2; margin:9px 0 3px; }
+  .collection-dialog button:focus-visible { outline:3px solid #ffe2a5; outline-offset:3px; }
+  .unlock-toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:100; max-width:calc(100vw - 24px); padding:12px 18px; border:1px solid #8de4b5; border-radius:14px; background:#102b25f5; color:#efffe6; font-size:12px; box-shadow:0 8px 32px #0008; pointer-events:none; }
+  @media(max-width:480px) { .collection-dialog { padding:16px; } .wardrobe-grid,.album-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .collection-head { top:-16px; } .collection-head h2 { font-size:17px; } .collection-hero { gap:6px; } .collection-hero canvas { width:110px; } }
 </style>
 </head>
 <body>
@@ -903,6 +933,10 @@
       <div class="journey-heading"><strong data-i18n="journey.title">PERJALANAN EMERALD</strong><span id="levelProgressLabel"></span></div>
       <progress id="levelProgress" max="100" value="0" aria-label="Level"></progress>
       <small id="journeyNext"></small>
+    </div>
+    <div class="collection-bar">
+      <div><strong id="biomeLabel"></strong><small id="missionHint"></small></div>
+      <button class="utility-btn" type="button" id="collectionBtn" data-i18n="collection.open">KOLEKSI</button>
     </div>
     <div class="badges" id="badges"></div>
     <div class="upgrade-chips" id="upgradeChips"></div>
@@ -986,6 +1020,15 @@
     </div>
   </div>
 
+<dialog class="collection-dialog" id="collectionDialog" aria-labelledby="collectionTitle" aria-describedby="collectionNote">
+  <div class="collection-head"><h2 id="collectionTitle" data-i18n="collection.title">EMERALD ATELIER</h2><button class="utility-btn" id="collectionClose" type="button" data-i18n="collection.close">TUTUP</button></div>
+  <p id="collectionNote" data-i18n="collection.note"></p>
+  <div class="collection-hero"><canvas id="collectionPreview" width="260" height="200" role="img" aria-label="Rayquaza"></canvas><div><strong data-i18n="collection.look"></strong><p id="collectionSummary"></p></div></div>
+  <h3 data-i18n="collection.wardrobe"></h3><div class="wardrobe-grid" id="wardrobeGrid"></div>
+  <h3 data-i18n="collection.album"></h3><div class="album-grid" id="albumGrid"></div>
+  <p id="collectionStorage" role="status"></p>
+</dialog>
+<div class="unlock-toast hidden" id="unlockToast" role="status" aria-live="polite"></div>
 <script>
 (() => {
   "use strict";
@@ -1161,6 +1204,42 @@
     }
   };
 
+  Object.assign(I18N.id, {
+    "collection.open":"KOLEKSI", "collection.title":"EMERALD ATELIER", "collection.close":"TUTUP",
+    "collection.note":"Padukan satu warna, aksesori, dan jejak. Kosmetik tidak menambah kekuatan. Saat bermain, membuka koleksi menjeda game; lanjutkan saat kamu siap.",
+    "collection.look":"GAYA RAYQUAZA-MU", "collection.wardrobe":"LEMARI KOSMETIK", "collection.album":"MISI & ALBUM STIKER",
+    "collection.saved":"Progres otomatis tersimpan di browser ini. Tidak tersinkron antarperangkat; menghapus data situs menghapus koleksi.",
+    "collection.unsaved":"Penyimpanan browser tidak tersedia. Koleksi hanya bertahan selama halaman ini terbuka.",
+    "collection.equipped":"Dipakai", "collection.equip":"Pakai", "collection.reward":"Hadiah", "collection.unlocked":"Misi selesai", "collection.complete":"Semua stiker terkumpul!", "collection.sticker":"Stiker album", "collection.shiny":"Warna shiny langka tetap dipertahankan.",
+    "biome.sky":"01 · Langit Fajar", "biome.pillar":"02 · Sky Pillar", "biome.storm":"03 · Lautan Badai", "biome.cosmos":"04 · Taman Kosmik",
+    "cosmetic.classic":"Emerald asli", "cosmetic.pastel":"Mint pastel", "cosmetic.bare":"Tanpa aksesori", "cosmetic.scarf":"Scarf Pecha", "cosmetic.crown":"Mahkota kecil", "cosmetic.none":"Tanpa jejak", "cosmetic.stars":"Debu bintang", "cosmetic.aurora":"Pita aurora",
+    "mission.snack":"Teman berry", "mission.snack.desc":"Kumpulkan 10 berry, boleh lintas permainan.",
+    "mission.feast":"Pesta buah", "mission.feast.desc":"Kumpulkan total 50 berry.",
+    "mission.combo":"Senyum beruntun", "mission.combo.desc":"Raih combo ×10 dalam satu permainan.",
+    "mission.clean":"Penjaga mungil", "mission.clean.desc":"Kalahkan boss tanpa terbentur bahaya sejak boss muncul, termasuk Shield pecah.",
+    "mission.bosses":"Sahabat legenda", "mission.bosses.desc":"Kalahkan total 3 boss.",
+    "mission.mega":"Meteor pertama", "mission.mega.desc":"Berubah menjadi Mega Rayquaza.",
+    "mission.pillar":"Di atas awan", "mission.pillar.desc":"Capai level 4 dan kunjungi Sky Pillar.",
+    "mission.cosmos":"Pemimpi bintang", "mission.cosmos.desc":"Capai level 12 dan kunjungi Taman Kosmik."
+  });
+  Object.assign(I18N.en, {
+    "collection.open":"COLLECTION", "collection.title":"EMERALD ATELIER", "collection.close":"CLOSE",
+    "collection.note":"Combine one color, accessory and trail. Cosmetics give no power bonuses. Opening the collection during play pauses the game; resume when ready.",
+    "collection.look":"YOUR RAYQUAZA'S LOOK", "collection.wardrobe":"COSMETIC WARDROBE", "collection.album":"MISSIONS & STICKER ALBUM",
+    "collection.saved":"Progress saves automatically in this browser. No cross-device sync; clearing site data removes your collection.",
+    "collection.unsaved":"Browser storage is unavailable. Your collection lasts only while this page stays open.",
+    "collection.equipped":"Equipped", "collection.equip":"Equip", "collection.reward":"Reward", "collection.unlocked":"Mission complete", "collection.complete":"All stickers collected!", "collection.sticker":"Album sticker", "collection.shiny":"Rare shiny colors are preserved.",
+    "biome.sky":"01 · Dawn Skies", "biome.pillar":"02 · Sky Pillar", "biome.storm":"03 · Storm Sea", "biome.cosmos":"04 · Cosmic Garden",
+    "cosmetic.classic":"Classic emerald", "cosmetic.pastel":"Pastel mint", "cosmetic.bare":"No accessory", "cosmetic.scarf":"Pecha scarf", "cosmetic.crown":"Tiny crown", "cosmetic.none":"No trail", "cosmetic.stars":"Stardust", "cosmetic.aurora":"Aurora ribbon",
+    "mission.snack":"Berry buddy", "mission.snack.desc":"Collect 10 berries across your adventures.",
+    "mission.feast":"Fruit feast", "mission.feast.desc":"Collect 50 berries in total.",
+    "mission.combo":"Happy streak", "mission.combo.desc":"Reach combo ×10 in a single run.",
+    "mission.clean":"Tiny guardian", "mission.clean.desc":"Defeat a boss without hitting a hazard since it appeared, including Shield breaks.",
+    "mission.bosses":"Legend friends", "mission.bosses.desc":"Defeat 3 bosses in total.",
+    "mission.mega":"First meteor", "mission.mega.desc":"Transform into Mega Rayquaza.",
+    "mission.pillar":"Above the clouds", "mission.pillar.desc":"Reach level 4 and visit Sky Pillar.",
+    "mission.cosmos":"Star dreamer", "mission.cosmos.desc":"Reach level 12 and visit the Cosmic Garden."
+  });
   let lang = (() => {
     try { return localStorage.getItem("storm-emeralda-lang") || "id"; } catch (e) { return "id"; }
   })();
@@ -1188,6 +1267,8 @@
     updateFullscreenButton();
     updateJourney();
     updatePreferences();
+    updateCollectionHint();
+    if (document.getElementById("collectionDialog").open) renderCollection();
     updateNatureHud(state === "paused" ? pausedAt : performance.now());
     if (boss) updateBossSkillHud(state === "paused" ? pausedAt : performance.now());
   }
@@ -1200,11 +1281,6 @@
   }
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
-  const backgroundLayer = document.createElement("canvas");
-  backgroundLayer.width = COLS * CELL;
-  backgroundLayer.height = ROWS * CELL;
-  const backgroundCtx = backgroundLayer.getContext("2d");
-  let backgroundFrameKey = "";
   canvas.width = COLS * CELL;   // 480
   canvas.height = ROWS * CELL;  // 480
 
@@ -1335,6 +1411,130 @@
   let upgradeChoices = [], upgradeCalmUntil = 0, shieldGraceUntil = 0;
   let leaderboardPeriod = "weekly";
   let leaderboardCache = { weekly: null, all: null };
+
+  // Permanent cosmetic progression never changes simulation, scoring or leaderboard data.
+  const MISSIONS = [
+    { id:"snack", stat:"berries", goal:10, icon:"🍒", reward:"scarf" },
+    { id:"feast", stat:"berries", goal:50, icon:"🧺", reward:"pastel" },
+    { id:"combo", stat:"combo", goal:10, icon:"🌈", reward:"stars" },
+    { id:"clean", stat:"clean", goal:1, icon:"👑", reward:"crown" },
+    { id:"bosses", stat:"bosses", goal:3, icon:"🏅", reward:"aurora" },
+    { id:"mega", stat:"mega", goal:1, icon:"💎" },
+    { id:"pillar", stat:"level", goal:4, icon:"🏛️" },
+    { id:"cosmos", stat:"level", goal:12, icon:"🪐" }
+  ];
+  const COSMETICS = [
+    { id:"classic", slot:"palette", icon:"◈" }, { id:"pastel", slot:"palette", icon:"❀" },
+    { id:"bare", slot:"accessory", icon:"○" }, { id:"scarf", slot:"accessory", icon:"🎀" }, { id:"crown", slot:"accessory", icon:"♛" },
+    { id:"none", slot:"trail", icon:"·" }, { id:"stars", slot:"trail", icon:"✧" }, { id:"aurora", slot:"trail", icon:"≋" }
+  ];
+  const PROFILE_KEY = "storm-emeralda-collection-v1";
+  let profileWritable = true, profileSaveTimer = 0, profileDirty = false, collectionUiTimer = 0, toastTimer = 0;
+  let pendingUnlocks = [];
+  function missionDone(mission, data = collection) { return data.stats[mission.stat] >= mission.goal; }
+  function cosmeticOwned(id, data = collection) {
+    const mission = MISSIONS.find(item => item.reward === id);
+    return COSMETICS.some(item => item.id === id) && (!mission || missionDone(mission, data));
+  }
+  function readCollection() {
+    const data = { version:1, stats:{ berries:0, combo:0, clean:0, bosses:0, mega:0, level:1 }, equipped:{palette:"classic",accessory:"bare",trail:"none"} };
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+      if (saved && saved.version === 1) {
+        for (const key of Object.keys(data.stats)) {
+          const value = saved.stats?.[key];
+          if (Number.isFinite(value) && value >= 0) data.stats[key] = Math.min(10000000, Math.floor(value));
+        }
+        for (const slot of Object.keys(data.equipped)) {
+          const id = saved.equipped?.[slot];
+          if (COSMETICS.some(item => item.id === id && item.slot === slot) && cosmeticOwned(id, data)) data.equipped[slot] = id;
+        }
+      }
+    } catch (e) {
+      // Malformed saves fall back safely; blocked storage is detected on the next flush.
+      try { localStorage.getItem(PROFILE_KEY); } catch (_) { profileWritable = false; }
+    }
+    return data;
+  }
+  const collection = readCollection();
+  function flushCollection() {
+    clearTimeout(profileSaveTimer); profileSaveTimer = 0;
+    if (!profileDirty) return;
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(collection)); profileDirty = false; profileWritable = true; }
+    catch (e) { profileWritable = false; }
+  }
+  function scheduleCollectionSave() {
+    profileDirty = true;
+    if (!profileSaveTimer) profileSaveTimer = setTimeout(flushCollection, 1000);
+  }
+  function trackCollection(changes) {
+    const before = MISSIONS.filter(item => missionDone(item)).map(item => item.id);
+    let changed = false;
+    for (const [key,value] of Object.entries(changes)) {
+      if (Object.hasOwn(collection.stats,key) && collection.stats[key] !== value) {
+        collection.stats[key] = Math.min(10000000, Math.max(0,value)); changed = true;
+      }
+    }
+    if (!changed) return;
+    for (const item of MISSIONS) if (missionDone(item) && !before.includes(item.id)) pendingUnlocks.push(item.id);
+    scheduleCollectionSave();
+    // Keep storage, DOM work and first-time emoji rasterization out of the berry tick.
+    if (!collectionUiTimer) collectionUiTimer = setTimeout(() => {
+      collectionUiTimer = 0; updateCollectionHint();
+      if (document.getElementById("collectionDialog").open) renderCollection();
+      if (pendingUnlocks.length) {
+        const names = pendingUnlocks.splice(0).map(id => t("mission." + id));
+        const toast = document.getElementById("unlockToast");
+        toast.textContent = t("collection.unlocked") + " · " + names.join(" / ");
+        toast.classList.remove("hidden"); clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.add("hidden"), 4500);
+      }
+    }, 160);
+  }
+  function updateCollectionHint() {
+    const mission = MISSIONS.find(item => !missionDone(item));
+    document.getElementById("missionHint").textContent = mission
+      ? t("mission." + mission.id) + " · " + Math.min(collection.stats[mission.stat],mission.goal) + "/" + mission.goal
+      : t("collection.complete");
+  }
+  function renderCollection() {
+    const grid = document.getElementById("wardrobeGrid");
+    grid.innerHTML = COSMETICS.map(item => {
+      const owned = cosmeticOwned(item.id), active = collection.equipped[item.slot] === item.id;
+      const mission = MISSIONS.find(m => m.reward === item.id);
+      const label = active ? t("collection.equipped") : owned ? t("collection.equip") : t("mission." + mission.id);
+      return `<button type="button" class="cosmetic-card" data-cosmetic="${item.id}" aria-pressed="${active}" ${owned ? "" : "disabled"}><span class="cosmetic-icon" aria-hidden="true">${item.icon}</span><b>${t("cosmetic."+item.id)}</b><small>${label}</small></button>`;
+    }).join("");
+    document.getElementById("albumGrid").innerHTML = MISSIONS.map(item => {
+      const done = missionDone(item), value = Math.min(collection.stats[item.stat], item.goal);
+      return `<article class="mission-card ${done?"earned":""}"><span class="sticker" aria-hidden="true">${item.icon}</span><b>${t("mission."+item.id)} ${done?"✓":""}</b><small>${t("mission."+item.id+".desc")}</small><progress max="${item.goal}" value="${value}" aria-label="${t("mission."+item.id)}"></progress><small>${value}/${item.goal} · ${t("collection.reward")}: ${item.reward?t("cosmetic."+item.reward):t("collection.sticker")}</small></article>`;
+    }).join("");
+    document.getElementById("collectionSummary").textContent = Object.values(collection.equipped).map(id=>t("cosmetic."+id)).join(" · ") + "\n" + t("collection.shiny");
+    document.getElementById("collectionStorage").textContent = t(profileWritable?"collection.saved":"collection.unsaved");
+    drawCollectionPreview();
+  }
+  function openCollection() {
+    pauseGame(); flushCollection(); renderCollection();
+    document.getElementById("collectionDialog").showModal();
+  }
+  function equipCosmetic(id) {
+    const item = COSMETICS.find(item=>item.id===id);
+    if (!item || !cosmeticOwned(id)) return;
+    collection.equipped[item.slot] = id;
+    scheduleCollectionSave(); flushCollection(); renderCollection();
+    // Replacing the card preserves keyboard focus on the selected item.
+    document.querySelector(`[data-cosmetic="${id}"]`)?.focus();
+  }
+  let chibiEatAt = 0, chibiBeamUntil = 0;
+  let biomeIndex = 0, biomeFrom = 0, biomeChangedAt = 0;
+  const BIOMES = ["sky","pillar","storm","cosmos"];
+  const biomeLayers = new Map();
+  function targetBiome() { const lv=level(); return lv>=12?3:lv>=8?2:lv>=4?1:0; }
+  function syncBiome() {
+    const next=targetBiome();
+    if (next!==biomeIndex) { biomeFrom=biomeIndex;biomeIndex=next;biomeChangedAt=performance.now(); }
+    setText(document.getElementById("biomeLabel"), t("biome."+BIOMES[biomeIndex]));
+  }
 
   const elScore   = document.getElementById("score");
   const elLevel   = document.getElementById("level");
@@ -1797,6 +1997,7 @@
     const now = performance.now();
     if (beamCooldown > now) return;
     beamCooldown = now + (5000 - upgrades.beam * 600);
+    chibiBeamUntil = now + 450;
 
     const hx = snake[0].x, hy = snake[0].y;
     const aim = turnQueue[0] || dir;
@@ -1847,7 +2048,7 @@
     const now = performance.now();
     boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp,
       nextAttack: Math.max(now + 2200, type.skill !== "deoxys" ? airLockUntil + 1400 : 0),
-      recoveryAt: 0, attackCycle: 0 };
+      recoveryAt: 0, attackCycle: 0, hitTaken:false, hurtUntil:0 };
     bossAttacks = [];
     terrain = [];
     meteors = [];
@@ -1872,6 +2073,7 @@
   function damageBoss(amount) {
     if (!boss) return;
     boss.hp = Math.max(0, boss.hp - amount);
+    boss.hurtUntil = performance.now() + 280;
     burst(boss.x, boss.y, boss.accent);
     spawnPopup(boss.x, boss.y - 1, "-" + amount, "#ffffff");
     updateBossHud();
@@ -1881,6 +2083,7 @@
   function defeatBoss() {
     runBosses++;
     const defeated = boss;
+    trackCollection({ bosses:collection.stats.bosses+1, clean:collection.stats.clean+(defeated.hitTaken?0:1) });
     const bonus = 250 + bossCount * 75;
     score += bonus;
     burst(defeated.x, defeated.y, defeated.accent);
@@ -2140,6 +2343,8 @@
   }
 
   function reset() {
+    chibiEatAt = 0; chibiBeamUntil = 0;
+    biomeIndex = 0; biomeFrom = 0; biomeChangedAt = 0;
     dragonAngle = 0;
     dragonVisualAt = performance.now();
     steeringFrom = null;
@@ -2249,6 +2454,8 @@
   }
 
   function updateJourney() {
+    syncBiome();
+    if (state === "playing" && level() > collection.stats.level) trackCollection({level:level()});
     const signature = [lang, state, score, !!boss, nextUpgradeLevel, nextBossLevel, runItems, runBestCombo, runBosses, ...Object.values(upgrades)].join("|");
     if (signature === lastJourneyKey) return;
     lastJourneyKey = signature;
@@ -2344,6 +2551,7 @@
     const head = snake[0];
     if (step.reason === "wall") return gameOver("wall");
     if (step.blocked) {
+      if (boss) boss.hitTaken = true;
       if (now < shieldGraceUntil) return;
       if (shield > 0) {
         shield--;
@@ -2399,6 +2607,8 @@
     comboUntil = now + 3000 + upgrades.combo * 1000;
     runItems++;
     runBestCombo = Math.max(runBestCombo, combo);
+    chibiEatAt = now;
+    trackCollection({ berries:collection.stats.berries+(["oran","pinap","pecha"].includes(t.kind)?1:0), combo:Math.max(collection.stats.combo,combo) });
 
     const megaMul = mega ? 3 : 1;
     const shinyMul = f.shiny ? 3 : 1;
@@ -2438,6 +2648,7 @@
 
   function doEvolve() {
     evolved = true;
+    trackCollection({mega:collection.stats.mega+1});
     evolveUntil = performance.now() + 15000 + upgrades.mega * 3000;
     if (upgrades.mega >= 3) beamCooldown = 0;
     const hx = snake[0].x, hy = snake[0].y;
@@ -2448,6 +2659,7 @@
   }
 
   function gameOver(reason = "hazard") {
+    flushCollection();
     deathReason = reason;
     state = "over";
     turnQueue = [];
@@ -2681,14 +2893,66 @@
     ctx.restore();
   }
 
-  function drawBackground() {
-    // Rasterize expensive scenery only when quality changes. Aurora/comets move separately.
-    const frameKey = [richEffects, reducedMotion.matches].join("|");
-    if (frameKey !== backgroundFrameKey) {
-      paintBackground(backgroundCtx);
-      backgroundFrameKey = frameKey;
+  function biomeLayer(index) {
+    const key=index+"|"+richEffects;
+    if (biomeLayers.has(key)) return biomeLayers.get(key);
+    const layer=document.createElement("canvas");layer.width=layer.height=480;
+    const c=layer.getContext("2d");
+    if(index===3) paintBackground(c);
+    else {
+      const colors=[["#152b46","#30525d","#152932"],["#182e39","#29464b","#14262c"],["#171d36","#2d3752","#142731"]][index];
+      const sky=c.createLinearGradient(0,0,0,480);
+      colors.forEach((color,i)=>sky.addColorStop(i/2,color));c.fillStyle=sky;c.fillRect(0,0,480,480);
+      // Large distant silhouettes do not resemble any occupied grid cell.
+      if(index===0) {
+        const sun=c.createRadialGradient(376,93,8,376,93,120);
+        sun.addColorStop(0,"#f6d9a54d");sun.addColorStop(.25,"#f1bfa626");sun.addColorStop(1,"#e7ae9a00");
+        c.fillStyle=sun;c.fillRect(230,0,250,240);
+        c.fillStyle="#f7dfb529";c.beginPath();c.arc(376,93,27,0,Math.PI*2);c.fill();
+        for(let i=0;i<4;i++) {c.fillStyle=i%2?"#82b6ba0c":"#bfd2c312";c.beginPath();c.ellipse(90+i*122,365+(i%2)*42,140,47,-.13,0,Math.PI*2);c.fill();}
+      } else if(index===1) {
+        c.save();c.globalAlpha=.19;
+        for(const [x,y,w,h] of [[30,178,37,215],[100,220,25,154],[370,137,42,250],[436,234,24,168]]) {
+          c.fillStyle="#a0c1ab";c.fillRect(x,y,w,h);c.fillRect(x-6,y-9,w+12,12);c.fillRect(x-9,y+h-5,w+18,13);
+          c.fillStyle="#102b32";c.fillRect(x+w*.5,y+4,w*.25,h-9);
+          c.strokeStyle="#d9dab7";c.lineWidth=2;c.beginPath();c.moveTo(x+w*.25,y+6);c.lineTo(x+w*.25,y+h-10);c.stroke();
+        }
+        c.strokeStyle="#cbd5b5";c.lineWidth=6;c.beginPath();c.ellipse(244,339,163,42,0,0,Math.PI*2);c.stroke();
+        c.lineWidth=1;c.beginPath();c.ellipse(244,339,143,33,0,0,Math.PI*2);c.stroke();
+        c.restore();
+      } else {
+        for(let i=0;i<5;i++) {
+          c.fillStyle=i%2?"#090f2438":"#708ba612";c.beginPath();c.ellipse(i*125-20,55+(i%2)*38,128,56,0,0,Math.PI*2);c.fill();
+          c.strokeStyle="#89bbd616";c.lineWidth=2;c.beginPath();
+          for(let x=0;x<=480;x+=16) {const y=350+i*23+Math.sin(x/62+i)*9;x?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();
+        }
+        c.fillStyle="#b4c5ec19";c.beginPath();c.arc(367,125,29,0,Math.PI*2);c.fill();
+      }
+      c.strokeStyle="#d7f9e309";c.lineWidth=1;
+      for(let i=0;i<=20;i++) {c.beginPath();c.moveTo(i*24,0);c.lineTo(i*24,480);c.moveTo(0,i*24);c.lineTo(480,i*24);c.stroke();}
+      const shade=c.createRadialGradient(240,240,90,240,240,340);shade.addColorStop(0,"#06101b00");shade.addColorStop(1,"#06101b8c");c.fillStyle=shade;c.fillRect(0,0,480,480);
+      c.strokeStyle="#77c6ab66";c.lineWidth=2;c.strokeRect(5,5,470,470);
+      c.strokeStyle="#dff9e612";c.lineWidth=1;c.strokeRect(8,8,464,464);
     }
-    ctx.drawImage(backgroundLayer, 0, 0);
+    biomeLayers.set(key,layer);return layer;
+  }
+  function drawBackground(now = state === "paused" ? pausedAt : performance.now()) {
+    const blend=reducedMotion.matches?1:Math.min(1,Math.max(0,(now-biomeChangedAt)/1500));
+    if(biomeFrom!==biomeIndex && blend<1) {
+      ctx.drawImage(biomeLayer(biomeFrom),0,0);ctx.save();ctx.globalAlpha=blend;
+      ctx.drawImage(biomeLayer(biomeIndex),0,0);ctx.restore();
+    } else ctx.drawImage(biomeLayer(biomeIndex),0,0);
+  }
+  function drawBiomeAtmosphere(now, head) {
+    if(biomeIndex===3) { drawAtmosphere(now,head);return; }
+    if(!richEffects || reducedMotion.matches) return;
+    ctx.save();ctx.fillStyle=biomeIndex===2?"#b0bbd507":"#d2ebdb08";
+    for(let i=0;i<3;i++) {
+      const x=((i*193+now/160)%740)-130, y=100+i*141;
+      ctx.beginPath();ctx.ellipse(x,y,116,22,-.08,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(x-28,y-12,55,24,-.08,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
   }
 
   function paintBackground(ctx) {
@@ -3111,12 +3375,81 @@
     }
   }
 
+  const bossSprites = new Map();
+  function bossSprite(type, expression) {
+    const key=type.name+"|"+expression;
+    if(bossSprites.has(key)) return bossSprites.get(key);
+    const sprite=document.createElement("canvas");sprite.width=sprite.height=128;
+    const c=sprite.getContext("2d");c.scale(2,2);c.translate(32,32);c.lineJoin="round";c.lineCap="round";
+    const outline="#263040", skin=c.createLinearGradient(0,-20,0,21);
+    skin.addColorStop(0,type.name==="KYOGRE"?"#85caff":"#ffbaa0");skin.addColorStop(.4,type.color);skin.addColorStop(1,type.name==="KYOGRE"?"#32669c":"#b94e55");
+    function oval(x,y,rx,ry,fill,stroke=outline) {c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=1.2;c.stroke();}}
+    function shape(points,fill) {c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fillStyle=fill;c.fill();c.strokeStyle=outline;c.lineWidth=1.1;c.stroke();}
+    if(type.name==="GROUDON") {
+      // Stubby paws, ivory back plates, oversized rounded head.
+      for(const sign of [-1,1]) {
+        c.save();c.scale(sign,1);
+        shape([[10,-11],[19,-12],[15,-4],[23,0],[16,5],[20,12],[11,13]],"#ffe5c3");
+        oval(13,9,6,7,skin);oval(9,20,7,4,skin);
+        for(let i=0;i<3;i++) oval(5+i*3,22,1,2,"#fff2d6",null);
+        c.restore();
+      }
+      oval(0,10,12,12,skin);oval(0,12,7,8,"#f3d6bf",null);
+      c.strokeStyle="#c38e88";c.lineWidth=1;for(const y of [8,12,16]){c.beginPath();c.moveTo(-5,y);c.lineTo(5,y);c.stroke();}
+      oval(0,-5,16,14,skin);
+      shape([[-13,-13],[-11,-22],[-4,-16]],type.color);shape([[13,-13],[11,-22],[4,-16]],type.color);
+      c.strokeStyle="#9b4750";c.lineWidth=1.3;c.beginPath();c.moveTo(-12,-11);c.lineTo(-7,-14);c.lineTo(-3,-12);c.moveTo(12,-11);c.lineTo(7,-14);c.lineTo(3,-12);c.stroke();
+      oval(0,2,9,5,"#f2a088",null);
+    } else if(type.name==="KYOGRE") {
+      for(const sign of [-1,1]) {
+        c.save();c.scale(sign,1);
+        c.beginPath();c.moveTo(10,-6);c.bezierCurveTo(18,-12,25,-8,28,6);c.quadraticCurveTo(22,15,13,7);c.closePath();c.fillStyle=skin;c.fill();c.strokeStyle=outline;c.lineWidth=1.3;c.stroke();
+        c.strokeStyle="#ef929c";c.lineWidth=1.5;c.beginPath();c.moveTo(15,-3);c.lineTo(22,1);c.lineTo(24,7);c.stroke();
+        for(let i=0;i<3;i++) oval(19+i*3,7-i,1.5,2,"#e3f3f6",null);
+        shape([[3,13],[13,22],[4,22],[0,19]],type.color);c.restore();
+      }
+      oval(0,0,16,17,skin);oval(0,8,10,7,"#e2f1eb",null);
+      c.strokeStyle="#ec939f";c.lineWidth=1.5;c.beginPath();c.moveTo(-11,-9);c.lineTo(-7,-13);c.lineTo(-3,-9);c.moveTo(11,-9);c.lineTo(7,-13);c.lineTo(3,-9);c.stroke();
+      oval(0,-13,3,1,"#a9e4ff",null);
+    } else {
+      for(const sign of [-1,1]) {
+        c.save();c.scale(sign,1);
+        c.strokeStyle=outline;c.lineWidth=7;c.beginPath();c.moveTo(9,5);c.bezierCurveTo(23,0,11,18,23,17);c.stroke();c.strokeStyle=sign===1?"#7dcbd0":"#ef947d";c.lineWidth=4;c.stroke();
+        c.strokeStyle="#6bb8c4";c.lineWidth=4;c.beginPath();c.moveTo(5,13);c.lineTo(7,22);c.lineTo(11,23);c.stroke();c.restore();
+      }
+      oval(0,8,10,11,skin);
+      shape([[0,2],[5,8],[0,14],[-5,8]],"#8ee2d1");oval(0,8,2,3,"#a691d5",null);
+      c.beginPath();c.moveTo(0,-23);c.bezierCurveTo(6,-21,17,-14,15,-4);c.quadraticCurveTo(12,5,0,5);c.quadraticCurveTo(-12,5,-15,-4);c.bezierCurveTo(-17,-14,-6,-21,0,-23);c.fillStyle=skin;c.fill();c.strokeStyle=outline;c.lineWidth=1.3;c.stroke();
+      c.fillStyle="#78bdcb";c.beginPath();c.ellipse(0,-8,10,9,0,0,Math.PI*2);c.fill();
+      shape([[0,-20],[4,-12],[0,-8],[-4,-12]],"#91d2d3");
+    }
+    const eyeY=type.name==="KYOGRE"?-2:-5;
+    for(const sign of [-1,1]) {
+      const x=sign*6;
+      if(expression==="hurt") {
+        c.strokeStyle=outline;c.lineWidth=1.6;c.beginPath();c.moveTo(x-sign*2,eyeY-2);c.lineTo(x+sign,eyeY);c.lineTo(x-sign*2,eyeY+2);c.stroke();
+      } else if(expression==="tired") {
+        c.strokeStyle=outline;c.lineWidth=1.6;c.beginPath();c.moveTo(x-2.5,eyeY);c.quadraticCurveTo(x,eyeY+3,x+2.5,eyeY);c.stroke();
+      } else {
+        oval(x,eyeY,3.7,4.5,"#fff0c9",null);oval(x,eyeY+.5,2.5,3.3,outline,null);oval(x+.8,eyeY-1,1.1,1.2,"#ffffff",null);
+        if(expression==="warn") {c.strokeStyle=outline;c.lineWidth=1.5;c.beginPath();c.moveTo(x-sign*3,eyeY-5);c.lineTo(x+sign*2,eyeY-3);c.stroke();}
+      }
+      oval(sign*10,eyeY+5,2.5,1.3,"#f2a6b5",null);
+    }
+    c.strokeStyle=outline;c.lineWidth=1.1;c.beginPath();c.moveTo(-2,eyeY+7);c.quadraticCurveTo(0,eyeY+(expression==="hurt"?5:9),2,eyeY+7);c.stroke();
+    c.globalAlpha=.38;oval(-6,-14,3,1.6,"#ffffff",null);c.globalAlpha=1;
+    bossSprites.set(key,sprite);return sprite;
+  }
   function drawBoss(now) {
     if (!boss) return;
     const cx = boss.x * CELL + CELL / 2;
     const cy = boss.y * CELL + CELL / 2;
-    const pulse = 1 + Math.sin(now / 180) * 0.06;
-    const r = CELL * 0.75 * pulse;
+    const attack=bossAttacks.find(item=>now<item.until);
+    const warning=!!attack && now<attack.activeAt;
+    const hurt=now<boss.hurtUntil, recovering=bossRecovering(now);
+    const expression=hurt?"hurt":recovering?"tired":attack?"warn":"idle";
+    const pulse = reducedMotion.matches?1:1+Math.sin(visualTime()/280)*.025;
+    const r = CELL * .95;
     if (bossRecovering(now)) {
       ctx.save();
       ctx.strokeStyle = "#76e69a";
@@ -3135,34 +3468,18 @@
     ctx.strokeStyle = boss.accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(cx, cy, r * (1.28 + Math.sin(now / 240) * .08), 0, Math.PI * 2);
+    ctx.arc(cx, cy, r * (1.28 + (reducedMotion.matches?0:Math.sin(now / 240) * .08)), 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
     ctx.save();
-    ctx.translate(cx, cy);
-    ctx.shadowColor = boss.accent;
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = boss.color;
-    ctx.strokeStyle = "#160b10";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    if (boss.name === "KYOGRE") {
-      ctx.moveTo(-r * 1.25, 0); ctx.quadraticCurveTo(0, -r, r * 1.25, 0);
-      ctx.quadraticCurveTo(0, r * .8, -r * 1.25, 0);
-    } else if (boss.name === "DEOXYS") {
-      ctx.moveTo(0, -r * 1.25); ctx.lineTo(r * .75, r * .75);
-      ctx.lineTo(0, r * .35); ctx.lineTo(-r * .75, r * .75); ctx.closePath();
-    } else {
-      ctx.moveTo(-r, r * .6); ctx.lineTo(-r * .75, -r * .8);
-      ctx.lineTo(0, -r * 1.1); ctx.lineTo(r * .75, -r * .8);
-      ctx.lineTo(r, r * .6); ctx.closePath();
+    const recoil=hurt&&!reducedMotion.matches?Math.sin(now/24)*1.6:0;
+    ctx.translate(cx+recoil, cy);ctx.scale(pulse,pulse);
+    ctx.drawImage(bossSprite(boss,expression),-32,-32,64,64);
+    if(warning) {
+      ctx.fillStyle="#ffe1a1";ctx.strokeStyle="#553b30";ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(19,-23,7,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle="#4c3830";ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("!",19,-22.5);
     }
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = boss.accent;
-    ctx.beginPath(); ctx.arc(-r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,.8)";
-    ctx.beginPath(); ctx.arc(0, r * .28, r * .16, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
@@ -3602,6 +3919,8 @@
     megarayquaza: { top: "#d1f3b1", mid: "#61bf85", bottom: "#286454", outline: "#173e36", horn: "#ffe59b", fin: "#edc777" },
     shinyrayquaza: { top: "#bdc7d5", mid: "#657487", bottom: "#313e50", outline: "#1b293a", horn: "#ffe08d", fin: "#d888a0" },
     shinymegarayquaza: { top: "#cad3e0", mid: "#748091", bottom: "#333e50", outline: "#1c2938", horn: "#ffe9ac", fin: "#f2cd85" },
+    pastel: { top:"#e2f9d6", mid:"#8dd5b7", bottom:"#4f9687", outline:"#29584e", horn:"#fff0bd", fin:"#efb2c3" },
+    pastelmega: { top:"#f0f9d1", mid:"#a4dcb9", bottom:"#5b9b86", outline:"#355a4f", horn:"#fff0bd", fin:"#efd19d" },
   };
   const dragonSprites = new Map();
 
@@ -3666,8 +3985,8 @@
     });
   }
 
-  function dragonPart(kind, pal, megaForm) {
-    const key = kind + "|" + pal.mid + "|" + megaForm;
+  function dragonPart(kind, pal, megaForm, expression = "idle") {
+    const key = kind + "|" + pal.mid + "|" + megaForm + (kind === "head" ? "|"+expression : "");
     if (dragonSprites.has(key)) return dragonSprites.get(key);
     const sprite = document.createElement("canvas");
     sprite.width = sprite.height = 128;
@@ -3704,10 +4023,16 @@
       // Round golden eyes, bright catchlights and a little blush replace the stern expression.
       for (const sign of [-1,1]) {
         c.save(); c.scale(1,sign);
-        c.fillStyle=pal.horn;c.beginPath();c.ellipse(4,-6,4.4,4.7,0,0,Math.PI*2);c.fill();
-        c.fillStyle="#15332f";c.beginPath();c.ellipse(4.7,-6,3.2,3.8,0,0,Math.PI*2);c.fill();
-        c.fillStyle="#ffffff";c.beginPath();c.arc(5.8,-7.1,1.4,0,Math.PI*2);c.fill();
-        c.fillStyle="#f4ffe5";c.beginPath();c.arc(3.6,-4.8,.65,0,Math.PI*2);c.fill();
+        if(expression==="blink" || expression==="happy") {
+          c.strokeStyle="#21443a";c.lineWidth=1.7;c.beginPath();c.moveTo(1,-6);
+          c.quadraticCurveTo(4,expression==="happy"?-10:-4,7,-6);c.stroke();
+        } else {
+          c.fillStyle=pal.horn;c.beginPath();c.ellipse(4,-6,4.4,4.7,0,0,Math.PI*2);c.fill();
+          c.fillStyle="#15332f";c.beginPath();c.ellipse(4.7,-6,3.2,3.8,0,0,Math.PI*2);c.fill();
+          c.fillStyle="#ffffff";c.beginPath();c.arc(5.8,-7.1,1.4,0,Math.PI*2);c.fill();
+          c.fillStyle="#f4ffe5";c.beginPath();c.arc(3.6,-4.8,.65,0,Math.PI*2);c.fill();
+          if(expression==="focus") {c.strokeStyle=pal.outline;c.lineWidth=2;c.beginPath();c.moveTo(0,-10);c.lineTo(7,-8);c.stroke();}
+        }
         c.globalAlpha=.72;c.fillStyle="#f0a4b0";c.beginPath();c.ellipse(-1,-10,2.7,1.5,-.1,0,Math.PI*2);c.fill();
         c.restore();
       }
@@ -3755,9 +4080,69 @@
     return sprite;
   }
 
-  function placeDragonPart(kind, point, angle, pal, scale = 1) {
+  function placeDragonPart(kind, point, angle, pal, scale = 1, expression = "idle") {
     ctx.save(); ctx.translate(point.x, point.y); ctx.rotate(angle); ctx.scale(scale, scale);
-    ctx.drawImage(dragonPart(kind, pal, evolved), -32, -32, 64, 64); ctx.restore();
+    ctx.drawImage(dragonPart(kind, pal, evolved, expression), -32, -32, 64, 64); ctx.restore();
+  }
+
+  function playerPalette() {
+    if(snakeShiny) return evolved?PALETTE.shinymegarayquaza:PALETTE.shinyrayquaza;
+    if(collection.equipped.palette==="pastel") return evolved?PALETTE.pastelmega:PALETTE.pastel;
+    return evolved?PALETTE.megarayquaza:PALETTE.rayquaza;
+  }
+  function chibiExpression(now) {
+    if(now<chibiBeamUntil) return "focus";
+    if(chibiEatAt>0 && now-chibiEatAt<550) return "happy";
+    if(combo>=5 && now<comboUntil) return "happy";
+    return !reducedMotion.matches && visualTime()%4300>4130?"blink":"idle";
+  }
+  function drawAccessory(c, id, time) {
+    c.save();c.lineJoin="round";c.lineCap="round";
+    if(id==="scarf") {
+      const flutter=reducedMotion.matches?0:Math.sin(time/170)*1.5;
+      c.fillStyle="#ef9eb5";c.strokeStyle="#7c405d";c.lineWidth=1;
+      c.beginPath();c.moveTo(-13,-8);c.lineTo(-17,-8);c.lineTo(-17,8);c.lineTo(-13,8);c.closePath();c.fill();c.stroke();
+      c.beginPath();c.moveTo(-15,6);c.quadraticCurveTo(-23,11+flutter,-29,7+flutter);c.lineTo(-26,14+flutter);c.quadraticCurveTo(-20,16,-14,10);c.closePath();c.fill();c.stroke();
+      c.strokeStyle="#ffd9df";c.beginPath();c.moveTo(-15,-5);c.lineTo(-15,5);c.stroke();
+    } else if(id==="crown") {
+      c.fillStyle="#ffe395";c.strokeStyle="#946640";c.lineWidth=1;
+      c.beginPath();c.moveTo(-9,-13);c.lineTo(-13,-23);c.lineTo(-7,-20);c.lineTo(-5,-27);c.lineTo(-1,-20);c.lineTo(4,-24);c.lineTo(2,-13);c.closePath();c.fill();c.stroke();
+      c.fillStyle="#ee91a9";c.beginPath();c.arc(-5,-17,2,0,Math.PI*2);c.fill();
+    }
+    c.restore();
+  }
+  function drawCosmeticTrail(chunks, now) {
+    const id=collection.equipped.trail;
+    if(id==="none") return;
+    ctx.save();
+    for(const points of chunks) {
+      if(id==="aurora") {
+        ctx.strokeStyle="#d6a4ec";ctx.globalAlpha=.3;ctx.lineWidth=richEffects?3:1.5;ctx.beginPath();
+        points.forEach((p,i)=>{const wave=reducedMotion.matches?0:Math.sin(p.distance/24-now/400)*2;const x=p.x-Math.sin(p.angle)*(12+wave),y=p.y+Math.cos(p.angle)*(12+wave);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+      } else {
+        let next=25,count=0;
+        for(const p of points) if(p.distance>=next && count<(richEffects?10:4)) {
+          const sign=count%2?1:-1,x=p.x-Math.sin(p.angle)*14*sign,y=p.y+Math.cos(p.angle)*14*sign;
+          const r=reducedMotion.matches?2:2+Math.sin(now/350+count)*.5;
+          ctx.globalAlpha=.65;ctx.fillStyle="#ffe9b2";ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x,y-r*1.6);ctx.lineTo(x+r,y);ctx.lineTo(x,y+r*1.6);ctx.closePath();ctx.fill();
+          next=p.distance+38;count++;
+        }
+      }
+    }
+    ctx.restore();
+  }
+  function drawCollectionPreview() {
+    const c=document.getElementById("collectionPreview").getContext("2d");c.clearRect(0,0,260,200);
+    const pal=playerPalette();
+    c.save();c.translate(16,18);c.strokeStyle=pal.outline;c.lineWidth=25;c.lineCap="round";
+    c.beginPath();c.moveTo(162,54);c.bezierCurveTo(20,30,32,120,115,122);c.bezierCurveTo(152,120,158,150,75,150);c.stroke();
+    c.strokeStyle=pal.mid;c.lineWidth=20;c.stroke();
+    for(const [x,y,angle] of [[66,60,-.4],[52,98,-1.5],[97,121,3],[132,139,-2]]) {
+      c.save();c.translate(x,y);c.rotate(angle);c.drawImage(dragonPart("ring",pal,evolved),-32,-32,64,64);c.restore();
+    }
+    if(collection.equipped.trail!=="none") {c.fillStyle="#ffe2ad";c.font="24px serif";c.fillText(collection.equipped.trail==="stars"?"✧":"≋",174,112);}
+    c.translate(165,54);c.scale(2,2);c.drawImage(dragonPart("head",pal,evolved,"idle"),-32,-32,64,64);drawAccessory(c,collection.equipped.accessory,0);c.restore();
+    document.getElementById("collectionPreview").setAttribute("aria-label", t("collection.look")+": "+Object.values(collection.equipped).map(id=>t("cosmetic."+id)).join(", "));
   }
 
   function drawDragonRibbon(points, pal, tail, rainbow) {
@@ -3816,11 +4201,11 @@
   }
 
   function drawSnake(rendered, now) {
-    const pal = snakeShiny
-      ? (evolved ? PALETTE.shinymegarayquaza : PALETTE.shinyrayquaza)
-      : (evolved ? PALETTE.megarayquaza : PALETTE.rayquaza);
+    const pal = playerPalette();
     const chunks = dragonSpines(rendered);
     const angle = dragonHeading(now);
+    const expression=chibiExpression(now), time=visualTime();
+    drawCosmeticTrail(chunks,time);
     for (let group=chunks.length-1;group>=0;group--) {
       const points=chunks[group], tail=group===chunks.length-1;
       drawDragonRibbon(points,pal,tail,combo>=5);
@@ -3831,7 +4216,8 @@
           placeDragonPart("ring",p,p.angle,pal); nextRing=p.distance+21;
         }
         if(p.distance>=nextFin && (!tail || remaining>19)) {
-          placeDragonPart("fin",p,p.angle,pal); nextFin=p.distance+45;
+          const flutter=richEffects&&!reducedMotion.matches?Math.sin(time/190-p.distance/22)*.1:0;
+          placeDragonPart("fin",p,p.angle+flutter,pal); nextFin=p.distance+45;
         }
       }
       if(tail && points.length>1) {
@@ -3842,8 +4228,10 @@
     }
     const head=chunks[0][0];
     const neck=chunks[0].find(p=>p.distance>=19);
-    if(neck) placeDragonPart("arms",neck,neck.angle,pal,.85);
-    placeDragonPart("head",head,angle,pal);
+    if(neck) placeDragonPart("arms",neck,neck.angle+(reducedMotion.matches?0:Math.sin(time/230)*.08),pal,.85);
+    const chew=!reducedMotion.matches&&chibiEatAt>0&&now-chibiEatAt<550?Math.sin((now-chibiEatAt)/550*Math.PI)*.075:0;
+    placeDragonPart("head",head,angle,pal,1+chew,expression);
+    ctx.save();ctx.translate(head.x,head.y);ctx.rotate(angle);drawAccessory(ctx,collection.equipped.accessory,time);ctx.restore();
     if(snakeShiny && richEffects) drawSparkles(head.x,head.y);
     if(shield) {
       ctx.save();
@@ -4012,8 +4400,8 @@
   function draw() {
     const now = state === "paused" ? pausedAt : performance.now();
     const rendered = renderedSnake(now);
-    drawBackground();
-    drawAtmosphere(visualTime(), rendered[0]);
+    drawBackground(now);
+    drawBiomeAtmosphere(visualTime(), rendered[0]);
 
     ctx.save();
 
@@ -4236,6 +4624,9 @@
     const pauseDuration = Math.max(0, now - pausedAt);
     steeringStartedAt = shiftPausedDeadline(steeringStartedAt, pauseDuration);
     dragonVisualAt = shiftPausedDeadline(dragonVisualAt, pauseDuration);
+    chibiEatAt = shiftPausedDeadline(chibiEatAt, pauseDuration);
+    chibiBeamUntil = shiftPausedDeadline(chibiBeamUntil, pauseDuration);
+    biomeChangedAt = shiftPausedDeadline(biomeChangedAt, pauseDuration);
     lastFxFrame = now;
 
     evolveUntil = shiftPausedDeadline(evolveUntil, pauseDuration);
@@ -4273,6 +4664,7 @@
     }
     if (boss) {
       boss.nextAttack += pauseDuration;
+      boss.hurtUntil = shiftPausedDeadline(boss.hurtUntil, pauseDuration);
       boss.recoveryAt = shiftPausedDeadline(boss.recoveryAt, pauseDuration);
     }
     if (beam) beam.until += pauseDuration;
@@ -4362,6 +4754,9 @@
   }
 
   window.addEventListener("keydown", (e) => {
+    if (document.getElementById("collectionDialog").open) return;
+    // Collection is keyboard-accessible without changing the existing gameplay shortcuts.
+    if ((e.key === " " || e.key === "Enter") && e.target.id === "collectionBtn") return;
     if (e.key === "Escape") {
       if (state === "playing") {
         e.preventDefault();
@@ -4484,6 +4879,7 @@
   });
   document.getElementById("qualityBtn").addEventListener("click", () => {
     richEffects = !richEffects;
+    for(let i=0;i<4;i++) biomeLayer(i);
     try { localStorage.setItem("storm-emeralda-fx", richEffects ? "rich" : "light"); } catch (e) {}
     updatePreferences();
   });
@@ -4494,7 +4890,14 @@
     updatePreferences();
   });
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) pauseGame();
+    if (document.hidden) { pauseGame(); flushCollection(); }
+  });
+  window.addEventListener("pagehide", flushCollection);
+  document.getElementById("collectionBtn").addEventListener("click", openCollection);
+  document.getElementById("collectionClose").addEventListener("click", () => document.getElementById("collectionDialog").close());
+  document.getElementById("wardrobeGrid").addEventListener("click", event => {
+    const card=event.target.closest("button[data-cosmetic]");
+    if (card) equipCosmetic(card.dataset.cosmetic);
   });
   elFullscreen.addEventListener("click", toggleFullscreen);
 
@@ -4537,6 +4940,14 @@
 
   // ---------- Jalan ----------
   reset();
+  // Pre-rasterize the finite art set before play: eating/unlocking never builds a sprite.
+  for(const [name,pal] of Object.entries(PALETTE)) {
+    const form=name.includes("mega");
+    for(const part of ["fin","arms","tail","ring"]) dragonPart(part,pal,form);
+    for(const expression of ["idle","blink","happy","focus"]) dragonPart("head",pal,form,expression);
+  }
+  for(const type of BOSS_TYPES) for(const expression of ["idle","warn","hurt","tired"]) bossSprite(type,expression);
+  for(let i=0;i<4;i++) biomeLayer(i);
   requestAnimationFrame(loop);
 })();
 </script>
