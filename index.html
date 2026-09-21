@@ -816,6 +816,33 @@
   .journey small { display: block; color: #9fbbb6; font-size: 10px; line-height: 1.5; }
   .utility-btn { min-height: 34px; padding: 5px 10px; border: 1px solid #375348; border-radius: 7px; background: #11251f; color: #c4f4dc; font: inherit; font-size: 10px; font-weight: 800; cursor: pointer; }
   .utility-btn:disabled { opacity: .4; cursor: default; }
+  .utility-bar { flex-wrap: wrap; }
+  .utility-btn[aria-pressed="true"] { border-color: #68dca4; background: #1b3c30; }
+  .combo-life { flex: 0 0 100%; height: 3px; overflow: hidden; border-radius: 4px; background: #17202d; }
+  .combo-life span { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#a778ff,#7cf0ff,#ffe18f); box-shadow: 0 0 9px #8b71fc; }
+  .over-tip { max-width: 300px; color: #b8d8ca !important; font-size: 12px !important; }
+  .field-guide { width: min(100%,360px); border-top: 1px solid #284439; padding-top: 8px; }
+  .field-guide summary { color: #9de5c1; font-size: 11px; cursor: pointer; padding: 7px; }
+  .field-guide .legend { padding: 8px 4px; }
+  .start-emblem { width: 66px; height: 66px; border: 1px solid #5fc997; border-radius: 20px; display: grid; place-items: center; background: radial-gradient(circle at 35% 25%,#358c65,#102e29 70%); box-shadow: 0 0 35px #37d67a25,inset 0 0 18px #97ffb81f; transform: rotate(-8deg); }
+  .start-emblem span { font-size: 38px; color: #cfffe4; text-shadow: 0 0 16px #62efb4; transform: rotate(8deg); }
+  /* Keep the arena stationary: badges grow after the controls on small screens. */
+  .badges, .upgrade-chips { order: 10; }
+  .badges:empty, .upgrade-chips:empty { display: none; }
+  .boss-hud.hidden { visibility: visible; position: relative; border-color: #29483e; background: #10251f; }
+  .boss-hud.hidden > * { visibility: hidden; }
+  .boss-hud.hidden::after { content: attr(data-idle); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 8px 12px; color: #8aafa2; font-size: 10px; text-align: center; line-height: 1.5; }
+  @media (min-width: 900px) {
+    :root:not(:fullscreen) body { min-height: 100vh; align-items: center; padding: 24px; }
+    :root:not(:fullscreen) .wrap { display: grid; width: 816px; grid-template-columns: 480px 312px; align-items: start; gap: 24px; }
+    :root:not(:fullscreen) .board { grid-column: 1; grid-row: 1; }
+    :root:not(:fullscreen) .game-info { display: flex; flex-direction: column; grid-column: 2; grid-row: 1; gap: 8px; max-height: 600px; overflow-y: auto; padding: 2px; scrollbar-width: thin; }
+    :root:not(:fullscreen) .game-info > * { flex-shrink: 0; }
+    :root:not(:fullscreen) header h1 { font-size: 20px; letter-spacing: 1px; }
+    :root:not(:fullscreen) .utility-bar { justify-content: flex-start; }
+    :root:not(:fullscreen) .upgrade-hint { height: auto; max-height: 180px; }
+    :root:not(:fullscreen) .dpad { grid-column: 1; grid-row: 2; }
+  }
   button:focus-visible, input:focus-visible { outline: 2px solid #8bf1be; outline-offset: 3px; }
   .run-summary { width: min(100%,320px); display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 8px 0 16px; }
   .run-summary div { padding: 10px 4px; border: 1px solid #315447; border-radius: 9px; background: #10271fcc; }
@@ -847,6 +874,8 @@
 
     <div class="utility-bar">
       <button class="utility-btn" id="pauseBtn" type="button" disabled data-i18n="pause.button">PAUSE · ESC</button>
+      <button class="utility-btn" id="qualityBtn" type="button" aria-pressed="true">FX</button>
+      <button class="utility-btn" id="soundBtn" type="button" aria-pressed="true">SOUND</button>
       <button class="fullscreen-btn" id="fullscreenBtn" type="button"><span class="fs-icon">⛶</span><span id="fullscreenLabel">FULLSCREEN</span></button>
       <div class="lang-toggle">
         <button data-lang="id">ID</button>
@@ -867,6 +896,7 @@
       <div class="badge speed" id="speedBadge">💨 SPEED ×2</div>
       <div class="badge weather" id="weatherBadge">☀️</div>
       </div>
+      <div class="combo-life" role="meter" id="comboMeter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="comboFill"></span></div>
     </div>
 
     <div class="journey">
@@ -897,6 +927,7 @@
       <canvas id="game" width="480" height="480"></canvas>
 
       <div class="overlay" id="startOverlay">
+        <div class="start-emblem" aria-hidden="true"><span>✧</span></div>
         <h2>STORM EMERALDA</h2>
         <p data-i18n-html="start.desc">Kendalikan <b>Rayquaza</b>, kumpulkan item Pokémon,<br>makan <b>Meteorite</b> untuk jadi <b>Mega Rayquaza</b>!</p>
         <div class="name-field">
@@ -904,7 +935,7 @@
           <input type="text" id="playerName" maxlength="20" placeholder="Masukkan nama..." data-i18n-ph="name.ph" autocomplete="off" />
         </div>
         <button class="btn" id="startBtn" data-i18n="start.btn">MULAI</button>
-        <div class="legend">
+        <details class="field-guide"><summary data-i18n="start.guide">Panduan item & bahaya</summary><div class="legend">
           <span data-i18n="legend.berry">🫐 Beri = poin</span> <span data-i18n="legend.potion">🧪 Potion = perisai</span> <span>⚡ 2×</span><br>
           <span>💠 Mega ×3</span> <span data-i18n="legend.speed">💨 Extreme Speed = ngebut ×2</span><br>
           <span data-i18n="legend.slow">🍖 Slowpoke Tail = pelan</span> <span data-i18n="legend.meteor">☄️ Draco Meteor = bahaya</span><br>
@@ -914,6 +945,7 @@
           <span data-i18n="legend.boss">⚠ Boss setiap 5 level — serang dengan Hyper Beam</span>
           <br><span data-i18n="legend.nature">◆ Orb biru melawan panas; orb jingga melawan hujan. Air Lock [Q] meredakan bahaya 5 detik.</span>
         </div>
+        </details>
         <div class="keys">
           <span class="key">←</span><span class="key">↑</span>
           <span class="key">↓</span><span class="key">→</span>
@@ -932,6 +964,7 @@
       <div class="overlay hidden" id="overOverlay">
         <h2 data-i18n="over.title">RAYQUAZA FAINTED!</h2>
         <p class="big" id="finalScore">Skor: 0</p>
+        <p class="over-tip" id="overTip"></p>
         <div class="run-summary">
           <div><strong id="runItems">0</strong><span data-i18n="run.items">Item</span></div>
           <div><strong id="runCombo">0</strong><span data-i18n="run.combo">Combo terbaik</span></div>
@@ -967,6 +1000,20 @@
   // ---------- i18n (Bahasa Indonesia / English) ----------
   const I18N = {
     id: {
+      "start.guide": "Panduan item & bahaya",
+      "settings.rich": "FX · INDAH",
+      "settings.light": "FX · RINGAN",
+      "settings.soundOn": "SUARA · ON",
+      "settings.soundOff": "SUARA · OFF",
+      "settings.fxHelp": "Ganti detail grafis. Mode ringan mengurangi cahaya dan partikel dekoratif.",
+      "settings.soundHelp": "Aktifkan atau matikan efek suara.",
+      "combo.timer": "Waktu untuk mempertahankan combo",
+      "boss.idle": "Bersiap untuk boss · Hyper Beam [Spasi] · Air Lock [Q]",
+      "over.wall": "Menabrak batas arena. Belok lebih awal sebelum mencapai tepi.",
+      "over.self": "Menabrak tubuh sendiri. Sisakan ruang untuk berputar.",
+      "over.hazard": "Terkena bahaya. Manfaatkan Shield, Hyper Beam, dan Air Lock.",
+      "over.boss": "Terkena boss atau serangannya. Cari jalur aman dan serang saat celah terbuka.",
+      "over.wild": "Menabrak Pokémon liar. Bersihkan jalur dengan Hyper Beam.",
       "pause.button": "PAUSE · ESC",
       "journey.title": "PERJALANAN EMERALD",
       "journey.level": "Level berikutnya",
@@ -1033,6 +1080,20 @@
       "fullscreen.exit": "KELUAR FULLSCREEN"
     },
     en: {
+      "start.guide": "Item & hazard guide",
+      "settings.rich": "FX · RICH",
+      "settings.light": "FX · LIGHT",
+      "settings.soundOn": "SOUND · ON",
+      "settings.soundOff": "SOUND · OFF",
+      "settings.fxHelp": "Switch graphics detail. Light mode reduces decorative lighting and particles.",
+      "settings.soundHelp": "Enable or mute sound effects.",
+      "combo.timer": "Time remaining to keep the combo",
+      "boss.idle": "Prepare for the boss · Hyper Beam [Space] · Air Lock [Q]",
+      "over.wall": "You hit the arena boundary. Turn earlier before reaching the edge.",
+      "over.self": "You hit your own body. Leave yourself room to turn.",
+      "over.hazard": "A hazard caught you. Use Shield, Hyper Beam, and Air Lock to clear danger.",
+      "over.boss": "A boss or its attack hit you. Find the safe route and attack during an opening.",
+      "over.wild": "You hit a wild Pokémon. Clear a route with Hyper Beam.",
       "pause.button": "PAUSE · ESC",
       "journey.title": "EMERALD JOURNEY",
       "journey.level": "Next level",
@@ -1126,6 +1187,7 @@
     renderUpgradeChips();
     updateFullscreenButton();
     updateJourney();
+    updatePreferences();
     updateNatureHud(state === "paused" ? pausedAt : performance.now());
     if (boss) updateBossSkillHud(state === "paused" ? pausedAt : performance.now());
   }
@@ -1220,6 +1282,16 @@
   let snake, dir, nextDir, food;
   let turnQueue = [];
   let runItems = 0, runBestCombo = 0, runBosses = 0;
+  let previousSnake = [], moveStartedAt = 0, moveDuration = 70;
+  let lastFxFrame = 0, deathReason = "hazard";
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let richEffects = !reducedMotion.matches;
+  let soundEnabled = true;
+  try {
+    richEffects = localStorage.getItem("storm-emeralda-fx") !== null
+      ? localStorage.getItem("storm-emeralda-fx") === "rich" : richEffects;
+    soundEnabled = localStorage.getItem("storm-emeralda-sound") !== "off";
+  } catch (e) {}
   let score = 0, high = 0;
   let evolved = false;
   let snakeShiny = false;
@@ -1297,22 +1369,25 @@
   try { const n = localStorage.getItem("storm-emeralda-name"); if (n) elPlayerName.value = n; } catch (e) {}
 
   // ---------- Audio ----------
-  let audio = null;
+  let audio = null, masterGain = null;
   function initAudio() {
     if (audio) return;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     audio = new AC();
+    masterGain = audio.createGain();
+    masterGain.gain.value = soundEnabled ? 1 : 0;
+    masterGain.connect(audio.destination);
   }
   function tone(freq, dur, type = "square", vol = 0.12, delay = 0) {
-    if (!audio) return;
+    if (!audio || !soundEnabled) return;
     const t = audio.currentTime + delay;
     const o = audio.createOscillator();
     const g = audio.createGain();
     o.type = type; o.frequency.value = freq;
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(audio.destination);
+    o.connect(g); g.connect(masterGain);
     o.start(t); o.stop(t + dur + 0.02);
   }
   const sfx = {
@@ -1721,7 +1796,7 @@
       const upgradeDamage = Math.max(0, upgrades.beam - 1);
       damageBoss(1 + upgradeDamage + (evolved ? 1 : 0) + (bossRecovering(now) ? 1 : 0));
     }
-    beam = { cells, until: now + 250 };
+    beam = { cells, origin: { x: hx, y: hy }, direction: { ...dir }, wide: evolved, until: now + 250 };
     sfx.beam();
   }
 
@@ -2039,6 +2114,11 @@
   }
 
   function reset() {
+    previousSnake = [];
+    moveStartedAt = 0;
+    moveDuration = 70;
+    lastFxFrame = 0;
+    deathReason = "hazard";
     turnQueue = [];
     runItems = 0;
     runBestCombo = 0;
@@ -2200,7 +2280,7 @@
     let ny = head.y + dir.y;
 
     // dinding selalu fatal
-    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) return gameOver();
+    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) return gameOver("wall");
 
     // portal teleport
     const portal = portals.find(p => p.x === nx && p.y === ny);
@@ -2237,11 +2317,14 @@
         sfx.shield();
         return;
       }
-      return gameOver();
+      return gameOver(hitSelf ? "self" : hitBoss || hitBossSkill ? "boss" : hitWild ? "wild" : "hazard");
     }
 
     const ateMagikarp = !!(magikarp && nx === magikarp.x && ny === magikarp.y);
 
+    previousSnake = snake.map(segment => ({ ...segment }));
+    moveStartedAt = now;
+    moveDuration = Math.min(70, speedMs() * .55);
     snake.unshift({ x: nx, y: ny });
     if (growing) {
       eat(food);
@@ -2325,7 +2408,8 @@
     sfx.evolve();
   }
 
-  function gameOver() {
+  function gameOver(reason = "hazard") {
+    deathReason = reason;
     state = "over";
     turnQueue = [];
     updateJourney();
@@ -2339,6 +2423,7 @@
     bossSkill.textContent = "";
     sfx.over();
     finalScore.textContent = t("over.scorePrefix") + score;
+    document.getElementById("overTip").textContent = t("over." + deathReason);
 
     let record = false;
     if (score > high) {
@@ -2439,6 +2524,8 @@
   // ---------- Efek visual ----------
   function spawnParticles(x, y, color, count, speed) {
     count = count || 8;
+    if (!richEffects || reducedMotion.matches) count = Math.ceil(count / 3);
+    count = Math.min(count, Math.max(0, 180 - particles.length));
     speed = speed || 2;
     const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
     for (let i = 0; i < count; i++) {
@@ -2465,28 +2552,87 @@
     popups.push({ x: x * CELL + CELL / 2, y: y * CELL + CELL / 2, text, color, life: 1 });
   }
 
-  function updateFX() {
+  function updateFX(now) {
+    const step = lastFxFrame ? Math.min(3, Math.max(0, (now - lastFxFrame) / (1000 / 60))) : 1;
+    lastFxFrame = now;
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
-      p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life -= 0.03;
+      p.x += p.vx * step; p.y += p.vy * step; p.vy += 0.05 * step; p.life -= 0.03 * step;
       if (p.life <= 0) particles.splice(i, 1);
     }
     for (let i = popups.length - 1; i >= 0; i--) {
       const p = popups[i];
-      p.y -= 0.6; p.life -= 0.02;
+      p.y -= 0.6 * step; p.life -= 0.02 * step;
       if (p.life <= 0) popups.splice(i, 1);
     }
     for (let i = rings.length - 1; i >= 0; i--) {
       const r = rings[i];
-      r.r += (r.maxR - r.r) * 0.14;
-      r.life -= 0.06;
+      r.r += (r.maxR - r.r) * (1 - Math.pow(.86, step));
+      r.life -= 0.06 * step;
       if (r.life <= 0) rings.splice(i, 1);
     }
   }
 
   // ---------- Rendering ----------
+  function visualTime() {
+    return reducedMotion.matches ? 0 : state === "paused" ? pausedAt : performance.now();
+  }
+
+  function updatePreferences() {
+    const qualityButton = document.getElementById("qualityBtn");
+    qualityButton.textContent = t(richEffects ? "settings.rich" : "settings.light");
+    qualityButton.setAttribute("aria-pressed", String(richEffects));
+    qualityButton.title = t("settings.fxHelp");
+    const soundButton = document.getElementById("soundBtn");
+    soundButton.textContent = t(soundEnabled ? "settings.soundOn" : "settings.soundOff");
+    soundButton.setAttribute("aria-pressed", String(soundEnabled));
+    soundButton.title = t("settings.soundHelp");
+    document.getElementById("comboMeter").setAttribute("aria-label", t("combo.timer"));
+    bossHud.setAttribute("data-idle", t("boss.idle"));
+    document.getElementById("overTip").textContent = t("over." + deathReason);
+    if (masterGain && audio) masterGain.gain.setTargetAtTime(soundEnabled ? 1 : 0, audio.currentTime, .02);
+  }
+
+  // Rendering positions never enter collision or spawning calculations.
+  function renderedSnake(now) {
+    if (reducedMotion.matches || state === "over" || !previousSnake.length) return snake;
+    const amount = Math.min(1, Math.max(0, (now - moveStartedAt) / moveDuration));
+    return snake.map((current, index) => {
+      const previous = previousSnake[Math.min(index, previousSnake.length - 1)];
+      // Portals jump immediately instead of visually crossing occupied cells.
+      if (Math.abs(current.x - previous.x) + Math.abs(current.y - previous.y) > 1) return current;
+      return { x: previous.x + (current.x - previous.x) * amount, y: previous.y + (current.y - previous.y) * amount };
+    });
+  }
+
+  function drawAtmosphere(now) {
+    if (!richEffects) return;
+    ctx.save();
+    for (let layer = 0; layer < 3; layer++) {
+      const base = 58 + layer * 34;
+      const gradient = ctx.createLinearGradient(0, base - 35, 0, base + 110);
+      gradient.addColorStop(0, "rgba(62,230,166,0)");
+      gradient.addColorStop(.48, layer === 1 ? "rgba(119,113,242,.09)" : "rgba(65,234,173,.1)");
+      gradient.addColorStop(1, "rgba(65,234,173,0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      for (let x = 0; x <= 480; x += 12) {
+        const y = base + Math.sin(x / 92 + now / 7000 + layer) * 22;
+        if (!x) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.lineTo(480, base + 110); ctx.lineTo(0, base + 110); ctx.closePath(); ctx.fill();
+    }
+    const head = renderedSnake(state === "paused" ? pausedAt : performance.now())[0];
+    const x = head.x * CELL + CELL / 2, y = head.y * CELL + CELL / 2;
+    const glow = ctx.createRadialGradient(x, y, 2, x, y, 68);
+    glow.addColorStop(0, evolved ? "rgba(160,234,107,.14)" : "rgba(77,235,167,.1)");
+    glow.addColorStop(1, "rgba(77,235,167,0)");
+    ctx.fillStyle = glow; ctx.fillRect(x - 68, y - 68, 136, 136);
+    ctx.restore();
+  }
+
   function drawBackground() {
-    const now = performance.now();
+    const now = visualTime();
 
     // Gradasi langit malam — Rayquaza si naga langit (Delta Pokémon).
     const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -2504,7 +2650,7 @@
       { x: 0.52, y: 0.74, r: 0.50, c: "rgba(246,201,69,0.10)",  dr: 0.08, sp: 0.00010 },
       { x: 0.16, y: 0.70, r: 0.34, c: "rgba(88,120,255,0.12)",  dr: 0.05, sp: 0.00016 },
     ];
-    for (let i = 0; i < nebulae.length; i++) {
+    for (let i = 0; i < (richEffects ? nebulae.length : 1); i++) {
       const n = nebulae[i];
       const nx = (n.x + Math.sin(now * n.sp + i * 2.1) * 0.06) * canvas.width;
       const ny = (n.y + Math.cos(now * n.sp * 0.8 + i) * 0.05) * canvas.height;
@@ -2557,7 +2703,7 @@
 
     // Satu meteor jauh melintas secara berkala; hanya dekorasi latar.
     const shootingPhase = (now % 7200) / 7200;
-    if (shootingPhase < .2) {
+    if (richEffects && !reducedMotion.matches && shootingPhase < .2) {
       const travel = shootingPhase / .2;
       const sx = canvas.width * (.1 + travel * .56);
       const sy = canvas.height * (.16 + travel * .2);
@@ -2573,7 +2719,7 @@
     }
 
     // Bintang berkelip — posisi deterministik (stabil antar frame), kedipan halus.
-    for (let i = 0; i < 72; i++) {
+    for (let i = 0; i < (richEffects ? 72 : 24); i++) {
       const sx = (i * 137 + 42 * 53) % canvas.width;
       const sy = (i * 251 + 42 * 31) % canvas.height;
       const tw = 0.4 + 0.6 * Math.sin(now / (500 + (i % 5) * 120) + i * 1.7);
@@ -2781,7 +2927,7 @@
 
   function drawPortal(x, y) {
     const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    const t = performance.now() / 300;
+    const t = visualTime() / 300;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(t);
@@ -3073,14 +3219,29 @@
 
   function drawFood() {
     if (!food) return;
-    if (!food) return;
-    const now = performance.now();
+    const now = visualTime();
     const cx = food.x * CELL + CELL / 2;
     const bob = Math.sin(now / 320 + (food.x + food.y) * 1.3) * CELL * 0.07; // naik-turun halus
     const cy = food.y * CELL + CELL / 2 + bob;
     const pulse = 1 + Math.sin(now / 180) * 0.08;
     const r = CELL * 0.42 * pulse;
     const glowColor = colorFor(food.type.kind);
+
+    if (richEffects) {
+      ctx.save();
+      ctx.translate(cx, food.y * CELL + CELL / 2);
+      ctx.strokeStyle = glowColor;
+      ctx.globalAlpha = .45;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0, 9, 12, 4, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.rotate(now / 2200);
+      for (let i = 0; i < 3; i++) {
+        ctx.rotate(Math.PI * 2 / 3);
+        ctx.fillStyle = food.shiny ? "#ffe5a0" : glowColor;
+        ctx.fillRect(14, -1, 2, 2);
+      }
+      ctx.restore();
+    }
 
     // Aura glow berdenyut di belakang item (warna sesuai jenis).
     ctx.save();
@@ -3300,7 +3461,7 @@
   }
 
   function drawFoodSparkles(cx, cy) {
-    const t = performance.now() / 120;
+    const t = visualTime() / 120;
     for (let i = 0; i < 4; i++) {
       const a = t + i * Math.PI / 2;
       const sx = cx + Math.cos(a) * CELL * 0.6;
@@ -3323,7 +3484,7 @@
   function drawMagikarp() {
     if (!magikarp) return;
     const cx = magikarp.x * CELL + CELL / 2, cy = magikarp.y * CELL + CELL / 2;
-    const bob = Math.sin(performance.now() / 200) * 2;
+    const bob = Math.sin(visualTime() / 200) * 2;
     ctx.save();
     ctx.translate(cx, cy + bob);
     const g = ctx.createLinearGradient(-CELL * 0.4, 0, CELL * 0.4, 0);
@@ -3360,6 +3521,7 @@
   };
 
   function drawSnake() {
+    const rendered = renderedSnake(state === "paused" ? pausedAt : performance.now());
     const pal = snakeShiny
       ? (evolved ? PALETTE.shinymegarayquaza : PALETTE.shinyrayquaza)
       : (evolved ? PALETTE.megarayquaza : PALETTE.rayquaza);
@@ -3370,12 +3532,12 @@
     ctx.lineCap = "round";
     ctx.lineWidth = CELL * 0.52;
     for (let i = 1; i < snake.length; i++) {
-      const a = snake[i - 1], b = snake[i];
+      const a = rendered[i - 1], b = rendered[i];
       if (Math.hypot(b.x - a.x, b.y - a.y) > 1.5) continue; // portal
       const ax = a.x * CELL + CELL / 2, ay = a.y * CELL + CELL / 2;
       const bx = b.x * CELL + CELL / 2, by = b.y * CELL + CELL / 2;
       if (rainbow) {
-        const hue = (i * 36 + Math.floor(performance.now() / 40)) % 360;
+        const hue = (i * 36 + Math.floor(visualTime() / 40)) % 360;
         ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
       } else {
         ctx.strokeStyle = pal.mid;
@@ -3386,18 +3548,28 @@
 
     // Segmen badan (ekor → leher).
     for (let i = snake.length - 1; i >= 1; i--) {
-      const seg = snake[i];
+      const seg = rendered[i];
       drawChibiSegment(seg.x, seg.y, CELL * 0.78, pal, rainbow, i);
     }
 
     // Kepala (lebih besar, chibi).
-    const h = snake[0];
+    const h = rendered[0];
     drawChibiHead(h.x * CELL + CELL / 2, h.y * CELL + CELL / 2, CELL * 0.95, pal, rainbow);
 
     if (shield) {
       const cx = h.x * CELL + CELL / 2, cy = h.y * CELL + CELL / 2;
       ctx.save();
       ctx.strokeStyle = "rgba(140,240,176,0.9)";
+      if (richEffects) {
+        const bubble = ctx.createRadialGradient(cx - 5, cy - 5, 1, cx, cy, CELL * .76);
+        bubble.addColorStop(0, "rgba(174,255,230,.2)");
+        bubble.addColorStop(.7, "rgba(80,225,185,.03)");
+        bubble.addColorStop(1, "rgba(112,247,204,.3)");
+        ctx.fillStyle = bubble;
+        ctx.beginPath(); ctx.arc(cx, cy, CELL * .76, 0, Math.PI * 2); ctx.fill();
+        const angle = visualTime() / 600;
+        ctx.beginPath(); ctx.arc(cx, cy, CELL * .76, angle, angle + 1.2); ctx.stroke();
+      }
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(cx, cy, CELL * 0.72, 0, Math.PI * 2);
@@ -3411,7 +3583,7 @@
     const x0 = cx - s / 2, y0 = cy - s / 2;
     const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
     if (rainbow) {
-      const hue = (idx * 36 + Math.floor(performance.now() / 40)) % 360;
+      const hue = (idx * 36 + Math.floor(visualTime() / 40)) % 360;
       g.addColorStop(0, `hsl(${hue}, 80%, 64%)`);
       g.addColorStop(1, `hsl(${(hue + 50) % 360}, 75%, 48%)`);
     } else {
@@ -3449,7 +3621,7 @@
     const x0 = cx - s / 2, y0 = cy - s / 2;
     const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
     if (rainbow) {
-      const hue = (Math.floor(performance.now() / 40)) % 360;
+      const hue = (Math.floor(visualTime() / 40)) % 360;
       g.addColorStop(0, `hsl(${hue}, 80%, 64%)`);
       g.addColorStop(1, `hsl(${(hue + 50) % 360}, 75%, 48%)`);
     } else {
@@ -3530,7 +3702,7 @@
   }
 
   function drawSparkles(cx, cy) {
-    const time = performance.now();
+    const time = visualTime();
     ctx.save();
     ctx.fillStyle = "#ffe27a";
     ctx.shadowColor = "rgba(255,220,90,0.9)";
@@ -3560,7 +3732,7 @@
 
   // Kumis emas khas Mega Rayquaza: 2 helai menjuntai dari kepala ke belakang.
   function drawWhiskers(cx, cy, s, pal) {
-    const time = performance.now();
+    const time = visualTime();
     const bx = -dir.x, by = -dir.y; // arah belakang (lawan arah gerak)
     const px = -by, py = bx;        // tegak lurus
     ctx.save();
@@ -3639,20 +3811,36 @@
     const a = 1 - (now - (beam.until - 250)) / 250;
     ctx.save();
     ctx.globalAlpha = Math.max(0, a);
-    // lapisan luar (glow cyan)
-    ctx.fillStyle = "#7cf0ff";
-    ctx.shadowColor = "#7cf0ff";
-    ctx.shadowBlur = 24;
-    for (const c of beam.cells) {
-      const cx = c.x * CELL + CELL / 2, cy = c.y * CELL + CELL / 2;
-      ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.55, 0, Math.PI * 2); ctx.fill();
-    }
-    // inti terang (putih)
-    ctx.fillStyle = "#ffffff";
-    ctx.shadowBlur = 10;
-    for (const c of beam.cells) {
-      const cx = c.x * CELL + CELL / 2, cy = c.y * CELL + CELL / 2;
-      ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.32, 0, Math.PI * 2); ctx.fill();
+    const {origin, direction} = beam;
+    const offsets = beam.wide ? [-1, 0, 1] : [0];
+    const px = -direction.y, py = direction.x;
+    ctx.lineCap = "round";
+    for (const offset of offsets) {
+      const lane = beam.cells.filter(c => (c.x - origin.x) * px + (c.y - origin.y) * py === offset);
+      if (!lane.length) continue;
+      const first = lane[0], last = lane[lane.length - 1];
+      const x1 = (first.x + .5 - direction.x * .45) * CELL;
+      const y1 = (first.y + .5 - direction.y * .45) * CELL;
+      const x2 = (last.x + .5 + direction.x * .45) * CELL;
+      const y2 = (last.y + .5 + direction.y * .45) * CELL;
+      for (const [width, color] of [[18,"rgba(71,207,255,.24)"],[10,"#67e4ff"],[3.5,"#f3ffff"]]) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width * (.65 + a * .35);
+        ctx.shadowColor = "#70eaff";
+        ctx.shadowBlur = richEffects ? width : 0;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      }
+      if (richEffects && !reducedMotion.matches) {
+        ctx.shadowBlur = 0; ctx.strokeStyle = "rgba(225,255,255,.75)"; ctx.lineWidth = 1;
+        ctx.beginPath();
+        const distance = Math.hypot(x2-x1,y2-y1);
+        for (let step=0; step<=distance; step+=6) {
+          const ripple = Math.sin(step / 10 - now / 24) * 5 * a;
+          const x=x1+direction.x*step+px*ripple, y=y1+direction.y*step+py*ripple;
+          if (!step) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -3697,6 +3885,7 @@
 
   function draw() {
     drawBackground();
+    drawAtmosphere(visualTime());
 
     ctx.save();
 
@@ -3814,10 +4003,14 @@
         lastWeatherTime = now;
       }
     }
-    if (state !== "paused") updateFX();
+    if (state !== "paused") updateFX(now);
 
     // Saat pause, HUD membaca waktu saat tombol pause ditekan agar semua countdown benar-benar beku.
     const effectNow = state === "paused" ? pausedAt : now;
+    const comboPercent = state === "playing" || state === "paused"
+      ? Math.max(0, Math.min(100, (comboUntil - effectNow) / (3000 + upgrades.combo * 1000) * 100)) : 0;
+    document.getElementById("comboFill").style.width = comboPercent.toFixed(1) + "%";
+    document.getElementById("comboMeter").setAttribute("aria-valuenow", String(Math.round(comboPercent)));
     updateNatureHud(effectNow);
 
     const rem = multiplierUntil - effectNow;
@@ -3912,6 +4105,8 @@
     if (state !== "paused") return;
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
+    moveStartedAt = shiftPausedDeadline(moveStartedAt, pauseDuration);
+    lastFxFrame = now;
 
     evolveUntil = shiftPausedDeadline(evolveUntil, pauseDuration);
     multiplierUntil = shiftPausedDeadline(multiplierUntil, pauseDuration);
@@ -4136,6 +4331,17 @@
   document.getElementById("pauseBtn").addEventListener("click", () => {
     if (state === "playing") pauseGame();
     else if (state === "paused") resumeGame();
+  });
+  document.getElementById("qualityBtn").addEventListener("click", () => {
+    richEffects = !richEffects;
+    try { localStorage.setItem("storm-emeralda-fx", richEffects ? "rich" : "light"); } catch (e) {}
+    updatePreferences();
+  });
+  document.getElementById("soundBtn").addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    if (soundEnabled) initAudio();
+    try { localStorage.setItem("storm-emeralda-sound", soundEnabled ? "on" : "off"); } catch (e) {}
+    updatePreferences();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) pauseGame();
