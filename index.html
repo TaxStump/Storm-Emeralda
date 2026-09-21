@@ -819,7 +819,7 @@
   .utility-bar { flex-wrap: wrap; }
   .utility-btn[aria-pressed="true"] { border-color: #68dca4; background: #1b3c30; }
   .combo-life { flex: 0 0 100%; height: 3px; overflow: hidden; border-radius: 4px; background: #17202d; }
-  .combo-life span { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#a778ff,#7cf0ff,#ffe18f); box-shadow: 0 0 9px #8b71fc; }
+  .combo-life span { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: linear-gradient(90deg,#a778ff,#7cf0ff,#ffe18f); box-shadow: 0 0 9px #8b71fc; }
   .over-tip { max-width: 300px; color: #b8d8ca !important; font-size: 12px !important; }
   .field-guide { width: min(100%,360px); border-top: 1px solid #284439; padding-top: 8px; }
   .field-guide summary { color: #9de5c1; font-size: 11px; cursor: pointer; padding: 7px; }
@@ -833,8 +833,8 @@
   .boss-hud.hidden > * { visibility: hidden; }
   .boss-hud.hidden::after { content: attr(data-idle); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 8px 12px; color: #8aafa2; font-size: 10px; text-align: center; line-height: 1.5; }
   @media (min-width: 900px) {
-    :root:not(:fullscreen) body { min-height: 100vh; align-items: center; padding: 24px; }
-    :root:not(:fullscreen) .wrap { display: grid; width: 816px; grid-template-columns: 480px 312px; align-items: start; gap: 24px; }
+    :root:not(:fullscreen) body { min-height: 100vh; align-items: flex-start; padding: 24px; }
+    :root:not(:fullscreen) .wrap { display: grid; width: 816px; grid-template-columns: 480px 312px; align-items: start; gap: 24px; margin-top: max(0px, calc((100vh - 648px) / 2)); }
     :root:not(:fullscreen) .board { grid-column: 1; grid-row: 1; }
     :root:not(:fullscreen) .game-info { display: flex; flex-direction: column; grid-column: 2; grid-row: 1; gap: 8px; max-height: 600px; overflow-y: auto; padding: 2px; scrollbar-width: thin; }
     :root:not(:fullscreen) .game-info > * { flex-shrink: 0; }
@@ -1200,6 +1200,11 @@
   }
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
+  const backgroundLayer = document.createElement("canvas");
+  backgroundLayer.width = COLS * CELL;
+  backgroundLayer.height = ROWS * CELL;
+  const backgroundCtx = backgroundLayer.getContext("2d");
+  let backgroundFrameKey = "";
   canvas.width = COLS * CELL;   // 480
   canvas.height = ROWS * CELL;  // 480
 
@@ -1282,7 +1287,8 @@
   let snake, dir, nextDir, food;
   let turnQueue = [];
   let runItems = 0, runBestCombo = 0, runBosses = 0;
-  let previousSnake = [], moveStartedAt = 0, moveDuration = 70;
+  let previousSnake = [], moveStartedAt = 0, moveDuration = 170;
+  let lastJourneyKey = "", lastNatureHudKey = "";
   let lastFxFrame = 0, deathReason = "hazard";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let richEffects = !reducedMotion.matches;
@@ -1409,6 +1415,20 @@
   };
 
   // ---------- Helper ----------
+  function setText(element, value) {
+    const text = String(value);
+    if (element.textContent !== text) element.textContent = text;
+  }
+
+  function setAttribute(element, name, value) {
+    const text = String(value);
+    if (element.getAttribute(name) !== text) element.setAttribute(name, text);
+  }
+
+  function setClass(element, name, enabled) {
+    if (element.classList.contains(name) !== enabled) element.classList.toggle(name, enabled);
+  }
+
   function roundRect(x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -1680,6 +1700,10 @@
 
   function updateNatureHud(now) {
     const active = airLockActive(now);
+    const remaining = active ? Math.ceil((airLockUntil - now) / 1000) : 0;
+    const signature = [lang, state, natureBalance, airLockCharge, active, remaining].join("|");
+    if (signature === lastNatureHudKey) return;
+    lastNatureHudKey = signature;
     const key = active ? "nature.calm" : natureBalance <= -25 ? "nature.land"
       : natureBalance >= 25 ? "nature.ocean" : "nature.balanced";
     elNatureStatus.textContent = t(key);
@@ -2116,7 +2140,9 @@
   function reset() {
     previousSnake = [];
     moveStartedAt = 0;
-    moveDuration = 70;
+    moveDuration = 170;
+    lastJourneyKey = "";
+    lastNatureHudKey = "";
     lastFxFrame = 0;
     deathReason = "hazard";
     turnQueue = [];
@@ -2219,6 +2245,9 @@
   }
 
   function updateJourney() {
+    const signature = [lang, state, score, !!boss, nextUpgradeLevel, nextBossLevel, runItems, runBestCombo, runBosses, ...Object.values(upgrades)].join("|");
+    if (signature === lastJourneyKey) return;
+    lastJourneyKey = signature;
     const progress = document.getElementById("levelProgress");
     progress.value = score % 100;
     progress.setAttribute("aria-label", t("journey.level") + " " + (level() + 1));
@@ -2236,9 +2265,9 @@
 
   function updateHud() {
     updateJourney();
-    elScore.textContent = score;
-    elLevel.textContent = level();
-    elHigh.textContent = Math.max(high, score);
+    setText(elScore, score);
+    setText(elLevel, level());
+    setText(elHigh, Math.max(high, score));
 
     const earned = BADGES.filter(b => score >= b.threshold);
     if (earned.length > badgeCount) {
@@ -2271,7 +2300,7 @@
   }
 
   // ---------- Logika game ----------
-  function tick() {
+  function tick(movementAt = performance.now()) {
     if (turnQueue.length) nextDir = turnQueue.shift();
     if (!(nextDir.x === -dir.x && nextDir.y === -dir.y)) dir = nextDir;
 
@@ -2323,8 +2352,7 @@
     const ateMagikarp = !!(magikarp && nx === magikarp.x && ny === magikarp.y);
 
     previousSnake = snake.map(segment => ({ ...segment }));
-    moveStartedAt = now;
-    moveDuration = Math.min(70, speedMs() * .55);
+    moveStartedAt = movementAt;
     snake.unshift({ x: nx, y: ny });
     if (growing) {
       eat(food);
@@ -2351,6 +2379,8 @@
     updateHud();
     checkProgression();
     updateJourney();
+    // Animate over the entire NEXT step, including a speed change caused by food.
+    moveDuration = speedMs();
   }
 
   function eat(f) {
@@ -2549,7 +2579,10 @@
   }
 
   function spawnPopup(x, y, text, color) {
-    popups.push({ x: x * CELL + CELL / 2, y: y * CELL + CELL / 2, text, color, life: 1 });
+    // Color-emoji glyph rasterization can stall the first berry/upgrade frame.
+    // Keep the readable label; entity art and particles already carry its visual identity.
+    const label = String(text).replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").trim();
+    popups.push({ x: x * CELL + CELL / 2, y: y * CELL + CELL / 2, text: label, color, life: 1 });
   }
 
   function updateFX(now) {
@@ -2605,8 +2638,9 @@
     });
   }
 
-  function drawAtmosphere(now) {
+  function drawAtmosphere(now, head) {
     if (!richEffects) return;
+    drawDistantMeteor(now);
     ctx.save();
     for (let layer = 0; layer < 3; layer++) {
       const base = 58 + layer * 34;
@@ -2622,7 +2656,6 @@
       }
       ctx.lineTo(480, base + 110); ctx.lineTo(0, base + 110); ctx.closePath(); ctx.fill();
     }
-    const head = renderedSnake(state === "paused" ? pausedAt : performance.now())[0];
     const x = head.x * CELL + CELL / 2, y = head.y * CELL + CELL / 2;
     const glow = ctx.createRadialGradient(x, y, 2, x, y, 68);
     glow.addColorStop(0, evolved ? "rgba(160,234,107,.14)" : "rgba(77,235,167,.1)");
@@ -2632,7 +2665,17 @@
   }
 
   function drawBackground() {
-    const now = visualTime();
+    // Rasterize expensive scenery only when quality changes. Aurora/comets move separately.
+    const frameKey = [richEffects, reducedMotion.matches].join("|");
+    if (frameKey !== backgroundFrameKey) {
+      paintBackground(backgroundCtx);
+      backgroundFrameKey = frameKey;
+    }
+    ctx.drawImage(backgroundLayer, 0, 0);
+  }
+
+  function paintBackground(ctx) {
+    const now = 0;
 
     // Gradasi langit malam — Rayquaza si naga langit (Delta Pokémon).
     const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -2701,23 +2744,6 @@
     ctx.stroke();
     ctx.restore();
 
-    // Satu meteor jauh melintas secara berkala; hanya dekorasi latar.
-    const shootingPhase = (now % 7200) / 7200;
-    if (richEffects && !reducedMotion.matches && shootingPhase < .2) {
-      const travel = shootingPhase / .2;
-      const sx = canvas.width * (.1 + travel * .56);
-      const sy = canvas.height * (.16 + travel * .2);
-      const trail = ctx.createLinearGradient(sx - 48, sy - 24, sx, sy);
-      trail.addColorStop(0, "rgba(124,240,255,0)");
-      trail.addColorStop(1, "rgba(216,251,255,.65)");
-      ctx.strokeStyle = trail;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(sx - 48, sy - 24);
-      ctx.lineTo(sx, sy);
-      ctx.stroke();
-    }
-
     // Bintang berkelip — posisi deterministik (stabil antar frame), kedipan halus.
     for (let i = 0; i < (richEffects ? 72 : 24); i++) {
       const sx = (i * 137 + 42 * 53) % canvas.width;
@@ -2768,6 +2794,19 @@
     ctx.strokeStyle = "rgba(255,255,255,0.06)";
     ctx.lineWidth = 1;
     ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+  }
+
+  function drawDistantMeteor(now) {
+    const phase = (now % 7200) / 7200;
+    if (reducedMotion.matches || phase >= .2) return;
+    const travel = phase / .2;
+    const x = canvas.width * (.1 + travel * .56);
+    const y = canvas.height * (.16 + travel * .2);
+    const trail = ctx.createLinearGradient(x - 48, y - 24, x, y);
+    trail.addColorStop(0, "rgba(124,240,255,0)");
+    trail.addColorStop(1, "rgba(216,251,255,.65)");
+    ctx.save(); ctx.strokeStyle = trail; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x - 48, y - 24); ctx.lineTo(x, y); ctx.stroke(); ctx.restore();
   }
 
   function drawRock(x, y) {
@@ -3151,6 +3190,34 @@
     ctx.restore();
   }
 
+  function drawUpgradeSymbol(id) {
+    ctx.save();
+    ctx.strokeStyle = "#0b2730";
+    ctx.fillStyle = "#0b2730";
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    if (id === "beam") {
+      ctx.moveTo(2, -7); ctx.lineTo(-5, 1); ctx.lineTo(0, 1);
+      ctx.lineTo(-2, 7); ctx.lineTo(5, -1); ctx.lineTo(0, -1); ctx.closePath(); ctx.fill();
+    } else if (id === "shield") {
+      ctx.moveTo(0, -6); ctx.lineTo(5, -4); ctx.lineTo(4, 3);
+      ctx.quadraticCurveTo(0, 8, -4, 3); ctx.lineTo(-5, -4); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(0, 2); ctx.lineTo(3, -2); ctx.stroke();
+    } else if (id === "combo") {
+      for (const radius of [2, 4.5, 7]) {
+        ctx.beginPath(); ctx.arc(0, 3, radius, Math.PI, Math.PI * 2); ctx.stroke();
+      }
+    } else if (id === "mega") {
+      ctx.moveTo(0, -7); ctx.lineTo(5, 0); ctx.lineTo(0, 7); ctx.lineTo(-5, 0); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, 7); ctx.moveTo(-5, 0); ctx.lineTo(5, 0); ctx.stroke();
+    } else {
+      drawStar(0, 0, 7);
+    }
+    ctx.restore();
+  }
+
   function drawUpgradeChoices(now) {
     for (const choice of upgradeChoices) {
       const cx = choice.x * CELL + CELL / 2;
@@ -3209,7 +3276,7 @@
       ctx.font = "14px system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(choice.upgrade.icon, 0, 0);
+      drawUpgradeSymbol(choice.upgrade.id);
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 7px system-ui, sans-serif";
       ctx.fillText("Lv." + (upgrades[choice.upgrade.id] + 1), 0, radius + 5);
@@ -3520,8 +3587,7 @@
     shinymegarayquaza: { top: "#838a9a", mid: "#454b57", bottom: "#232833", outline: "#0a0c10", horn: "#ffe27a", cheek: "#ff9db0" },
   };
 
-  function drawSnake() {
-    const rendered = renderedSnake(state === "paused" ? pausedAt : performance.now());
+  function drawSnake(rendered) {
     const pal = snakeShiny
       ? (evolved ? PALETTE.shinymegarayquaza : PALETTE.shinyrayquaza)
       : (evolved ? PALETTE.megarayquaza : PALETTE.rayquaza);
@@ -3578,7 +3644,27 @@
     }
   }
 
+  const segmentSprites = new Map();
   function drawChibiSegment(x, y, s, pal, rainbow, idx) {
+    if (rainbow) {
+      paintChibiSegment(ctx, x, y, s, pal, true, idx);
+      return;
+    }
+    // Reuse the shaded body art as the snake grows; no repeated gradient/shadow rasterization.
+    const key = [pal.mid, s, mega].join("|");
+    let sprite = segmentSprites.get(key);
+    if (!sprite) {
+      sprite = document.createElement("canvas");
+      sprite.width = sprite.height = 96;
+      const spriteCtx = sprite.getContext("2d");
+      spriteCtx.scale(2, 2);
+      paintChibiSegment(spriteCtx, .5, .5, s, pal, false, idx);
+      segmentSprites.set(key, sprite);
+    }
+    ctx.drawImage(sprite, x * CELL + CELL / 2 - 24, y * CELL + CELL / 2 - 24, 48, 48);
+  }
+
+  function paintChibiSegment(ctx, x, y, s, pal, rainbow, idx) {
     const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
     const x0 = cx - s / 2, y0 = cy - s / 2;
     const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
@@ -3595,7 +3681,8 @@
     ctx.save();
     if (mega) { ctx.shadowColor = "rgba(124,240,255,0.9)"; ctx.shadowBlur = 14; }
     else { ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
-    roundRect(x0, y0, s, s, s * 0.38); // lebih bulat = chibi
+    ctx.beginPath();
+    ctx.roundRect(x0, y0, s, s, s * 0.38);
     ctx.fillStyle = g;
     ctx.fill();
     ctx.shadowColor = "transparent";
@@ -3884,8 +3971,10 @@
   }
 
   function draw() {
+    const now = state === "paused" ? pausedAt : performance.now();
+    const rendered = renderedSnake(now);
     drawBackground();
-    drawAtmosphere(visualTime());
+    drawAtmosphere(visualTime(), rendered[0]);
 
     ctx.save();
 
@@ -3897,7 +3986,6 @@
       else if (w.type === "dugtrio") drawDugtrio(w.x, w.y);
       else drawDiglett(w.x, w.y);
     }
-    const now = state === "paused" ? pausedAt : performance.now();
     drawNature(now);
     for (const p of portals) drawPortal(p.x, p.y);
     for (const m of meteors) drawMeteor(m, now);
@@ -3912,7 +4000,7 @@
     drawFood();
     drawUpgradeChoices(now);
     drawMagikarp();
-    drawSnake();
+    drawSnake(rendered);
     if (beam && now < beam.until) drawBeam(beam, now);
     drawRings();
     drawParticles();
@@ -3933,9 +4021,11 @@
         const h = snake[0];
         spawnPopup(h.x, h.y, t("popup.megaEnd"), "#9c917d");
       }
-      if (now - lastTick >= speedMs()) {
-        lastTick = now;
-        tick();
+      if (now - lastTick >= moveDuration) {
+        const scheduledAt = lastTick + moveDuration;
+        // Preserve sub-frame timing; never replay a burst of moves after a long stall.
+        lastTick = now - scheduledAt > moveDuration ? now : scheduledAt;
+        tick(lastTick);
         // A fatal tick must not spawn another boss attack or hazard this frame.
         if (state !== "playing") {
           draw();
@@ -4009,78 +4099,80 @@
     const effectNow = state === "paused" ? pausedAt : now;
     const comboPercent = state === "playing" || state === "paused"
       ? Math.max(0, Math.min(100, (comboUntil - effectNow) / (3000 + upgrades.combo * 1000) * 100)) : 0;
-    document.getElementById("comboFill").style.width = comboPercent.toFixed(1) + "%";
-    document.getElementById("comboMeter").setAttribute("aria-valuenow", String(Math.round(comboPercent)));
+    const comboScale = "scaleX(" + (comboPercent / 100).toFixed(3) + ")";
+    const comboFill = document.getElementById("comboFill");
+    if (comboFill.style.transform !== comboScale) comboFill.style.transform = comboScale;
+    setAttribute(document.getElementById("comboMeter"), "aria-valuenow", Math.round(comboPercent));
     updateNatureHud(effectNow);
 
     const rem = multiplierUntil - effectNow;
     if (multiplier > 1 && rem > 0) {
-      elBadge.classList.add("on");
-      elBadge.textContent = "⚡ 2× " + Math.ceil(rem / 1000) + "s";
+      setClass(elBadge, "on", true);
+      setText(elBadge, "⚡ 2× " + Math.ceil(rem / 1000) + "s");
     } else {
       multiplier = 1;
-      elBadge.classList.remove("on");
+      setClass(elBadge, "on", false);
     }
     if (mega && megaUntil - effectNow > 0) {
-      elMega.classList.add("on");
-      elMega.textContent = "💠 MEGA ×3 " + Math.ceil((megaUntil - effectNow) / 1000) + "s";
+      setClass(elMega, "on", true);
+      setText(elMega, "💠 MEGA ×3 " + Math.ceil((megaUntil - effectNow) / 1000) + "s");
     } else {
       mega = false;
-      elMega.classList.remove("on");
+      setClass(elMega, "on", false);
     }
     if (slowmo && slowmoUntil - effectNow > 0) {
-      elSlow.classList.add("on");
-      elSlow.textContent = "🍖 SLOW " + Math.ceil((slowmoUntil - effectNow) / 1000) + "s";
+      setClass(elSlow, "on", true);
+      setText(elSlow, "🍖 SLOW " + Math.ceil((slowmoUntil - effectNow) / 1000) + "s");
     } else {
       slowmo = false;
-      elSlow.classList.remove("on");
+      setClass(elSlow, "on", false);
     }
     if (speedUp && speedUpUntil - effectNow > 0) {
-      elSpeed.classList.add("on");
-      elSpeed.textContent = "💨 SPEED ×2 " + Math.ceil((speedUpUntil - effectNow) / 1000) + "s";
+      setClass(elSpeed, "on", true);
+      setText(elSpeed, "💨 SPEED ×2 " + Math.ceil((speedUpUntil - effectNow) / 1000) + "s");
     } else {
       speedUp = false;
-      elSpeed.classList.remove("on");
+      setClass(elSpeed, "on", false);
     }
     const guardActive = shieldGraceUntil - effectNow > 0;
-    elShield.classList.toggle("on", shield > 0 || guardActive);
-    elShield.textContent = guardActive
+    setClass(elShield, "on", shield > 0 || guardActive);
+    setText(elShield, guardActive
       ? "🛡 GUARD " + Math.max(1, Math.ceil((shieldGraceUntil - effectNow) / 1000)) + "s"
-      : (shield > 1 ? "🛡 SHIELD ×" + shield : "🛡 SHIELD");
+      : (shield > 1 ? "🛡 SHIELD ×" + shield : "🛡 SHIELD"));
     if (combo > 1 && comboUntil - effectNow > 0) {
-      elCombo.classList.add("on");
-      elCombo.textContent = combo >= 5 ? "🌈 FRENZY ×" + combo : "COMBO ×" + combo;
+      setClass(elCombo, "on", true);
+      setText(elCombo, combo >= 5 ? "🌈 FRENZY ×" + combo : "COMBO ×" + combo);
     } else {
-      elCombo.classList.remove("on");
+      setClass(elCombo, "on", false);
     }
 
     if (state === "playing") {
       if (beamCooldown <= now) {
-        elBeamHint.textContent = t("beam.ready");
-        elBeamHint.classList.remove("cooling");
+        setText(elBeamHint, t("beam.ready"));
+        setClass(elBeamHint, "cooling", false);
       } else {
-        elBeamHint.textContent = "⚡ HYPER BEAM — " + Math.ceil((beamCooldown - now) / 1000) + "s";
-        elBeamHint.classList.add("cooling");
+        setText(elBeamHint, "⚡ HYPER BEAM — " + Math.ceil((beamCooldown - now) / 1000) + "s");
+        setClass(elBeamHint, "cooling", true);
       }
     } else {
-      elBeamHint.textContent = "";
+      setText(elBeamHint, "");
     }
 
     // Indikator cooldown tombol laser di layar sentuh.
     if (state === "playing" && beamCooldown > now) {
-      elFire.classList.add("cooling");
-      elFire.textContent = Math.ceil((beamCooldown - now) / 1000);
+      setClass(elFire, "cooling", true);
+      setText(elFire, Math.ceil((beamCooldown - now) / 1000));
     } else {
-      elFire.classList.remove("cooling");
-      elFire.textContent = "⚡";
+      setClass(elFire, "cooling", false);
+      setText(elFire, "⚡");
     }
 
     const currentWeather = effectiveWeather(effectNow);
     if (currentWeather) {
-      elWeather.classList.add("on");
-      elWeather.textContent = (currentWeather === "sunny" ? "☀️ SUNNY" : currentWeather === "rain" ? "🌧️ RAIN" : currentWeather === "sandstorm" ? "🌪️ SANDSTORM" : "❄️ HAIL");
+      setClass(elWeather, "on", true);
+      setText(elWeather, currentWeather === "sunny" ? "☀️ SUNNY" : currentWeather === "rain" ? "🌧️ RAIN" : currentWeather === "sandstorm" ? "🌪️ SANDSTORM" : "❄️ HAIL");
     } else {
-      elWeather.classList.remove("on");
+      setClass(elWeather, "on", false);
     }
 
     draw();
