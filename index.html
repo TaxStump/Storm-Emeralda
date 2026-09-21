@@ -1288,6 +1288,7 @@
   let turnQueue = [];
   let runItems = 0, runBestCombo = 0, runBosses = 0;
   let moveDuration = 170, steeringFrom = null, steeringStartedAt = 0;
+  let dragonAngle = 0, dragonVisualAt = 0;
   let lastJourneyKey = "", lastNatureHudKey = "";
   let lastFxFrame = 0, deathReason = "hazard";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -2139,6 +2140,8 @@
   }
 
   function reset() {
+    dragonAngle = 0;
+    dragonVisualAt = performance.now();
     steeringFrom = null;
     steeringStartedAt = 0;
     moveDuration = 170;
@@ -3595,211 +3598,251 @@
   }
 
   const PALETTE = {
-    rayquaza:     { top: "#a7f0bb", mid: "#58c978", bottom: "#2a8a4f", outline: "#0d4a28", horn: "#f6d24a", cheek: "#ff9db0" },
-    megarayquaza: { top: "#d8ffb4", mid: "#7fe05e", bottom: "#2f9e57", outline: "#0f5c30", horn: "#ffe27a", cheek: "#ff9db0" },
-    shinyrayquaza:     { top: "#6b7280", mid: "#3a3f4a", bottom: "#1a1d24", outline: "#050608", horn: "#f6d24a", cheek: "#ff9db0" },
-    shinymegarayquaza: { top: "#838a9a", mid: "#454b57", bottom: "#232833", outline: "#0a0c10", horn: "#ffe27a", cheek: "#ff9db0" },
+    rayquaza: { top: "#8bd5af", mid: "#32966b", bottom: "#124536", outline: "#071e20", horn: "#f6d66d", fin: "#cb6474" },
+    megarayquaza: { top: "#a0e4bc", mid: "#2c8b69", bottom: "#102e2b", outline: "#061a1c", horn: "#ffda7b", fin: "#edb954" },
+    shinyrayquaza: { top: "#939ead", mid: "#414d5b", bottom: "#1b242f", outline: "#080f16", horn: "#f8d474", fin: "#bd556d" },
+    shinymegarayquaza: { top: "#a4adbb", mid: "#4d5867", bottom: "#171f2b", outline: "#080e16", horn: "#ffe19b", fin: "#edae57" },
   };
+  const dragonSprites = new Map();
 
-  function drawSnake(rendered) {
+  function dragonHeading(now) {
+    const heading = turnQueue[0] || dir;
+    const target = Math.atan2(heading.y, heading.x);
+    const elapsed = Math.max(0, Math.min(50, now - dragonVisualAt));
+    dragonVisualAt = now;
+    const difference = Math.atan2(Math.sin(target - dragonAngle), Math.cos(target - dragonAngle));
+    dragonAngle += difference * (reducedMotion.matches ? 1 : 1 - Math.exp(-elapsed / 42));
+    return dragonAngle;
+  }
+
+  // A midpoint quadratic stays inside its local control-point triangle: no spline overshoot.
+  // Split at portals before smoothing so no ribbon is ever drawn across the arena.
+  function dragonSpines(rendered) {
+    const groups = [];
+    let group = [];
+    rendered.forEach((point, index) => {
+      if (index && Math.hypot(point.x - rendered[index - 1].x, point.y - rendered[index - 1].y) > 1.6) {
+        groups.push(group); group = [];
+      }
+      group.push({ x: point.x * CELL + CELL / 2, y: point.y * CELL + CELL / 2 });
+    });
+    if (group.length) groups.push(group);
+    return groups.map(points => {
+      const samples = [{ ...points[0], distance: 0 }];
+      let distance = 0;
+      function append(point) {
+        const previous = samples[samples.length - 1];
+        const gap = Math.hypot(point.x - previous.x, point.y - previous.y);
+        if (gap < .01) return;
+        distance += gap;
+        samples.push({ ...point, distance });
+      }
+      for (let i = 1; i < points.length - 1; i++) {
+        const a = { x: (points[i - 1].x + points[i].x) / 2, y: (points[i - 1].y + points[i].y) / 2 };
+        const b = { x: (points[i + 1].x + points[i].x) / 2, y: (points[i + 1].y + points[i].y) / 2 };
+        append(a);
+        for (let j = 1; j <= 5; j++) {
+          const t = j / 5, u = 1 - t;
+          append({ x: u * u * a.x + 2 * u * t * points[i].x + t * t * b.x,
+                   y: u * u * a.y + 2 * u * t * points[i].y + t * t * b.y });
+        }
+      }
+      if (points.length > 1) append(points[points.length - 1]);
+      samples.forEach((point, index) => {
+        const before = samples[Math.max(0, index - 1)], after = samples[Math.min(samples.length - 1, index + 1)];
+        point.angle = Math.atan2(before.y - after.y, before.x - after.x);
+      });
+      // Subpixel undulation makes the spine organic while the head/tail stay anchored.
+      // It is purely decorative, bounded below one pixel, and frozen by the visual clock.
+      if (richEffects && !reducedMotion.matches && distance > 0) {
+        const time = visualTime();
+        samples.forEach(point => {
+          const wave = Math.sin(point.distance / 18 - time / 220) * .55 * Math.sin(Math.PI * point.distance / distance);
+          point.x -= Math.sin(point.angle) * wave;
+          point.y += Math.cos(point.angle) * wave;
+        });
+      }
+      return samples;
+    });
+  }
+
+  function dragonPart(kind, pal, megaForm) {
+    const key = kind + "|" + pal.mid + "|" + megaForm;
+    if (dragonSprites.has(key)) return dragonSprites.get(key);
+    const sprite = document.createElement("canvas");
+    sprite.width = sprite.height = 128;
+    const c = sprite.getContext("2d");
+    c.scale(2, 2); c.translate(32, 32);
+    c.lineJoin = "round"; c.lineCap = "round";
+    function polygon(points, fill, stroke = pal.outline, width = 1.2) {
+      c.beginPath(); points.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]));
+      c.closePath(); c.fillStyle = fill; c.fill();
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = width; c.stroke(); }
+    }
+    const skin = c.createLinearGradient(0, -12, 0, 12);
+    skin.addColorStop(0, pal.top); skin.addColorStop(.4, pal.mid); skin.addColorStop(1, pal.bottom);
+    if (kind === "head") {
+      // Paired swept horns, pointed jaw and narrow eyes: normal and Mega silhouettes differ.
+      for (const sign of [-1, 1]) {
+        c.save(); c.scale(1, sign);
+        polygon([[-5,-5],[-20,megaForm ? -16 : -12],[-13,-3]], skin, megaForm ? pal.horn : pal.outline);
+        polygon([[-11,-5],[-17,megaForm ? -13 : -10],[-8,-5]], pal.top, null);
+        if (megaForm) polygon([[-2,-7],[-9,-18],[3,-9],[11,-7]], pal.mid, pal.horn, 1);
+        c.restore();
+      }
+      polygon([[-12,-6],[-4,-11],[5,-8],[15,-3],[16,3],[5,8],[-4,11],[-12,6]], skin);
+      // Red jaw margins with a dark mouth and tiny fangs on each side.
+      for (const sign of [-1,1]) {
+        c.save(); c.scale(1,sign);
+        polygon([[2,5],[15,2],[10,6],[-2,8]], "#662b38", pal.fin, .9);
+        polygon([[6,4],[8,4],[6,6]], "#fff4cd", null);
+        polygon([[11,3],[13,2.7],[11,4.5]], "#fff4cd", null);
+        polygon([[-2,-6],[7,-5],[2,-2],[-3,-3]], "#0b2528", null);
+        polygon([[0,-5.5],[4,-5],[1,-3]], "#ffdf69", null);
+        c.fillStyle = "#121e20"; c.fillRect(1,-5.2,1,2);
+        c.strokeStyle = pal.top; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(-4,-7); c.lineTo(6,-6); c.stroke();
+        c.restore();
+      }
+      polygon([[-9,0],[-2,-3],[12,0],[-2,3]], pal.horn, null);
+      polygon([[-6,0],[-1,-1.3],[8,0],[-1,1.3]], pal.mid, null);
+      if (megaForm) polygon([[5,0],[12,-2],[20,0],[12,2]], pal.mid, pal.horn, 1);
+      c.fillStyle = pal.outline;
+      c.beginPath(); c.arc(12,-1.8,.8,0,Math.PI*2); c.arc(12,1.8,.8,0,Math.PI*2); c.fill();
+    } else if (kind === "fin") {
+      for (const sign of [-1,1]) {
+        c.save(); c.scale(1,sign);
+        polygon([[5,6],[-9,megaForm ? 18 : 15],[-7,7]], skin, pal.fin, 1.5);
+        c.strokeStyle = pal.top; c.lineWidth = .8;
+        c.beginPath(); c.moveTo(1,8); c.lineTo(-7,12); c.stroke();
+        c.restore();
+      }
+    } else if (kind === "arms") {
+      for (const sign of [-1,1]) {
+        c.save(); c.scale(1,sign);
+        polygon([[2,6],[-3,9],[-2,14],[5,15],[7,12],[2,11],[5,8]], skin);
+        for (const x of [2,5,7]) polygon([[x,13],[x+1,17],[x+2,13]], "#edf5d7", pal.outline, .7);
+        c.restore();
+      }
+    } else if (kind === "tail") {
+      polygon([[9,0],[-13,-10],[-8,0],[-13,10]], skin, pal.fin, 1.5);
+      polygon([[7,0],[-7,-2],[-11,0],[-7,2]], pal.horn, null);
+      if (megaForm) polygon([[-10,0],[-16,-4],[-19,0],[-16,4]], pal.horn, pal.outline, .8);
+    } else if (kind === "ring") {
+      if (megaForm) {
+        c.fillStyle = pal.bottom; c.beginPath(); c.ellipse(0,0,4,7,0,0,Math.PI*2); c.fill();
+      }
+      c.strokeStyle = pal.horn; c.lineWidth = 1.35;
+      c.beginPath(); c.ellipse(0,0,3.3,6.1,0,0,Math.PI*2); c.stroke();
+      c.beginPath(); c.moveTo(-8,0); c.lineTo(-3,0); c.moveTo(3,0); c.lineTo(8,0); c.stroke();
+      if (megaForm) {
+        c.fillStyle = "#ffb45c";
+        for (const y of [-4.7,4.7]) { c.beginPath(); c.arc(0,y,2,0,Math.PI*2); c.fill(); }
+      }
+    }
+    dragonSprites.set(key, sprite);
+    return sprite;
+  }
+
+  function placeDragonPart(kind, point, angle, pal, scale = 1) {
+    ctx.save(); ctx.translate(point.x, point.y); ctx.rotate(angle); ctx.scale(scale, scale);
+    ctx.drawImage(dragonPart(kind, pal, evolved), -32, -32, 64, 64); ctx.restore();
+  }
+
+  function drawDragonRibbon(points, pal, tail, rainbow) {
+    if (points.length < 2) return;
+    const total = points[points.length - 1].distance;
+    const sides = points.map(point => {
+      const taper = tail ? Math.min(1, Math.max(.22, (total - point.distance) / 30)) : 1;
+      const width = (evolved ? 8.8 : 8) * taper;
+      const nx = -Math.sin(point.angle), ny = Math.cos(point.angle);
+      return { ...point, nx, ny, width };
+    });
+    ctx.save();
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.beginPath();
+    sides.forEach((p,i) => i ? ctx.lineTo(p.x+p.nx*p.width,p.y+p.ny*p.width) : ctx.moveTo(p.x+p.nx*p.width,p.y+p.ny*p.width));
+    for (let i=sides.length-1;i>=0;i--) { const p=sides[i]; ctx.lineTo(p.x-p.nx*p.width,p.y-p.ny*p.width); }
+    ctx.closePath();
+    ctx.fillStyle = pal.mid; ctx.strokeStyle = pal.outline; ctx.lineWidth = 2.4; ctx.fill(); ctx.stroke();
+    // Narrow highlights and belly shading follow the same curved spine.
+    for (const [offset,width,color] of [[-.48,3.5,pal.bottom],[.3,3,pal.top]]) {
+      ctx.beginPath();
+      sides.forEach((p,i) => {
+        const x=p.x+p.nx*p.width*offset,y=p.y+p.ny*p.width*offset;
+        if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y);
+      });
+      ctx.strokeStyle=color; ctx.globalAlpha=.55; ctx.lineWidth=width; ctx.stroke();
+    }
+    if (rainbow) {
+      ctx.globalAlpha=.55; ctx.strokeStyle="hsl(" + (visualTime()/18%360) + ",85%,72%)";
+      ctx.lineWidth=1.5; ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawEnergyRibbons(points, pal, time) {
+    if (!evolved || points.length < 2) return;
+    ctx.save(); ctx.lineCap="round"; ctx.lineJoin="round";
+    const count = Math.min(points.length, richEffects ? 24 : 12);
+    for (const sign of [-1,1]) {
+      ctx.beginPath();
+      for (let i=0;i<count;i++) {
+        const p=points[i], wave=reducedMotion.matches ? 0 : Math.sin(time/230 - p.distance/17)*3;
+        const offset=sign*(10+wave);
+        const x=p.x-Math.sin(p.angle)*offset,y=p.y+Math.cos(p.angle)*offset;
+        if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y);
+      }
+      ctx.strokeStyle="#bf7142";ctx.lineWidth=3;ctx.globalAlpha=.7;ctx.stroke();
+      ctx.strokeStyle=pal.horn;ctx.lineWidth=1.4;ctx.globalAlpha=.95;ctx.stroke();
+      if(richEffects) for(let i=3;i<count;i+=7) {
+        const p=points[i],offset=sign*(10+(reducedMotion.matches?0:Math.sin(time/230-p.distance/17)*3));
+        ctx.beginPath();ctx.arc(p.x-Math.sin(p.angle)*offset,p.y+Math.cos(p.angle)*offset,2.8,0,Math.PI*2);
+        ctx.strokeStyle=pal.horn;ctx.lineWidth=1.2;ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawSnake(rendered, now) {
     const pal = snakeShiny
       ? (evolved ? PALETTE.shinymegarayquaza : PALETTE.shinyrayquaza)
       : (evolved ? PALETTE.megarayquaza : PALETTE.rayquaza);
-    const rainbow = combo >= 5;
-
-    // Konektor antar segmen (biar menyambung, tetap chunky).
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineWidth = CELL * 0.52;
-    for (let i = 1; i < rendered.length; i++) {
-      const a = rendered[i - 1], b = rendered[i];
-      if (Math.hypot(b.x - a.x, b.y - a.y) > 1.5) continue; // portal
-      const ax = a.x * CELL + CELL / 2, ay = a.y * CELL + CELL / 2;
-      const bx = b.x * CELL + CELL / 2, by = b.y * CELL + CELL / 2;
-      if (rainbow) {
-        const hue = (i * 36 + Math.floor(visualTime() / 40)) % 360;
-        ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
-      } else {
-        ctx.strokeStyle = pal.mid;
+    const chunks = dragonSpines(rendered);
+    const angle = dragonHeading(now);
+    for (let group=chunks.length-1;group>=0;group--) {
+      const points=chunks[group], tail=group===chunks.length-1;
+      drawDragonRibbon(points,pal,tail,combo>=5);
+      let nextRing=group===0?21:6, nextFin=group===0?45:22;
+      for(const p of points) {
+        const remaining=points[points.length-1].distance-p.distance;
+        if(p.distance>=nextRing && (!tail || remaining>12)) {
+          placeDragonPart("ring",p,p.angle,pal); nextRing=p.distance+21;
+        }
+        if(p.distance>=nextFin && (!tail || remaining>19)) {
+          placeDragonPart("fin",p,p.angle,pal); nextFin=p.distance+45;
+        }
       }
-      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      if(tail && points.length>1) {
+        const p=points[points.length-1];
+        placeDragonPart("tail",p,p.angle,pal,.82);
+      }
+      drawEnergyRibbons(points,pal,visualTime());
     }
-    ctx.restore();
-
-    // Segmen badan (ekor → leher).
-    for (let i = rendered.length - 1; i >= 1; i--) {
-      const seg = rendered[i];
-      drawChibiSegment(seg.x, seg.y, CELL * 0.78, pal, rainbow, i);
-    }
-
-    // Kepala (lebih besar, chibi).
-    const h = rendered[0];
-    drawChibiHead(h.x * CELL + CELL / 2, h.y * CELL + CELL / 2, CELL * 0.95, pal, rainbow, turnQueue[0] || dir);
-
-    if (shield) {
-      const cx = h.x * CELL + CELL / 2, cy = h.y * CELL + CELL / 2;
+    const head=chunks[0][0];
+    const neck=chunks[0].find(p=>p.distance>=19);
+    if(neck) placeDragonPart("arms",neck,neck.angle,pal,.85);
+    placeDragonPart("head",head,angle,pal);
+    if(snakeShiny && richEffects) drawSparkles(head.x,head.y);
+    if(shield) {
       ctx.save();
-      ctx.strokeStyle = "rgba(140,240,176,0.9)";
-      if (richEffects) {
-        const bubble = ctx.createRadialGradient(cx - 5, cy - 5, 1, cx, cy, CELL * .76);
-        bubble.addColorStop(0, "rgba(174,255,230,.2)");
-        bubble.addColorStop(.7, "rgba(80,225,185,.03)");
-        bubble.addColorStop(1, "rgba(112,247,204,.3)");
-        ctx.fillStyle = bubble;
-        ctx.beginPath(); ctx.arc(cx, cy, CELL * .76, 0, Math.PI * 2); ctx.fill();
-        const angle = visualTime() / 600;
-        ctx.beginPath(); ctx.arc(cx, cy, CELL * .76, angle, angle + 1.2); ctx.stroke();
+      if(richEffects) {
+        const bubble=ctx.createRadialGradient(head.x-5,head.y-5,1,head.x,head.y,21);
+        bubble.addColorStop(0,"rgba(174,255,230,.15)");bubble.addColorStop(.7,"rgba(80,225,185,.02)");bubble.addColorStop(1,"rgba(112,247,204,.27)");
+        ctx.fillStyle=bubble;ctx.beginPath();ctx.arc(head.x,head.y,21,0,Math.PI*2);ctx.fill();
       }
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, CELL * 0.72, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  const segmentSprites = new Map();
-  function drawChibiSegment(x, y, s, pal, rainbow, idx) {
-    if (rainbow) {
-      paintChibiSegment(ctx, x, y, s, pal, true, idx);
-      return;
-    }
-    // Reuse the shaded body art as the snake grows; no repeated gradient/shadow rasterization.
-    const key = [pal.mid, s, mega].join("|");
-    let sprite = segmentSprites.get(key);
-    if (!sprite) {
-      sprite = document.createElement("canvas");
-      sprite.width = sprite.height = 96;
-      const spriteCtx = sprite.getContext("2d");
-      spriteCtx.scale(2, 2);
-      paintChibiSegment(spriteCtx, .5, .5, s, pal, false, idx);
-      segmentSprites.set(key, sprite);
-    }
-    ctx.drawImage(sprite, x * CELL + CELL / 2 - 24, y * CELL + CELL / 2 - 24, 48, 48);
-  }
-
-  function paintChibiSegment(ctx, x, y, s, pal, rainbow, idx) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    const x0 = cx - s / 2, y0 = cy - s / 2;
-    const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
-    if (rainbow) {
-      const hue = (idx * 36 + Math.floor(visualTime() / 40)) % 360;
-      g.addColorStop(0, `hsl(${hue}, 80%, 64%)`);
-      g.addColorStop(1, `hsl(${(hue + 50) % 360}, 75%, 48%)`);
-    } else {
-      g.addColorStop(0, pal.top);
-      g.addColorStop(0.5, pal.mid);
-      g.addColorStop(1, pal.bottom);
-    }
-
-    ctx.save();
-    if (mega) { ctx.shadowColor = "rgba(124,240,255,0.9)"; ctx.shadowBlur = 14; }
-    else { ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
-    ctx.beginPath();
-    ctx.roundRect(x0, y0, s, s, s * 0.38);
-    ctx.fillStyle = g;
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.strokeStyle = pal.outline;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // kilau kecil (cute shine)
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.beginPath();
-    ctx.arc(cx - s * 0.16, cy - s * 0.16, s * 0.09, 0, Math.PI * 2);
-    ctx.fill();
-
-    // titik emas (skala)
-    ctx.fillStyle = pal.horn;
-    ctx.beginPath();
-    ctx.arc(cx, cy, s * 0.12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawChibiHead(cx, cy, s, pal, rainbow, heading) {
-    const dir = heading;
-    const x0 = cx - s / 2, y0 = cy - s / 2;
-    const g = ctx.createLinearGradient(x0, y0, x0 + s, y0 + s);
-    if (rainbow) {
-      const hue = (Math.floor(visualTime() / 40)) % 360;
-      g.addColorStop(0, `hsl(${hue}, 80%, 64%)`);
-      g.addColorStop(1, `hsl(${(hue + 50) % 360}, 75%, 48%)`);
-    } else {
-      g.addColorStop(0, pal.top);
-      g.addColorStop(0.5, pal.mid);
-      g.addColorStop(1, pal.bottom);
-    }
-
-    // Kumis emas + sparkle saat Mega; sparkle emas juga untuk shiny (di belakang kepala).
-    if (evolved) {
-      drawSparkles(cx, cy);
-      drawWhiskers(cx, cy, s, pal, heading);
-    } else if (snakeShiny) {
-      drawSparkles(cx, cy);
-    }
-
-    // Jambul emas (crest) — lebih besar saat Mega.
-    ctx.save();
-    if (evolved) { ctx.shadowColor = "rgba(255,216,74,0.9)"; ctx.shadowBlur = 10; }
-    ctx.fillStyle = pal.horn;
-    ctx.strokeStyle = pal.outline;
-    ctx.lineWidth = 1.5;
-    const hl = evolved ? s * 0.42 : s * 0.3;
-    ctx.beginPath();
-    ctx.moveTo(cx - s * 0.16, cy - s * 0.34);
-    ctx.lineTo(cx + s * 0.16, cy - s * 0.34);
-    ctx.lineTo(cx, cy - s * 0.34 - hl);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // Kepala (rounded square besar).
-    ctx.save();
-    if (mega) { ctx.shadowColor = "rgba(124,240,255,0.9)"; ctx.shadowBlur = 14; }
-    else { ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
-    roundRect(x0, y0, s, s, s * 0.4);
-    ctx.fillStyle = g;
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.strokeStyle = pal.outline;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-
-    // Kilau kepala.
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.beginPath();
-    ctx.arc(cx - s * 0.2, cy - s * 0.2, s * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Mata besar (chibi) + pipi merona.
-    const ex = cx + dir.x * s * 0.16;
-    const ey = cy + dir.y * s * 0.16;
-    const p = dir.x !== 0 ? { x: 0, y: 1 } : { x: 1, y: 0 };
-    const off = s * 0.16;
-    for (const sign of [-1, 1]) {
-      const mx = ex + p.x * off * sign;
-      const my = ey + p.y * off * sign;
-      // bola mata
-      ctx.fillStyle = "#1a1d22";
-      ctx.beginPath(); ctx.arc(mx, my, s * 0.17, 0, Math.PI * 2); ctx.fill();
-      // pupil emas
-      ctx.fillStyle = "#f7c948";
-      ctx.beginPath(); ctx.arc(mx + dir.x * s * 0.05, my + dir.y * s * 0.05, s * 0.08, 0, Math.PI * 2); ctx.fill();
-      // kilau putih (cute)
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath(); ctx.arc(mx + dir.x * s * 0.07, my + dir.y * s * 0.07 - s * 0.04, s * 0.035, 0, Math.PI * 2); ctx.fill();
-
-      // pipi merona (di belakang mata)
-      ctx.fillStyle = pal.cheek;
-      ctx.globalAlpha = 0.55;
-      ctx.beginPath();
-      ctx.arc(cx - dir.x * s * 0.16 + p.x * off * sign, cy - dir.y * s * 0.16 + p.y * off * sign, s * 0.08, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
+      ctx.strokeStyle="rgba(140,240,176,.85)";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(head.x,head.y,21,0,Math.PI*2);ctx.stroke();ctx.restore();
     }
   }
 
@@ -3832,37 +3875,6 @@
     ctx.fill();
   }
 
-  // Kumis emas khas Mega Rayquaza: 2 helai menjuntai dari kepala ke belakang.
-  function drawWhiskers(cx, cy, s, pal, heading) {
-    const dir = heading;
-    const time = visualTime();
-    const bx = -dir.x, by = -dir.y; // arah belakang (lawan arah gerak)
-    const px = -by, py = bx;        // tegak lurus
-    ctx.save();
-    ctx.strokeStyle = pal.horn;
-    ctx.shadowColor = "rgba(255,220,90,0.9)";
-    ctx.shadowBlur = 8;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = s * 0.09;
-    for (const sign of [-1, 1]) {
-      const sx = cx + bx * s * 0.4 + px * s * 0.2 * sign;
-      const sy = cy + by * s * 0.4 + py * s * 0.2 * sign;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      const segs = 5;
-      for (let k = 1; k <= segs; k++) {
-        const f = k / segs;
-        const wave = Math.sin(time / 130 + k * 0.9 + sign) * s * 0.2;
-        ctx.lineTo(
-          sx + bx * CELL * 3 * f + px * wave,
-          sy + by * CELL * 3 * f + py * wave
-        );
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
 
   function drawParticles() {
     for (const p of particles) {
@@ -4016,7 +4028,7 @@
     drawFood();
     drawUpgradeChoices(now);
     drawMagikarp();
-    drawSnake(rendered);
+    drawSnake(rendered, now);
     if (beam && now < beam.until) drawBeam(beam, now);
     drawRings();
     drawParticles();
@@ -4212,6 +4224,7 @@
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
     steeringStartedAt = shiftPausedDeadline(steeringStartedAt, pauseDuration);
+    dragonVisualAt = shiftPausedDeadline(dragonVisualAt, pauseDuration);
     lastFxFrame = now;
 
     evolveUntil = shiftPausedDeadline(evolveUntil, pauseDuration);
