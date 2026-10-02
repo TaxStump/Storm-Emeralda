@@ -2611,17 +2611,13 @@
   }
 
   function reachableUpgradeCells() {
-    const blocked = (x, y) =>
-      snake.slice(1).some(s => s.x === x && s.y === y) ||
-      rocks.some(r => r.x === x && r.y === y) ||
-      wilds.some(w => w.x === x && w.y === y) ||
-      portals.some(p => p.x === x && p.y === y) ||
-      meteors.some(m => m.x === x && m.y === y) ||
-      (food && food.x === x && food.y === y) ||
-      natureOrbs.some(c => c.x === x && c.y === y) ||
-      terrain.some(c => c.x === x && c.y === y) ||
-      insideBossBody(x, y) ||
-      (magikarp && magikarp.x === x && magikarp.y === y);
+    // Build occupancy once instead of scanning every entity for each BFS edge.
+    const occupiedCells = new Set();
+    for (const cell of [...snake.slice(1), ...rocks, ...wilds, ...portals, ...meteors,
+      ...natureOrbs, ...terrain, ...(food ? [food] : []), ...(magikarp ? [magikarp] : [])]) {
+      occupiedCells.add(cell.x + "," + cell.y);
+    }
+    const blocked = (x, y) => occupiedCells.has(x + "," + y) || insideBossBody(x, y);
     const start = snake[0];
     const queue = [start];
     const seen = new Set([start.x + "," + start.y]);
@@ -4674,7 +4670,7 @@
     ctx.restore();
   }
 
-  function drawUpgradeSymbol(id) {
+  function drawUpgradeSymbol(id, ctx = canvas.getContext("2d")) {
     ctx.save();
     ctx.strokeStyle = "#0b2730";
     ctx.fillStyle = "#0b2730";
@@ -4702,34 +4698,19 @@
     ctx.restore();
   }
 
-  function drawUpgradeChoices(now) {
-    for (const choice of upgradeChoices) {
-      const cx = choice.x * CELL + CELL / 2;
-      const cy = choice.y * CELL + CELL / 2;
-      const pulse = 1 + Math.sin(now / 160 + choice.x) * 0.09;
-      const radius = CELL * 0.47 * pulse;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(now / 1800 + choice.x * .2);
-      ctx.strokeStyle = choice.upgrade.color;
-      ctx.globalAlpha = .48;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * 1.18, 0, Math.PI * 2);
-      ctx.stroke();
-      for (let i = 0; i < 3; i++) {
-        const angle = now / 520 + i * Math.PI * 2 / 3;
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(Math.cos(angle) * radius * 1.18, Math.sin(angle) * radius * 1.18, 1.35, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.rotate(-(now / 1800 + choice.x * .2));
-      ctx.shadowColor = choice.upgrade.color;
+  const upgradeSprites = new Map();
+  function upgradeSprite(upgrade) {
+    if (upgradeSprites.has(upgrade.id)) return upgradeSprites.get(upgrade.id);
+    const sprite = document.createElement("canvas");
+    sprite.width = sprite.height = 96;
+    const ctx = sprite.getContext("2d");
+    ctx.translate(48, 48);
+    const radius = CELL * .47;
+      ctx.shadowColor = upgrade.color;
       ctx.shadowBlur = 18;
       const gem = ctx.createRadialGradient(-radius * .28, -radius * .32, 1, 0, 0, radius * 1.1);
       gem.addColorStop(0, "#ffffff");
-      gem.addColorStop(.22, choice.upgrade.color);
+      gem.addColorStop(.22, upgrade.color);
       gem.addColorStop(1, "#101820");
       ctx.fillStyle = gem;
       ctx.strokeStyle = "rgba(255,255,255,.9)";
@@ -4760,7 +4741,37 @@
       ctx.font = "14px system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      drawUpgradeSymbol(choice.upgrade.id);
+      drawUpgradeSymbol(upgrade.id, ctx);
+    upgradeSprites.set(upgrade.id, sprite);
+    return sprite;
+  }
+
+  function drawUpgradeChoices(now) {
+    for (const choice of upgradeChoices) {
+      const cx = choice.x * CELL + CELL / 2;
+      const cy = choice.y * CELL + CELL / 2;
+      const pulse = 1 + Math.sin(now / 160 + choice.x) * 0.09;
+      const radius = CELL * 0.47 * pulse;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(now / 1800 + choice.x * .2);
+      ctx.strokeStyle = choice.upgrade.color;
+      ctx.globalAlpha = .48;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 1.18, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        const angle = now / 520 + i * Math.PI * 2 / 3;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(Math.cos(angle) * radius * 1.18, Math.sin(angle) * radius * 1.18, 1.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.rotate(-(now / 1800 + choice.x * .2));
+      ctx.drawImage(upgradeSprite(choice.upgrade), -48 * pulse, -48 * pulse, 96 * pulse, 96 * pulse);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 7px system-ui, sans-serif";
       ctx.fillText("Lv." + (upgrades[choice.upgrade.id] + 1), 0, radius + 5);
@@ -6131,7 +6142,8 @@
   elPlayerName.addEventListener("input",()=>{document.getElementById("menuPlayerName").textContent=elPlayerName.value.trim()||"PLAYER";});
   document.getElementById("qualityBtn").addEventListener("click", () => {
     richEffects = !richEffects;
-    for(let i=0;i<4;i++) biomeLayer(i);
+    for (const upgrade of UPGRADES) upgradeSprite(upgrade);
+  for(let i=0;i<4;i++) biomeLayer(i);
     try { localStorage.setItem("storm-emeralda-fx", richEffects ? "rich" : "light"); } catch (e) {}
     updatePreferences();
   });
@@ -6218,6 +6230,7 @@
     const form=name.includes("mega");
     for(const part of ["head","fin","arms","tail","ring"]) dragonPart(part,pal,form);
   }
+  for (const upgrade of UPGRADES) upgradeSprite(upgrade);
   for(let i=0;i<4;i++) biomeLayer(i);
   for(const type of MONSTER_TYPES) for(let frame=0;frame<4;frame++) monsterSprite(type,frame);
   drawLobbyArt();
