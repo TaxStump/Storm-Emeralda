@@ -2,8 +2,10 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>Storm Emeralda — Snake Pokémon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Storm Emeralda: boss adaptif, tiga jalur Mega, partner, sinematik, enam duel Boss Rush, dan tantangan harian." />
+<meta name="theme-color" content="#102b25" />
+<title>Storm Emeralda — Emerald Expeditions</title>
 <style>
   :root {
     --bg: #060a12;
@@ -904,6 +906,151 @@
   .dpad .ultimate { grid-column:3; grid-row:3; font-size:12px; color:#d5efb6; border-color:#829653; }
   .dpad .ultimate.ready { color:#132a20; background:#b8e797; }
   .dpad .ultimate:disabled { opacity:.4; }
+  /* Emerald Expeditions: compact enough to keep the arena usable on phones. */
+  .edition-tag { color:#89bda9; font-size:9px; letter-spacing:.2em; font-weight:800; }
+  .mode-picker { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; width:100%; max-width:380px; }
+  .mode-card { font:inherit; min-height:64px; padding:9px 5px; border:1px solid #35554e; border-radius:12px; background:#10232bc9; color:#b7ceca; cursor:pointer; }
+  .mode-card span { display:block; font-size:19px; margin-bottom:4px; }
+  .mode-card b { display:block; font-size:10px; letter-spacing:.03em; }
+  .mode-card[aria-pressed="true"] { border-color:#9de0ae; background:linear-gradient(150deg,#2b5541,#142d35); color:#effcdb; box-shadow:inset 0 0 0 1px #82c8a33b; }
+  .mode-details { max-width:360px; min-height:44px; }
+  .overlay .mode-details { font-size:11px; color:#b9d6ce; }
+  .mode-record { color:#ffdc8c; font-size:10px; }
+  .loadout-picker { display:flex; gap:5px; width:100%; max-width:360px; }
+  .loadout-picker button { flex:1; padding:8px 3px; border:1px solid #43546c; border-radius:8px; background:#172b38; color:#bcd4dc; font:700 10px "Segoe UI",sans-serif; cursor:pointer; }
+  .loadout-picker button[aria-pressed="true"] { border-color:#b8b8f5; color:#efe5ff; background:#343151; }
+  .overlay .loadout-note { font-size:10px; color:#c8c4e3; max-width:340px; }
+  .menu-actions,.result-actions { display:flex; justify-content:center; gap:7px; flex-wrap:wrap; }
+  .menu-actions .utility-btn,.result-actions .utility-btn { min-height:38px; }
+  .expedition-hud { padding:10px 12px; background:linear-gradient(120deg,#152d2e,#172535); border:1px solid #456b60; border-radius:12px; }
+  .expedition-top { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; color:#e0eed6; }
+  .expedition-top strong { letter-spacing:.06em; }
+  .expedition-top span { font-variant-numeric:tabular-nums; color:#ffe19b; font-weight:800; }
+  .expedition-hud progress { width:100%; height:5px; margin:8px 0 3px; accent-color:#8bdfb8; }
+  .expedition-hud small { display:block; line-height:1.5; color:#b4ccc4; font-size:10px; }
+  .expedition-hud.urgent { border-color:#df9970; }
+  .expedition-hud.urgent .expedition-top span { color:#ffb096; }
+  .mode-badge { color:#b4dbc8; font-size:10px; text-transform:uppercase; letter-spacing:.12em; }
+  .result-duration { font-size:11px!important; color:#b8d2cd!important; }
+  .result-medal { color:#ffe19b; font-size:12px; letter-spacing:.08em; }
+  .result-status { font-size:10px!important; max-width:330px; min-height:15px; }
+  #overOverlay.victory { background:radial-gradient(circle at 50% 25%,#1f614c88,transparent 65%),linear-gradient(160deg,#071412ee,#0d162de8); }
+  #overOverlay.victory h2 { color:#c3f3b5; text-shadow:0 0 25px #8fdcaa44; }
+  .lesson-icon { font-size:37px; color:#c2f2c7; }
+  .lesson-step { color:#8de0c3; font-size:10px; letter-spacing:.18em; }
+  .lesson-controls { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; }
+  .lesson-controls kbd { min-width:38px; padding:9px; border:1px solid #5e7e70; border-bottom-width:3px; border-radius:8px; background:#163632; color:#e3f6db; font:800 14px monospace; }
+  .reward-choices { width:100%; max-width:350px; display:grid; gap:7px; }
+  .reward-choice { padding:11px 13px; text-align:left; color:#e2efe3; background:#162d31; border:1px solid #5c7967; border-radius:11px; cursor:pointer; font:inherit; }
+  .reward-choice b { display:block; font-size:12px; }
+  .reward-choice small { display:block; font-size:10px; color:#aecfc8; line-height:1.5; margin-top:4px; }
+  button:focus-visible { outline:3px solid #ffe19b; outline-offset:3px; }
+  .expedition-hud.hidden,.loadout-picker.hidden,.loadout-note.hidden { display:none; }
+  .hidden:not(.boss-hud) { display:none!important; }
+  #startOverlay .start-emblem { display:none; }
+  .start-launch { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; width:100%; }
+  .start-launch .utility-btn { max-width:150px; min-height:44px; }
+  .player-settings { width:min(100%,300px); font-size:10px; color:#b2ccc3; }
+  .player-settings summary { cursor:pointer; padding:7px; }
+  .player-settings .name-field { margin-top:6px; }
+  .dpad .air { grid-column:1; grid-row:1; font-size:11px; color:#c1f4d5; border-color:#568a70; }
+  .dpad .air.ready { color:#143326; background:#9ae9be; }
+  .dpad .air:disabled { opacity:.45; }
+  .monster-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .monster-card { border:1px solid #3c5e68; border-radius:16px; padding:12px; background:radial-gradient(ellipse at 50% 25%,#2b4f60,#101d2b 75%); }
+  .monster-card.boss { border-color:#806952; background:radial-gradient(ellipse at 50% 25%,#53394d,#141f2d 75%); }
+  .monster-card canvas { display:block; width:100%; height:140px; object-fit:contain; background:transparent; border:0; box-shadow:none; }
+  .monster-card h3 { margin:8px 0 4px; color:#e6f1d6; font-size:13px; letter-spacing:.07em; }
+  .monster-card p { margin:0; font-size:11px; line-height:1.6; color:#b6ccc8; }
+  .monster-kind { display:block; color:#bde4ce; font-size:9px; letter-spacing:.12em; }
+  @media(max-width:380px) { .monster-grid { gap:7px; } .monster-card { padding:8px; } .monster-card canvas { height:110px; } .monster-card h3 { font-size:11px; } }
+  @media(max-width:899px) {
+    :root:not(:fullscreen) header { order:0; }
+    :root:not(:fullscreen) .utility-bar { order:1; }
+    :root:not(:fullscreen) .hud { order:2; }
+    :root:not(:fullscreen) .expedition-hud { order:3; }
+    :root:not(:fullscreen) .boss-hud { order:4; }
+    :root:not(:fullscreen) .board { order:5; }
+    :root:not(:fullscreen) .dpad { order:6; }
+    :root:not(:fullscreen) .nature-hud { order:7; }
+    :root:not(:fullscreen) .combat-hud { order:8; }
+    :root:not(:fullscreen) .collection-bar { order:9; }
+    :root:not(:fullscreen) .journey { order:10; }
+    :root:not(:fullscreen) .beam-hint,:root:not(:fullscreen) .upgrade-hint { order:11; }
+    :root:not(:fullscreen) .badges,:root:not(:fullscreen) .upgrade-chips { order:12; }
+    :root[data-screen="start"]:not(:fullscreen) .hud,
+    :root[data-screen="start"]:not(:fullscreen) .journey,
+    :root[data-screen="start"]:not(:fullscreen) .boss-hud,
+    :root[data-screen="start"]:not(:fullscreen) .combat-hud,
+    :root[data-screen="start"]:not(:fullscreen) .nature-hud,
+    :root[data-screen="start"]:not(:fullscreen) .dpad,
+    :root[data-screen="start"]:not(:fullscreen) .beam-hint { display:none; }
+  }
+  @media(max-width:480px) {
+    .mode-card { min-height:58px; }
+    .mode-card b { font-size:9px; }
+    .overlay h2 { font-size:21px; }
+    .overlay { gap:8px; padding:13px; }
+    .edition-tag { font-size:8px; }
+  }
+  /* Lobby poster: static illustration, clear hierarchy, and one primary action. */
+  :root[data-screen="start"] .board { min-height:650px; }
+  #startOverlay { gap:10px; padding:22px 24px; background:linear-gradient(165deg,#102c2d,#08151e 55%,#0b1821); }
+  #startOverlay::before { border-color:#9ee3bb24; inset:9px; border-radius:12px; }
+  #startOverlay > :first-child { margin-top:0; }
+  #startOverlay .lobby-art { display:block; width:100%; max-width:420px; height:174px; object-fit:contain; border:0; background:transparent; box-shadow:none; }
+  #startOverlay .edition-tag { color:#c5ddb5; letter-spacing:.26em; font-size:9px; }
+  #startOverlay h2 { color:#eff8db; font-size:32px; letter-spacing:.08em; line-height:1.05; text-shadow:0 3px 20px #6eefba30; }
+  #startOverlay .lobby-tagline { color:#a8c9c3; font-size:12px; max-width:320px; line-height:1.6; }
+  #startOverlay .lobby-label { color:#88aa9b; text-transform:uppercase; font-size:9px; letter-spacing:.17em; margin-top:8px; }
+  #startOverlay .mode-card { min-height:62px; transition:background .15s,border-color .15s; }
+  #startOverlay .mode-card:hover { border-color:#a9d9b6; background:#24423f; }
+  #startOverlay .mode-card[aria-pressed="true"] { border-color:#d1e7aa; background:linear-gradient(140deg,#365548,#193638); color:#f2f8de; }
+  #startOverlay .start-launch { max-width:380px; }
+  #startOverlay #startBtn { flex:1; min-height:48px; background:linear-gradient(110deg,#d9edaa,#89ddba); border:1px solid #e2f5c3; color:#102a26; font-size:13px; letter-spacing:.13em; box-shadow:0 6px 24px #6ec9a21c; }
+  #startOverlay #trainingBtn { border-color:#42655b; background:transparent; font-size:9px; }
+  #startOverlay .mode-details { min-height:35px; font-size:11px; }
+  #startOverlay .keys { opacity:.65; }
+  :root[data-screen="start"] .hud,
+  :root[data-screen="start"] .journey,
+  :root[data-screen="start"] .boss-hud,
+  :root[data-screen="start"] .combat-hud,
+  :root[data-screen="start"] .nature-hud,
+  :root[data-screen="start"] .dpad,
+  :root[data-screen="start"] .beam-hint { display:none; }
+  .lobby-brief { display:none; }
+  @media(min-width:900px) {
+    :root[data-screen="start"] .game-info { align-self:center; }
+    :root[data-screen="start"] .lobby-brief { display:block; padding:20px 16px; border-top:1px solid #7bb99a36; border-bottom:1px solid #7bb99a36; margin:14px 0; }
+    .lobby-brief strong { color:#dfedca; font-size:18px; line-height:1.5; }
+    .lobby-brief p { color:#9fbdb7; font-size:12px; line-height:1.8; margin:10px 0 0; }
+  }
+  @media(max-width:480px) {
+    :root[data-screen="start"] .board { min-height:620px; }
+    #startOverlay { padding:18px 16px; gap:9px; }
+    #startOverlay .lobby-art { height:145px; }
+    #startOverlay h2 { font-size:26px; }
+    #startOverlay .lobby-tagline { font-size:11px; }
+  }
+  .legend-setup { width:min(100%,380px); border:1px solid #49645e; border-radius:12px; padding:9px 11px; background:#122a2a; }
+  .legend-setup summary { cursor:pointer; font-size:10px; color:#d2e4bc; padding:5px; }
+  .legend-setup h3 { color:#bfdbcd; font-size:10px; letter-spacing:.1em; margin:14px 0 7px; }
+  .legend-setup p { font-size:10px!important; color:#afc5bf!important; margin:8px 0!important; }
+  .legend-options { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px; }
+  .legend-options button { min-height:42px; border:1px solid #426354; border-radius:7px; background:#0e2027; color:#b9d1cd; font:700 10px "Segoe UI",sans-serif; cursor:pointer; }
+  .legend-options button[aria-pressed="true"] { border-color:#d7e6ae;background:#2d4940;color:#f4f7da; }
+  .scene-setting { display:flex;align-items:center;gap:8px;justify-content:center;font-size:10px;color:#c8dec9;min-height:40px; }
+  .legends-hud { padding:10px 12px;border:1px solid #426452;border-radius:12px;background:linear-gradient(120deg,#152d2c,#182536); }
+  .legends-hud strong { display:block;font-size:11px;color:#ddedb8; }
+  .legends-hud small { display:block;font-size:10px;color:#a8c8c5;line-height:1.7;margin-top:3px; }
+  .legends-hud #bossRead { color:#edcf9e; }
+  #cinematicDialog { width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:0 0 22px;border:1px solid var(--scene-accent,#8fd2b3);border-radius:20px;background:#0b1823;color:#eff6de;text-align:center;box-shadow:0 30px 100px #000b; }
+  #cinematicDialog::backdrop { background:#020914df; }
+  #cinematicArt { width:100%;height:auto;display:block;border:0;border-radius:20px 20px 0 0;box-shadow:none; }
+  #cinematicDialog h2 { color:var(--scene-accent);font-size:clamp(17px,4vw,27px);letter-spacing:.09em;margin:15px 12px 8px; }
+  #cinematicDialog p { color:#b5cbcb;font-size:12px;line-height:1.7;margin:8px 24px 18px; }
+  #cinematicSkip { min-height:44px;min-width:160px; }
+  @media(max-width:899px) { .legends-hud { order:9; } }
 </style>
 </head>
 <body>
@@ -940,7 +1087,7 @@
     <div class="hud">
       <div class="stat"><span class="label" data-i18n="hud.score">Skor</span><span class="value" id="score">0</span></div>
       <div class="stat"><span class="label">Level</span><span class="value" id="level">1</span></div>
-      <div class="stat"><span class="label">High Score</span><span class="value" id="high">0</span></div>
+      <div class="stat"><span class="label" id="highLabel">High Score</span><span class="value" id="high">0</span></div>
       <div class="status-effects">
       <div class="combo" id="combo">COMBO ×2</div>
       <div class="badge" id="badge">⚡ 2× POIN</div>
@@ -958,9 +1105,17 @@
       <progress id="levelProgress" max="100" value="0" aria-label="Level"></progress>
       <small id="journeyNext"></small>
     </div>
+    <div class="expedition-hud hidden" id="expeditionHud">
+      <div class="expedition-top"><strong id="expeditionTitle"></strong><span id="expeditionClock"></span></div>
+      <progress id="expeditionProgress" max="100" value="0"></progress>
+      <small id="expeditionHint"></small>
+    </div>
+    <section class="lobby-brief"><strong data-i18n="lobby.heading"></strong><p data-i18n="lobby.story"></p></section>
+    <div id="legendsHud" class="legends-hud hidden"><strong id="pathStatus"></strong><small id="partnerStatus"></small><small id="partnerHint"></small><small id="bossRead"></small></div>
     <div class="collection-bar">
       <div><strong id="biomeLabel"></strong><small id="missionHint"></small></div>
       <button class="utility-btn" type="button" id="collectionBtn" data-i18n="collection.open">KOLEKSI</button>
+      <button class="utility-btn" type="button" id="monsterBtn" data-i18n="monster.open">MONSTER</button>
     </div>
     <div class="badges" id="badges"></div>
     <div class="upgrade-chips" id="upgradeChips"></div>
@@ -988,17 +1143,40 @@
     </div>
 
     <div class="board">
-      <canvas id="game" width="480" height="480"></canvas>
+      <canvas id="game" width="480" height="480" tabindex="-1" aria-label="Storm Emeralda"></canvas>
 
       <div class="overlay" id="startOverlay">
-        <div class="start-emblem" aria-hidden="true"><span>✧</span></div>
-        <h2>STORM EMERALDA</h2>
-        <p data-i18n-html="start.desc">Kendalikan <b>Rayquaza</b>, kumpulkan item Pokémon,<br>makan <b>Meteorite</b> untuk jadi <b>Mega Rayquaza</b>!</p>
-        <div class="name-field">
+        <canvas class="lobby-art" id="lobbyArt" width="840" height="348" aria-hidden="true"></canvas>
+        <div class="edition-tag">EMERALD EXPEDITIONS</div>
+        <h2>STORM<br>EMERALDA</h2>
+        <p class="lobby-tagline" data-i18n="lobby.tagline"></p>
+        <div class="lobby-label" data-i18n="lobby.choose"></div>
+        <div class="mode-picker" role="group" aria-label="Game mode" id="modePicker">
+          <button type="button" class="mode-card" data-mode="adventure" aria-pressed="true"><span aria-hidden="true">✦</span><b data-i18n="mode.adventure">ADVENTURE</b></button>
+          <button type="button" class="mode-card" data-mode="daily" aria-pressed="false"><span aria-hidden="true">◷</span><b data-i18n="mode.daily">DAILY</b></button>
+          <button type="button" class="mode-card" data-mode="rush" aria-pressed="false"><span aria-hidden="true">⚔</span><b data-i18n="mode.rush">BOSS RUSH</b></button>
+        </div>
+        <p class="mode-details" id="modeDescription"></p>
+        <details class="legend-setup"><summary><span data-i18n="legends.setup"></span> · <span id="legendMenuSummary"></span></summary>
+          <h3 data-i18n="legends.path"></h3><div class="legend-options" role="group" aria-label="Evolution path">
+            <button type="button" data-path="tempest" aria-pressed="true">TEMPEST</button><button type="button" data-path="prism" aria-pressed="false">PRISM</button><button type="button" data-path="ancient" aria-pressed="false">ANCIENT</button>
+          </div><p id="pathDescription"></p>
+          <h3 data-i18n="legends.partner"></h3><div class="legend-options" role="group" aria-label="Partner">
+            <button type="button" data-partner="guide" data-i18n="partner.guide" aria-pressed="true"></button><button type="button" data-partner="collector" data-i18n="partner.collector" aria-pressed="false"></button><button type="button" data-partner="none" data-i18n="partner.none" aria-pressed="false"></button>
+          </div><p id="partnerDescription"></p>
+          <label class="scene-setting"><input id="cinematicsSetting" type="checkbox" checked><span data-i18n="scene.setting"></span></label>
+        </details>
+        <div class="start-launch"><button class="btn" id="startBtn" data-i18n="start.btn">MULAI</button><button type="button" class="utility-btn" id="trainingBtn" data-i18n="training.open">LATIHAN INTERAKTIF</button></div>
+        <div class="loadout-picker hidden" id="loadoutPicker" role="group" aria-label="Boss Rush build">
+          <button type="button" data-loadout="prism" aria-pressed="true">PRISM</button><button type="button" data-loadout="guard" aria-pressed="false">GUARD</button><button type="button" data-loadout="astral" aria-pressed="false">ASTRAL</button>
+        </div>
+        <p class="loadout-note hidden" id="loadoutNote"></p>
+        <div class="mode-record" id="modeRecord"></div>
+
+        <details class="player-settings"><summary><span data-i18n="name.label">NAMA PLAYER</span> · <span id="menuPlayerName">PLAYER</span></summary><div class="name-field">
           <label data-i18n="name.label">NAMA PLAYER</label>
           <input type="text" id="playerName" maxlength="20" placeholder="Masukkan nama..." data-i18n-ph="name.ph" autocomplete="off" />
-        </div>
-        <button class="btn" id="startBtn" data-i18n="start.btn">MULAI</button>
+        </div></details>
         <details class="field-guide"><summary data-i18n="start.guide">Panduan item & bahaya</summary><div class="legend">
           <span data-i18n="legend.berry">🫐 Beri = poin</span> <span data-i18n="legend.potion">🧪 Potion = perisai</span> <span>⚡ 2×</span><br>
           <span>💠 Mega ×3</span> <span data-i18n="legend.speed">💨 Extreme Speed = ngebut ×2</span><br>
@@ -1024,9 +1202,24 @@
         <h2 data-i18n="pause.title">GAME DI-PAUSE</h2>
         <p data-i18n="pause.desc">Semua gerakan dan timer dibekukan.</p>
         <button class="btn" id="resumeBtn" data-i18n="pause.resume">LANJUTKAN</button>
+        <button type="button" class="utility-btn" id="pauseMenuBtn" data-i18n="mode.menu">MENU UTAMA</button>
+      </div>
+
+      <div class="overlay hidden" id="lessonOverlay">
+        <span class="lesson-step" id="lessonStep"></span><div class="lesson-icon" id="lessonIcon" aria-hidden="true"></div>
+        <h2 id="lessonTitle"></h2><p id="lessonDescription"></p><div class="lesson-controls" id="lessonControls"></div>
+        <button type="button" class="btn" id="lessonStartBtn" data-i18n="training.go">COBA SEKARANG</button>
+        <button type="button" class="utility-btn" id="lessonMenuBtn" data-i18n="mode.menu">MENU UTAMA</button>
+      </div>
+      <div class="overlay hidden" id="rushOverlay">
+        <span class="lesson-step" id="rushRound"></span><div class="lesson-icon" aria-hidden="true">✧</div>
+        <h2 data-i18n="rush.rest">BERKAH KEMENANGAN</h2><p data-i18n="rush.restDesc">Pilih satu upgrade. Arena dan timer berhenti sampai kamu siap.</p>
+        <div class="reward-choices" id="rushRewards"></div>
+        <button type="button" class="utility-btn" id="rushMenuBtn" data-i18n="mode.menu">MENU UTAMA</button>
       </div>
 
       <div class="overlay hidden" id="overOverlay">
+        <div class="mode-badge" id="resultMode"></div>
         <h2 data-i18n="over.title">RAYQUAZA FAINTED!</h2>
         <p class="big" id="finalScore">Skor: 0</p>
         <p class="over-tip" id="overTip"></p>
@@ -1035,9 +1228,12 @@
           <div><strong id="runCombo">0</strong><span data-i18n="run.combo">Combo terbaik</span></div>
           <div><strong id="runBosses">0</strong><span data-i18n="run.bosses">Boss dikalahkan</span></div>
         </div>
+        <p class="result-duration" id="resultDuration"></p><div class="result-medal" id="resultMedal"></div>
         <p id="newRecord" class="hidden" style="color:#f6c945;font-weight:700" data-i18n="over.record">★ Rekor baru!</p>
         <div class="leaderboard hidden" id="leaderboard"></div>
         <button class="btn" id="restartBtn" data-i18n="over.btn">MAIN LAGI</button>
+        <div class="result-actions"><button type="button" class="utility-btn" id="shareBtn" data-i18n="share.button">BAGIKAN</button><button type="button" class="utility-btn" id="saveCardBtn" data-i18n="share.save">KARTU PNG</button><button type="button" class="utility-btn" id="resultMenuBtn" data-i18n="mode.menu">MENU UTAMA</button></div>
+        <p class="result-status" id="shareStatus" role="status" aria-live="polite"></p>
       </div>
 
     </div>
@@ -1049,6 +1245,7 @@
       <button class="right" data-dir="right">▶</button>
       <button class="down"  data-dir="down">▼</button>
       <button class="ultimate" id="ascentTouchBtn" type="button" disabled aria-label="Dragon Ascent">R</button>
+      <button class="air" id="airTouchBtn" type="button" disabled aria-label="Air Lock">Q</button>
     </div>
   </div>
 
@@ -1061,6 +1258,11 @@
   <p id="collectionStorage" role="status"></p>
 </dialog>
 <div class="unlock-toast hidden" id="unlockToast" role="status" aria-live="polite"></div>
+<dialog class="collection-dialog" id="monsterDialog" aria-labelledby="monsterTitle" aria-describedby="monsterNote">
+  <div class="collection-head"><h2 id="monsterTitle" data-i18n="monster.title">ATLAS MONSTER</h2><button class="utility-btn" id="monsterClose" type="button" data-i18n="collection.close">TUTUP</button></div>
+  <p id="monsterNote" data-i18n="monster.note"></p><div class="monster-grid" id="monsterGrid"></div>
+</dialog>
+<dialog id="cinematicDialog" aria-labelledby="cinematicTitle" aria-describedby="cinematicText"><canvas id="cinematicArt" width="800" height="400" aria-hidden="true"></canvas><h2 id="cinematicTitle"></h2><p id="cinematicText"></p><button type="button" id="cinematicSkip" class="utility-btn" data-i18n="scene.skip"></button></dialog>
 <script>
 (() => {
   "use strict";
@@ -1114,6 +1316,10 @@
       "name.label": "NAMA PLAYER",
       "name.ph": "Masukkan nama...",
       "start.btn": "MULAI",
+      "lobby.tagline": "Kuasai langit. Bangkitkan kekuatanmu. Hadapi para legenda.",
+      "lobby.choose": "Pilih petualanganmu",
+      "lobby.heading": "Satu langit. Tiga legenda.",
+      "lobby.story": "Terbang bersama Rayquaza melintasi empat biome. Rangkai upgrade, bangkitkan Mega Evolution, dan hadapi Groudon, Kyogre, serta Deoxys. Setiap perjalanan adalah kesempatan untuk melampaui rekormu.",
       "over.title": "RAYQUAZA TUMBANG!",
       "over.scorePrefix": "Skor: ",
       "over.record": "★ Rekor baru!",
@@ -1194,6 +1400,10 @@
       "name.label": "PLAYER NAME",
       "name.ph": "Enter name...",
       "start.btn": "START",
+      "lobby.tagline": "Rule the skies. Awaken your power. Challenge the legends.",
+      "lobby.choose": "Choose your adventure",
+      "lobby.heading": "One sky. Three legends.",
+      "lobby.story": "Fly with Rayquaza across four biomes. Combine upgrades, awaken Mega Evolution, and face Groudon, Kyogre, and Deoxys. Every journey is a chance to surpass your best.",
       "over.title": "RAYQUAZA FAINTED!",
       "over.scorePrefix": "Score: ",
       "over.record": "★ New record!",
@@ -1304,15 +1514,126 @@
     "boss.tip.deoxys2":"Leave both cross-marked diagonal lines",
     "legend.combat":"Dragon Ascent [R] at full energy. Boss patterns change at 50% HP. Open Build Synergies to plan upgrade combinations."
   });
+  Object.assign(I18N.id, {
+    "mode.adventure":"ADVENTURE", "mode.daily":"TANTANGAN HARIAN", "mode.rush":"BOSS RUSH", "mode.training":"LATIHAN",
+    "mode.adventure.desc":"Jelajahi empat biome, bangun sinergi, dan taklukkan boss. Rekor Adventure masuk leaderboard dunia.",
+    "mode.daily.desc":"Dua menit untuk skor tertinggi. Berkah awal dan urutan acak sama setiap hari UTC. Rekor disimpan di browser ini.",
+    "mode.rush.desc":"Enam duel boss, dua putaran legenda. Pilih build awal, lalu ambil upgrade setiap kemenangan. Rekor disimpan di browser ini.",
+    "mode.menu":"MENU UTAMA", "mode.best":"Rekor", "mode.noRecord":"Petualangan baru menanti", "mode.local":"Rekor di browser ini", "mode.start":"MULAI EKSPEDISI",
+    "rush.prism":"Hyper Core 2 + Frenzy Link 1: Beam bercabang. Mulai dengan 1 Shield.",
+    "rush.guard":"Emerald Guard 2 + Hyper Core 1: Shield memantulkan serangan boss. Mulai dengan 2 Shield.",
+    "rush.astral":"Meteor Resonance 1 + Shiny Aura 2: energi Ascent lebih cepat. Mulai dengan 1 Shield.",
+    "rush.round":"DUEL", "rush.rest":"BERKAH KEMENANGAN", "rush.restDesc":"Pilih satu upgrade. Arena dan timer berhenti sampai kamu siap.",
+    "rush.recover":"Tubuh kembali pendek · +1 Shield · Beam siap · Ascent minimal 40%",
+    "rush.next":"DUEL BERIKUTNYA", "rush.victory":"LEGENDA DITAKLUKKAN!", "rush.hint":"6 boss · menangkan duel untuk upgrade dan pemulihan",
+    "daily.time":"WAKTU TERSISA", "daily.complete":"TANTANGAN SELESAI!", "daily.date":"Tantangan UTC", "daily.hint":"Dua menit · kumpulkan item dan kalahkan boss untuk skor tertinggi",
+    "daily.combo":"COMBO FESTIVAL", "daily.combo.desc":"Frenzy Link 1 dan 1 Shield untuk membangun combo.",
+    "daily.meteor":"METEOR TRAIL", "daily.meteor.desc":"Meteor Resonance 1 dan 1 Shield untuk mencari evolusi Mega.",
+    "daily.prism":"PRISM SKY", "daily.prism.desc":"Hyper Core 2 + Frenzy Link 1 dan 1 Shield. Beam bercabang sejak awal.",
+    "daily.medal0":"PENJELAJAH", "daily.medal1":"PERUNGGU", "daily.medal2":"PERAK", "daily.medal3":"EMERALD",
+    "daily.medalHint":"Medali: 500 / 1.500 / 3.000 poin", "run.time":"Waktu aktif", "run.victory":"Selesai", "run.bestLocal":"★ Rekor lokal baru!",
+    "training.open":"LATIHAN INTERAKTIF", "training.replay":"ULANGI LATIHAN ✓", "training.go":"COBA SEKARANG", "training.step":"LATIHAN", "training.retry":"Coba lagi · latihan tidak mengurangi rekor", "training.complete":"SIAP BERPETUALANG!",
+    "training.desc":"Kelima kontrol sudah dicoba. Kamu siap mengumpulkan item, menghadapi cuaca, dan mencari celah boss.",
+    "training.0.title":"TERBANG & BELOK", "training.0.desc":"Ambil berry biru yang ditandai. Gunakan panah / WASD, swipe di arena, atau tombol arah. Kamu tidak bisa langsung berbalik ke tubuh sendiri. Jika menabrak, latihan diulang.", "training.0.hint":"Belok ke atas dan ambil berry biru bertanda lingkaran.",
+    "training.1.title":"BERSIHKAN JALUR", "training.1.desc":"Batu berada di depan. Tekan Spasi atau tombol ⚡ untuk menembakkan Hyper Beam dan membersihkannya. Beam mengikuti arah belok yang sudah kamu pilih.", "training.1.hint":"Hadap ke batu lalu tembak Hyper Beam: Spasi / ⚡.",
+    "training.2.title":"TENANGKAN BADAI", "training.2.desc":"Air Lock sudah penuh. Tekan Q atau tombol Air Lock untuk membersihkan retakan dan meteor selama 5 detik. Dinding dan tubuh sendiri tetap berbahaya.", "training.2.hint":"Tekan Q atau Air Lock untuk menenangkan bahaya.",
+    "training.3.title":"EVOLUSI MEGA", "training.3.desc":"Ambil Meteorite hijau yang ditandai untuk berubah menjadi Mega Rayquaza. Beam menjadi lebih lebar dan serangan lebih kuat selama evolusi aktif.", "training.3.hint":"Ambil Meteorite hijau untuk berevolusi.",
+    "training.4.title":"DRAGON ASCENT", "training.4.desc":"Energi Ascent sudah penuh, dan boss latihan berada di depan. Tekan R atau tombol Ascent untuk serangan tiga lajur. Di game utama, cari celah hijau setelah serangan boss.", "training.4.hint":"Hadap ke boss lalu tekan R / Dragon Ascent.",
+    "share.button":"BAGIKAN", "share.save":"KARTU PNG", "share.saved":"Kartu hasil diunduh sebagai PNG.", "share.copied":"Hasil disalin. Tempel ke pesan atau media sosial.", "share.failed":"Salin otomatis tidak tersedia. Unduh kartu PNG untuk membagikan hasil.", "share.challenge":"Bisakah kamu mengalahkan skorku?", "share.tagline":"TERBANG · BANGUN SINERGI · TAKLUKKAN BADAI",
+    "share.title":"Hasil Storm Emeralda", "share.pending":"Menyiapkan kartu…", "share.sent":"Hasil dibagikan.", "lb.loading":"Memuat leaderboard…", "lb.offline":"Leaderboard sedang tidak tersedia. Kamu tetap bisa bermain.", "rush.completed":"6/6 boss selesai"
+  });
+  Object.assign(I18N.en, {
+    "mode.adventure":"ADVENTURE", "mode.daily":"DAILY CHALLENGE", "mode.rush":"BOSS RUSH", "mode.training":"TRAINING",
+    "mode.adventure.desc":"Explore four biomes, build synergies, and defeat bosses. Adventure records join the world leaderboard.",
+    "mode.daily.desc":"Two minutes to score big. The opening blessing and random sequence change each UTC day. Records save in this browser.",
+    "mode.rush.desc":"Six boss duels, two rounds of legends. Pick a starting build and an upgrade after each win. Records save in this browser.",
+    "mode.menu":"MAIN MENU", "mode.best":"Best", "mode.noRecord":"A new adventure awaits", "mode.local":"Record in this browser", "mode.start":"START EXPEDITION",
+    "rush.prism":"Hyper Core 2 + Frenzy Link 1: branching Beam. Start with 1 Shield.",
+    "rush.guard":"Emerald Guard 2 + Hyper Core 1: reflect boss attacks. Start with 2 Shields.",
+    "rush.astral":"Meteor Resonance 1 + Shiny Aura 2: faster Ascent charge. Start with 1 Shield.",
+    "rush.round":"DUEL", "rush.rest":"VICTORY BLESSING", "rush.restDesc":"Choose one upgrade. The arena and timer wait until you are ready.",
+    "rush.recover":"Short body restored · +1 Shield · Beam ready · Ascent at least 40%",
+    "rush.next":"NEXT DUEL", "rush.victory":"LEGENDS CONQUERED!", "rush.hint":"6 bosses · win duels to earn upgrades and recover",
+    "daily.time":"TIME LEFT", "daily.complete":"CHALLENGE COMPLETE!", "daily.date":"UTC challenge", "daily.hint":"Two minutes · collect items and beat bosses for a high score",
+    "daily.combo":"COMBO FESTIVAL", "daily.combo.desc":"Frenzy Link 1 and 1 Shield for building combos.",
+    "daily.meteor":"METEOR TRAIL", "daily.meteor.desc":"Meteor Resonance 1 and 1 Shield to seek Mega evolution.",
+    "daily.prism":"PRISM SKY", "daily.prism.desc":"Hyper Core 2 + Frenzy Link 1 and 1 Shield. Branching Beam from the start.",
+    "daily.medal0":"EXPLORER", "daily.medal1":"BRONZE", "daily.medal2":"SILVER", "daily.medal3":"EMERALD",
+    "daily.medalHint":"Medals: 500 / 1,500 / 3,000 points", "run.time":"Active time", "run.victory":"Completed", "run.bestLocal":"★ New local record!",
+    "training.open":"INTERACTIVE TRAINING", "training.replay":"REPLAY TRAINING ✓", "training.go":"TRY IT NOW", "training.step":"LESSON", "training.retry":"Try again · training does not affect records", "training.complete":"READY FOR ADVENTURE!",
+    "training.desc":"You tried all five controls. You are ready to collect items, face the weather, and look for boss openings.",
+    "training.0.title":"FLY & TURN", "training.0.desc":"Collect the marked blue berry. Use arrows / WASD, swipe on the arena, or direction buttons. You cannot reverse straight into your body. A collision restarts this lesson.", "training.0.hint":"Turn upward and collect the blue berry marked with a ring.",
+    "training.1.title":"CLEAR A PATH", "training.1.desc":"A rock is ahead. Press Space or ⚡ to fire Hyper Beam and clear it. Beam follows the turn you have already queued.", "training.1.hint":"Face the rock and fire Hyper Beam: Space / ⚡.",
+    "training.2.title":"CALM THE STORM", "training.2.desc":"Air Lock is full. Press Q or Air Lock to clear fissures and meteors for 5 seconds. Walls and your own body remain dangerous.", "training.2.hint":"Press Q or Air Lock to calm the hazards.",
+    "training.3.title":"MEGA EVOLUTION", "training.3.desc":"Collect the marked green Meteorite to become Mega Rayquaza. Beam is wider and attacks are stronger while evolution lasts.", "training.3.hint":"Collect the green Meteorite to evolve.",
+    "training.4.title":"DRAGON ASCENT", "training.4.desc":"Ascent energy is full and the training boss is ahead. Press R or Ascent for a three-lane strike. In the main game, look for the green opening after a boss attack.", "training.4.hint":"Face the boss and press R / Dragon Ascent.",
+    "share.button":"SHARE", "share.save":"PNG CARD", "share.saved":"Result card downloaded as PNG.", "share.copied":"Result copied. Paste it into a message or social post.", "share.failed":"Automatic copying is unavailable. Download the PNG card to share your result.", "share.challenge":"Can you beat my score?", "share.tagline":"FLY · BUILD SYNERGIES · CONQUER THE STORM",
+    "share.title":"Storm Emeralda result", "share.pending":"Preparing your card…", "share.sent":"Result shared.", "lb.loading":"Loading leaderboard…", "lb.offline":"Leaderboard is unavailable right now. You can still play.", "rush.completed":"6/6 bosses defeated"
+  });
+  Object.assign(I18N.id, {
+    "monster.open":"MONSTER", "monster.title":"ATLAS MONSTER", "monster.note":"Kenali bentuk evolusi dan pola lawan. Cincin hijau di sekitar boss menandai celah untuk Hyper Beam. Membuka atlas saat bermain menjeda game.",
+    "monster.wild":"POKÉMON LIAR", "monster.legend":"BOSS LEGENDA · 2 FASE",
+    "monster.diglett":"Si penggali kecil. Hindari petaknya atau bersihkan jalur dengan Hyper Beam.",
+    "monster.dugtrio":"Trio penggali mulai level 8. Bergerak mengejar kepalamu; sisakan jalur untuk berbelok.",
+    "monster.geodude":"Batu hidup berlengan kuat. Bergerak di arena dan dapat dibersihkan dengan Hyper Beam.",
+    "monster.graveler":"Empat lengan mulai level 9. Mengejar posisi kepalamu; bersihkan jalur sebelum mendekat.",
+    "monster.golem":"Armor batu mulai level 13. Tetap dapat dibersihkan dengan Hyper Beam meskipun wujudnya lebih besar.",
+    "monster.groudon":"Armor magma dan cakar putih. Hindari retakan bertanda. Pada fase 2, dua jalur Precipice Blades muncul. Air Lock meredakan serangannya.",
+    "monster.kyogre":"Penguasa ombak dengan sirip lebar. Ikuti koridor hijau. Fase 2 mengirim ombak dari dua arah; Air Lock membantu menenangkan laut.",
+    "monster.deoxys":"Tentakel lentur dan inti energi. Keluar dari baris/kolom target; pada fase 2 hindari garis diagonal. Air Lock tidak menghentikan Psycho Boost."
+  });
+  Object.assign(I18N.en, {
+    "monster.open":"MONSTERS", "monster.title":"MONSTER ATLAS", "monster.note":"Learn evolution forms and enemy patterns. A green boss ring marks an opening for Hyper Beam. Opening the atlas during play pauses the game.",
+    "monster.wild":"WILD POKÉMON", "monster.legend":"LEGENDARY BOSS · 2 PHASES",
+    "monster.diglett":"A tiny burrower. Avoid its cell or clear your route with Hyper Beam.",
+    "monster.dugtrio":"A burrowing trio from level 8. Chases your head; leave room to turn.",
+    "monster.geodude":"A living rock with powerful arms. Moves around the arena and can be cleared with Hyper Beam.",
+    "monster.graveler":"Four arms from level 9. Chases your head; clear a route before it closes in.",
+    "monster.golem":"Rock armor from level 13. Hyper Beam can still clear it despite its larger appearance.",
+    "monster.groudon":"Magma armor and white claws. Avoid marked fissures. Phase 2 creates two Precipice Blades paths. Air Lock suppresses its attacks.",
+    "monster.kyogre":"Broad fins and rolling waves. Follow the green corridor. Phase 2 sends opposing waves; Air Lock helps calm the sea.",
+    "monster.deoxys":"Flexible tentacles and an energy core. Leave targeted rows/columns; avoid diagonals in phase 2. Air Lock does not stop Psycho Boost."
+  });
   let lang = (() => {
     try { return localStorage.getItem("storm-emeralda-lang") || "id"; } catch (e) { return "id"; }
   })();
 
+  Object.assign(I18N.id, {
+    "legends.setup":"Gaya bermain", "legends.path":"JALUR MEGA", "legends.partner":"PARTNER", "legends.active":"Aktif · Tier", "legends.dormant":"Menunggu Mega",
+    "path.tempest":"Tempest", "path.prism":"Prism", "path.ancient":"Ancient",
+    "path.tempest.desc":"Saat Mega: bergerak lebih cepat dan Beam menyambarkan petir ke 1–3 monster liar di dekat target. Upgrade Combo meningkatkan jumlah sambaran.",
+    "path.prism.desc":"Saat Mega: Beam bercabang dan membelok sekali di tepi arena. Upgrade Hyper Core memperpanjang pantulan.",
+    "path.ancient.desc":"Saat Mega: mendapat 1 Shield ketika berevolusi, perlindungan singkat setelah Shield pecah, dan serangan boss dipantulkan. Upgrade Guard meningkatkan perlindungan.",
+    "path.tempest.short":"Mega + Combo → petir berantai", "path.prism.short":"Mega + Hyper Core → cabang & pantulan", "path.ancient.short":"Mega + Guard → pertahanan & balasan",
+    "partner.guide":"Luma · Pemandu", "partner.collector":"Pip · Kolektor", "partner.none":"Tanpa partner",
+    "partner.guide.desc":"Luma memeriksa beberapa langkah ke depan dan menandai saran rute. Musuh yang bergerak dapat mengubah kondisi. Ikatan tumbuh setiap 8 item.",
+    "partner.collector.desc":"Pip mengambil berry yang dapat dijangkau setiap 8–12 detik. Berry jarak jauh memberi poin tanpa memanjangkan tubuh. Jangkauan bertambah setiap 8 item.",
+    "partner.none.desc":"Terbang solo dengan kemampuanmu sendiri.", "partner.bond":"Ikatan", "partner.route":"Titik mint: saran rute saat ini", "partner.wait":"Luma mencari jalur terbuka", "partner.cooldown":"Pip siap dalam", "partner.collected":"PIP · BERRY!",
+    "boss.read":"Boss membaca", "habit.observe":"Mengamati", "habit.edge":"Pola di tepi", "habit.beam":"Arah Beam berulang", "habit.straight":"Gerakan lurus", "habit.weave":"Gerakan berkelok", "habit.reposition":"Menunggu ruang serang",
+    "scene.setting":"Sinematik boss · permainan dijeda", "scene.skip":"LANJUT / LEWATI", "scene.arrival":"SANG LEGENDA", "scene.awakening":"KEKUATAN BANGKIT",
+    "scene.groudon":"Tanah bergetar. Magma bangkit. Temukan celah di antara retakan.", "scene.kyogre":"Laut menjawab panggilan badai. Baca arus, lalu tembus gelombang.", "scene.deoxys":"Energi kosmik membelah langit. Ubah arah sebelum pola menguncimu."
+  });
+  Object.assign(I18N.en, {
+    "legends.setup":"Play style", "legends.path":"MEGA PATH", "legends.partner":"PARTNER", "legends.active":"Active · Tier", "legends.dormant":"Awaiting Mega",
+    "path.tempest":"Tempest", "path.prism":"Prism", "path.ancient":"Ancient",
+    "path.tempest.desc":"During Mega: move faster and chain Beam lightning to 1–3 nearby wild monsters. Combo upgrades increase chain targets.",
+    "path.prism.desc":"During Mega: Beam branches and bends once at the arena edge. Hyper Core upgrades extend the ricochet.",
+    "path.ancient.desc":"During Mega: gain 1 Shield on evolving, brief protection after a Shield breaks, and reflect boss attacks. Guard upgrades improve protection.",
+    "path.tempest.short":"Mega + Combo → chain lightning", "path.prism.short":"Mega + Hyper Core → fork & ricochet", "path.ancient.short":"Mega + Guard → defense & counter",
+    "partner.guide":"Luma · Guide", "partner.collector":"Pip · Collector", "partner.none":"No partner",
+    "partner.guide.desc":"Luma looks several steps ahead and marks a suggested route. Moving enemies can change conditions. Bond grows every 8 items.",
+    "partner.collector.desc":"Pip collects reachable berries every 8–12 seconds. Remote berries award points without growing your body. Range grows every 8 items.",
+    "partner.none.desc":"Fly solo with your own abilities.", "partner.bond":"Bond", "partner.route":"Mint dots: current route suggestion", "partner.wait":"Luma is looking for an open route", "partner.cooldown":"Pip ready in", "partner.collected":"PIP · BERRY!",
+    "boss.read":"Boss reads", "habit.observe":"Observing", "habit.edge":"Edge movement", "habit.beam":"Repeated Beam direction", "habit.straight":"Straight movement", "habit.weave":"Weaving movement", "habit.reposition":"Waiting for attack space",
+    "scene.setting":"Boss cinematics · gameplay pauses", "scene.skip":"CONTINUE / SKIP", "scene.arrival":"LEGEND AWAKENS", "scene.awakening":"POWER UNLEASHED",
+    "scene.groudon":"The earth trembles. Magma rises. Find your opening between the fissures.", "scene.kyogre":"The ocean answers the storm. Read the current, then break through the waves.", "scene.deoxys":"Cosmic energy splits the sky. Change direction before the pattern locks you in."
+  });
   function t(key) {
     return (I18N[lang] && I18N[lang][key]) || I18N.id[key] || key;
   }
 
   function applyI18n() {
+    renderLegendMenu();
     document.querySelectorAll("[data-i18n]").forEach(el => {
       el.textContent = t(el.getAttribute("data-i18n"));
     });
@@ -1336,8 +1657,15 @@
     if (boss) updateBossHud();
     updateCollectionHint();
     if (document.getElementById("collectionDialog").open) renderCollection();
+    if (document.getElementById("monsterDialog").open) renderMonsterAtlas();
     updateNatureHud(state === "paused" ? pausedAt : performance.now());
     if (boss) updateBossSkillHud(state === "paused" ? pausedAt : performance.now());
+    renderModeMenu();
+    updateExpeditionHud();
+    if (document.getElementById("lessonOverlay").classList.contains("hidden") === false) renderLesson();
+    if (rushResting) renderRushRewards();
+    if (state === "over" && lastResult) renderResult();
+    setText(document.getElementById("highLabel"),t("mode.best")+(runMode==="daily"||runMode==="rush"?" · LOCAL":""));
   }
 
   function setLang(l) {
@@ -1481,6 +1809,523 @@
   let leaderboardPeriod = "weekly";
   let leaderboardCache = { weekly: null, all: null };
 
+  // Legends: bounded local decision making; visual functions never consume game RNG.
+  const PATHS = ["tempest","prism","ancient"];
+  const PARTNERS = ["guide","collector","none"];
+  let selectedPath="tempest",selectedPartner="guide",runPath="tempest",runPartner="guide";
+  let habits={moves:[],shots:[]},partner={nextCollect:0,route:[],bond:0,mood:"calm",flashUntil:0};
+  let chainFlash=null,pendingScene=null,cinematic=null,cinematicsEnabled=true;
+  try {
+    const saved=JSON.parse(localStorage.getItem("storm-emeralda-legends-v1")||"null");
+    if(PATHS.includes(saved?.path))selectedPath=saved.path;
+    if(PARTNERS.includes(saved?.partner))selectedPartner=saved.partner;
+    if(typeof saved?.cinematics==="boolean")cinematicsEnabled=saved.cinematics;
+  } catch(_) {}
+  function saveLegendPreferences() {
+    try {localStorage.setItem("storm-emeralda-legends-v1",JSON.stringify({path:selectedPath,partner:selectedPartner,cinematics:cinematicsEnabled}));}catch(_){}
+  }
+  const pathColors={tempest:"#8ef1ef",prism:"#d6afff",ancient:"#e5d58c"};
+  function pathActive(id) {return evolved && runMode!=="training" && runPath===id;}
+  function pathRank() {const key={tempest:"combo",prism:"beam",ancient:"shield"}[runPath];return 1+Math.min(2,upgrades[key]||0);}
+  function resetLegends() {
+    habits={moves:[],shots:[]};chainFlash=null;pendingScene=null;cinematic=null;
+    const dialog=document.getElementById("cinematicDialog");if(dialog.open)dialog.close();
+    runPath=selectedPath;runPartner=runMode==="training"?"none":selectedPartner;
+    partner={nextCollect:performance.now()+12000,route:[],bond:0,mood:"calm",flashUntil:0};
+  }
+  function renderLegendMenu() {
+    document.getElementById("cinematicsSetting").checked=cinematicsEnabled;
+    document.querySelector("[data-path]").parentElement.setAttribute("aria-label",t("legends.path"));
+    document.querySelector("[data-partner]").parentElement.setAttribute("aria-label",t("legends.partner"));
+    document.querySelectorAll("[data-path]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.path===selectedPath));
+    document.querySelectorAll("[data-partner]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.partner===selectedPartner));
+    setText(document.getElementById("pathDescription"),t("path."+selectedPath+".desc"));
+    setText(document.getElementById("partnerDescription"),t("partner."+selectedPartner+".desc"));
+    setText(document.getElementById("legendMenuSummary"),t("path."+selectedPath)+" · "+t("partner."+selectedPartner));
+  }
+  function updateLegendsHud(now) {
+    const panel=document.getElementById("legendsHud");
+    setClass(panel,"hidden",state==="start"||runMode==="training");
+    setText(document.getElementById("pathStatus"),t("path."+runPath)+" · "+(evolved?t("legends.active")+" "+pathRank():t("legends.dormant")));
+    setText(document.getElementById("partnerStatus"),t("partner."+runPartner)+(runPartner!=="none"?" · "+t("partner.bond")+" "+(1+Math.min(2,Math.floor(partner.bond/8))):""));
+    setText(document.getElementById("partnerHint"),runPartner==="collector"?t("partner.cooldown")+" "+Math.max(0,Math.ceil((partner.nextCollect-now)/1000))+"s":runPartner==="guide"?t("partner."+(partner.route.length?"route":"wait")):t("partner.none.desc"));
+    setText(document.getElementById("bossRead"),boss?t("boss.read")+" · "+t("habit."+(boss.tactic||"observe")):t("path."+runPath+".short"));
+  }
+  function rememberMove() {
+    habits.moves.push({x:snake[0].x,y:snake[0].y,dx:dir.x,dy:dir.y});
+    if(habits.moves.length>32)habits.moves.shift();
+  }
+  function readHabits() {
+    const moves=habits.moves;
+    if(moves.length<8)return "observe";
+    if(moves.filter(p=>p.x<3||p.y<3||p.x>16||p.y>16).length/moves.length>.6)return "edge";
+    const shots=habits.shots.slice(-6);
+    if(shots.length>=3 && shots.filter(p=>p.x===shots.at(-1).x&&p.y===shots.at(-1).y).length/shots.length>=.75)return "beam";
+    let turns=0;for(let i=1;i<moves.length;i++)if(moves[i].dx!==moves[i-1].dx||moves[i].dy!==moves[i-1].dy)turns++;
+    return turns/(moves.length-1)<.22?"straight":"weave";
+  }
+  function predictedBossTarget(lead=6) {
+    const head=snake[0],tactic=boss?.tactic||"observe";
+    if(tactic==="edge")return {x:gridClamp(head.x+dir.x*3,1),y:gridClamp(head.y+dir.y*3,1)};
+    if(tactic==="weave"&&habits.moves.length>=3) {
+      const old=habits.moves.at(-3);
+      return {x:gridClamp(head.x+old.dx*3,1),y:gridClamp(head.y+old.dy*3,1)};
+    }
+    const distance=tactic==="straight"?8:lead;
+    return {x:gridClamp(head.x+dir.x*distance,1),y:gridClamp(head.y+dir.y*distance,1)};
+  }
+  function forecastBlocked(x,y,now,includeBody=true) {
+    if(x<0||y<0||x>=COLS||y>=ROWS)return true;
+    if(includeBody&&snake.some(p=>p.x===x&&p.y===y))return true;
+    if(rocks.some(p=>p.x===x&&p.y===y)||wilds.some(p=>p.x===x&&p.y===y)||portals.some(p=>p.x===x&&p.y===y))return true;
+    if(boss&&boss.x===x&&boss.y===y)return true;
+    if(!airLockActive(now)&&(meteors.some(p=>p.x===x&&p.y===y&&now>=p.landAt&&now<p.landAt+5000)||terrain.some(p=>p.kind==="fissure"&&p.x===x&&p.y===y&&now>=p.activeAt&&now<p.until)))return true;
+    return bossAttackHits(x,y,now);
+  }
+  // Search is conservative: body and moving enemies occupy their current cells.
+  // Never label a route guaranteed; attacks/enemies can change after this tick.
+  function reachableRoutes(now,limit=5) {
+    const queue=[{x:snake[0].x,y:snake[0].y,heading:dir,path:[]}],seen=new Set();
+    const result=[];
+    for(let n=0;n<queue.length&&n<160;n++) {
+      const node=queue[n];if(node.path.length>=limit)continue;
+      for(const heading of Object.values(DIRS)) {
+        if(heading.x===-node.heading.x&&heading.y===-node.heading.y)continue;
+        const x=node.x+heading.x,y=node.y+heading.y,depth=node.path.length+1,key=x+","+y+","+heading.x+","+heading.y;
+        if(seen.has(key)||node.path.some(p=>p.x===x&&p.y===y)||forecastBlocked(x,y,now+depth*speedMs()))continue;
+        seen.add(key);const next={x,y,heading,path:[...node.path,{x,y}]};queue.push(next);result.push(next);
+      }
+    }
+    return result;
+  }
+  function validateBossEscape(attack,now) {
+    const dangerous=new Set();
+    if(attack.type==="wave") {
+      for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(Math.abs((attack.axis==="vertical"?y:x)-attack.gap)>attack.gapRadius)dangerous.add(x+","+y);
+    } else for(const p of bossAttackCells(attack,attack.activeAt))dangerous.add(p.x+","+p.y);
+    const steps=Math.max(1,Math.min(7,Math.floor((attack.activeAt-now)/speedMs())-1));
+    const routes=reachableRoutes(now,steps);
+    const escape=routes.find(r=>!dangerous.has(r.x+","+r.y)&&!forecastBlocked(r.x,r.y,attack.activeAt)&&Object.values(DIRS).some(d=>!(d.x===-r.heading.x&&d.y===-r.heading.y)&&!dangerous.has((r.x+d.x)+","+(r.y+d.y))&&!forecastBlocked(r.x+d.x,r.y+d.y,attack.activeAt+speedMs())));
+    if(!escape)return false;
+    attack.escape=escape.path;return true;
+  }
+  function applyTempest(cells,now) {
+    if(!pathActive("tempest"))return;
+    const targets=wilds.filter(w=>cells.some(p=>p.x===w.x&&p.y===w.y));
+    if(boss&&cells.some(p=>p.x===boss.x&&p.y===boss.y))targets.push({x:boss.x,y:boss.y});
+    if(!targets.length)return;
+    const links=[],visited=new Set(targets.map(p=>p.x+","+p.y));let source=targets[0];
+    for(let i=0;i<pathRank();i++) {
+      const next=wilds.filter(w=>!visited.has(w.x+","+w.y)&&Math.abs(w.x-source.x)+Math.abs(w.y-source.y)<=4).sort((a,b)=>Math.abs(a.x-source.x)+Math.abs(a.y-source.y)-Math.abs(b.x-source.x)-Math.abs(b.y-source.y))[0];
+      if(!next)break;links.push({from:{...source},to:{...next}});visited.add(next.x+","+next.y);source=next;
+    }
+    for(const link of links)clearCombatCells([link.to],"#8ef1ef");
+    if(links.length)chainFlash={links,until:now+350};
+  }
+  function prismRays(rays) {
+    if(!pathActive("prism"))return rays;
+    const last=rays[1]?.cells.at(-1)||rays[0]?.cells.at(-1);
+    if(!last)return rays;
+    const aim=rays[0].direction,side=aim.x?{x:0,y:last.y<ROWS/2?1:-1}:{x:last.x<COLS/2?1:-1,y:0};
+    const cells=[];for(let i=1;i<=4+pathRank()*2;i++) {const x=last.x+side.x*i,y=last.y+side.y*i;if(x<0||y<0||x>=COLS||y>=ROWS)break;cells.push({x,y});}
+    if(cells.length)rays.push({origin:{...last},direction:side,cells,branch:true});return rays;
+  }
+  function updatePartner(now) {
+    if(runPartner==="none"||runMode==="training")return;
+    partner.bond=runItems;const rank=1+Math.min(2,Math.floor(partner.bond/8));
+    if(runPartner==="guide") {
+      const routes=reachableRoutes(now,rank+2);
+      routes.sort((a,b)=>{
+        const score=p=>p.path.length*1.5-(food?(Math.abs(p.x-food.x)+Math.abs(p.y-food.y))*.25:0)+(p.x>1&&p.x<18&&p.y>1&&p.y<18?1:0);
+        return score(b)-score(a);
+      });
+      partner.route=routes[0]?.path||[];partner.mood=partner.route.length?"calm":"alert";
+    } else if(now>=partner.nextCollect&&food&&["oran","pinap","pecha"].includes(food.type.kind)) {
+      const route=reachableRoutes(now,rank+2).find(r=>r.x===food.x&&r.y===food.y);
+      if(!route)return;
+      const collected=food;food=null;eat(collected);spawnFood();
+      partner.nextCollect=now+Math.max(8000,14000-rank*2000);partner.flashUntil=now+900;partner.mood="happy";
+      spawnPopup(collected.x,collected.y-1,t("partner.collected"),"#ffe3a3");
+      updateHud();checkProgression();
+    }
+  }
+  function drawLegendEffects(now,head) {
+    if(!head)return;
+    head={x:(head.x+.5)*CELL,y:(head.y+.5)*CELL};
+    const color=pathColors[runPath];ctx.save();
+    if(evolved&&runMode!=="training") {
+      const time=reducedMotion.matches?0:now/600;
+      ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.globalAlpha=.7;
+      if(runPath==="ancient") {
+        ctx.beginPath();for(let i=0;i<=6;i++){const a=i*Math.PI/3;const x=head.x+Math.cos(a)*21,y=head.y+Math.sin(a)*21;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
+      } else for(let i=0;i<3;i++) {
+        const a=time+i*Math.PI*2/3,x=head.x+Math.cos(a)*23,y=head.y+Math.sin(a)*23;
+        ctx.beginPath();ctx.moveTo(x-3,y);ctx.lineTo(x,y-5);ctx.lineTo(x+3,y);ctx.lineTo(x,y+5);ctx.closePath();ctx.stroke();
+        if(runPath==="tempest"){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+5,y-6);ctx.lineTo(x+2,y-7);ctx.lineTo(x+7,y-13);ctx.stroke();}
+      }
+    }
+    if(chainFlash&&now<chainFlash.until) {
+      ctx.strokeStyle="#bcffff";ctx.lineWidth=2;ctx.globalAlpha=(chainFlash.until-now)/350;
+      for(const l of chainFlash.links){ctx.beginPath();ctx.moveTo((l.from.x+.5)*CELL,(l.from.y+.5)*CELL);ctx.lineTo((l.from.x+l.to.x+1)*CELL/2+4,(l.from.y+l.to.y+1)*CELL/2-4);ctx.lineTo((l.to.x+.5)*CELL,(l.to.y+.5)*CELL);ctx.stroke();}
+    }
+    ctx.globalAlpha=1;
+    if(runPartner!=="none"&&runMode!=="training") {
+      if(runPartner==="guide")for(let i=0;i<partner.route.length;i++) {
+        const p=partner.route[i];if(forecastBlocked(p.x,p.y,now+(i+1)*speedMs()))break;
+        ctx.strokeStyle="#aef4d9";ctx.globalAlpha=.55-i*.07;ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.arc((p.x+.5)*CELL,(p.y+.5)*CELL,3,0,Math.PI*2);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+      const bob=reducedMotion.matches?0:Math.sin(now/260)*2,x=head.x-19,y=head.y-23+bob;
+      ctx.translate(x,y);ctx.fillStyle=runPartner==="guide"?"#98e4d8":"#ffe0a0";ctx.strokeStyle="#112f3e";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.ellipse(-8,0,7,3,-.5,0,Math.PI*2);ctx.ellipse(8,0,7,3,.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,-9);ctx.quadraticCurveTo(12,-2,6,7);ctx.quadraticCurveTo(0,12,-6,7);ctx.quadraticCurveTo(-12,-2,0,-9);ctx.fill();ctx.stroke();
+      ctx.fillStyle="#153144";ctx.fillRect(-4,-1,2,3);ctx.fillRect(3,-1,2,3);
+      ctx.strokeStyle="#fff6cf";ctx.beginPath();ctx.moveTo(-2,5);ctx.quadraticCurveTo(0,partner.flashUntil>now?9:7,3,4);ctx.stroke();
+      if(partner.mood==="alert") {ctx.fillStyle="#ffe0a0";ctx.fillRect(-1,-20,2,4);ctx.fillRect(-1,-14,2,2);}
+      if(partner.bond>=8){ctx.fillStyle="#fff2b0";ctx.fillRect(-1,-13,3,3);if(partner.bond>=16){ctx.fillRect(-7,-10,2,2);ctx.fillRect(6,-10,2,2);}}
+    }
+    ctx.restore();
+  }
+  function queueCinematic(kind,type) {
+    if(cinematicsEnabled&&runMode!=="training")pendingScene={kind,type};
+  }
+  function openCinematic() {
+    if(!pendingScene||state!=="playing")return;
+    const next=pendingScene;pendingScene=null;pauseGame();pauseOverlay.classList.add("hidden");
+    cinematic={...next,started:performance.now(),interrupted:false};
+    const dialog=document.getElementById("cinematicDialog");
+    dialog.style.setProperty("--scene-accent",next.type==="groudon"?"#ffbc82":next.type==="kyogre"?"#a0e9ff":"#d4bbff");
+    setText(document.getElementById("cinematicTitle"),next.type.toUpperCase()+" · "+t("scene."+next.kind));
+    setText(document.getElementById("cinematicText"),t("scene."+next.type));
+    dialog.showModal();document.getElementById("cinematicSkip").focus();
+    const base=next.type==="groudon"?110:next.type==="kyogre"?146.83:164.81;
+    for(let i=0;i<4;i++){tone(base*Math.pow(1.5,i),.65,"triangle",.055,i*.23);tone(base/2,.8,"sine",.045,i*.23);}
+    drawCinematic(performance.now());
+  }
+  function finishCinematic(explicit=false) {
+    if(!cinematic)return;
+    const interrupted=cinematic.interrupted;cinematic=null;
+    document.getElementById("cinematicDialog").close();
+    if(!document.hidden&&(explicit||!interrupted))resumeGame();else pauseOverlay.classList.remove("hidden");
+  }
+  function drawCinematic(now) {
+    if(!cinematic)return;
+    const art=document.getElementById("cinematicArt"),c=art.getContext("2d"),type=cinematic.type;
+    const elapsed=Math.max(0,now-cinematic.started),motion=richEffects&&!reducedMotion.matches;
+    const p=motion?Math.min(1,elapsed/900):1,t=motion?elapsed/1000:0;
+    c.clearRect(0,0,800,400);
+    const glow=c.createRadialGradient(400,200,10,400,200,440);
+    glow.addColorStop(0,type==="groudon"?"#724135":type==="kyogre"?"#1f526b":"#493965");glow.addColorStop(1,"#07131e");c.fillStyle=glow;c.fillRect(0,0,800,400);
+    c.save();c.translate(400,205);c.strokeStyle=type==="groudon"?"#ffbd7844":type==="kyogre"?"#9cddff44":"#c1a1ff44";
+    for(let i=0;i<4;i++){c.lineWidth=1;c.beginPath();c.ellipse(0,25,110+i*45,45+i*23,t*.04,0,Math.PI*2);c.stroke();}
+    c.restore();
+    for(let i=0;i<(richEffects?34:12);i++) {
+      const x=(i*137+23)%800,y=(i*71+400-t*(type==="groudon"?20:8))%400;
+      c.fillStyle=type==="groudon"?"#ffc08088":type==="kyogre"?"#8cdfff55":"#d5bdff99";
+      c.beginPath();c.arc(x,y,1+i%3,0,Math.PI*2);c.fill();
+    }
+    c.save();c.lineWidth=2;
+    if(type==="groudon") {
+      for(let i=0;i<7;i++) {
+        const x=i*140-30;c.fillStyle="#1d2029";c.beginPath();c.moveTo(x,382);c.lineTo(x+30,300-(i%3)*17);c.lineTo(x+70,270+(i%2)*35);c.lineTo(x+125,382);c.closePath();c.fill();
+        c.strokeStyle="#f8a56a88";c.beginPath();c.moveTo(x+40,382);c.lineTo(x+63,339);c.lineTo(x+48,317);c.lineTo(x+70,285+(i%2)*26);c.stroke();
+      }
+    } else if(type==="kyogre") {
+      for(let band=0;band<4;band++) {
+        c.strokeStyle=band%2?"#88dbed77":"#378ba866";c.beginPath();
+        for(let x=0;x<=800;x+=8){const y=300+band*23+Math.sin(x/64-t*.8+band)*12;x?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();
+      }
+    } else {
+      c.strokeStyle="#c19bef55";c.beginPath();
+      for(let i=0;i<9;i++){const a=i*Math.PI/4+t*.04,x=400+Math.cos(a)*235,y=195+Math.sin(a)*145;i?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();
+      c.strokeStyle="#86e9d666";c.beginPath();c.ellipse(400,200,260,55,-.35,0,Math.PI*2);c.stroke();
+    }
+    c.restore();
+    c.save();c.translate(400,194+Math.sin(t*2)*3);c.scale(.8+p*.2,.8+p*.2);
+    c.drawImage(monsterSprite(type,motion?Math.floor(t*5)%4:0).image,-151,-151,302,302);c.restore();
+    // Rayquaza enters the foreground; no flashes or camera shake.
+    const neckX=110+p*34;
+    c.save();c.lineCap="round";
+    const ribbon=new Path2D("M -35 371 C 43 333 63 382 99 350 C 117 328 75 302 "+neckX+" 292");
+    c.strokeStyle="#071f26";c.lineWidth=29;c.stroke(ribbon);
+    c.strokeStyle="#3b9f7d";c.lineWidth=23;c.stroke(ribbon);
+    c.strokeStyle="#b3e9ac77";c.lineWidth=5;c.stroke(ribbon);
+    for(const [x,y,a] of [[25,352,.15],[65,359,-.1],[96,347,-1.2],[99,315,-.8]]) {
+      c.save();c.translate(x,y);c.rotate(a);c.scale(1.4,1.4);c.drawImage(dragonPart("ring",PALETTE.rayquaza,false),-32,-32,64,64);c.restore();
+    }
+    c.restore();
+    const pal=PALETTE.rayquaza;c.save();c.translate(110+p*34,292);c.rotate(-.25);c.scale(2.4,2.4);
+    c.drawImage(dragonPart("head",pal,false),-32,-32,64,64);c.restore();
+    c.strokeStyle="#98e8c64d";c.lineWidth=2;c.beginPath();c.moveTo(0,348);c.bezierCurveTo(45,280,65,344,136,302);c.stroke();
+    c.fillStyle="#060f19";c.fillRect(0,0,800,18);c.fillRect(0,382,800,18);
+  }
+
+  // Each expedition owns its clock and records; special-mode scores never enter Adventure.
+  const EXPEDITION_KEY = "storm-emeralda-expeditions-v1";
+  const DAILY_DURATION = 120000, RUSH_ROUNDS = 6;
+  const LOADOUTS = {
+    prism:{ beam:2, shield:0, combo:1, mega:0, lucky:0 },
+    guard:{ beam:1, shield:2, combo:0, mega:0, lucky:0 },
+    astral:{ beam:0, shield:0, combo:0, mega:1, lucky:2 }
+  };
+  const LESSONS = [ {icon:"↗",keys:["↑","W","SWIPE"]}, {icon:"⚡",keys:["SPACE","⚡"]}, {icon:"◆",keys:["Q","AIR LOCK"]}, {icon:"💠",keys:["→","D"]}, {icon:"✧",keys:["R","ASCENT"]} ];
+  let selectedMode = "adventure", selectedLoadout = "prism", runMode = "adventure";
+  let runStartedAt = 0, runEndedAt = 0, dailyDate = "", rngState = 1;
+  let tutorialStep = 0, rushResting = false, rushChoices = [], lastExpeditionKey = "";
+  let runSession = 0, lastResult = null, resultArt = null;
+  let expeditionWritable=true;
+  let expeditionRecords = {version:1, daily:{}, rush:{score:0, bosses:0, time:0}, trained:false};
+  try {
+    const saved = JSON.parse(localStorage.getItem(EXPEDITION_KEY) || "null");
+    if (saved?.version === 1) {
+      expeditionRecords.trained = saved.trained === true;
+      for (const [date,value] of Object.entries(saved.daily || {})) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(value) && value >= 0) expeditionRecords.daily[date] = Math.min(1e9,Math.floor(value));
+      }
+      if (saved.rush && ["score","bosses","time"].every(k => Number.isFinite(saved.rush[k]) && saved.rush[k] >= 0)) expeditionRecords.rush = {score:Math.min(1e9,Math.floor(saved.rush.score)),bosses:Math.min(6,Math.floor(saved.rush.bosses)),time:Math.min(86400000,saved.rush.time)};
+    }
+  } catch (_) {
+    try {localStorage.getItem(EXPEDITION_KEY);}catch(_){expeditionWritable=false;}
+  }
+  function saveExpeditions() {
+    const dates = Object.keys(expeditionRecords.daily).sort().slice(-14);
+    expeditionRecords.daily = Object.fromEntries(dates.map(d => [d,expeditionRecords.daily[d]]));
+    try { localStorage.setItem(EXPEDITION_KEY,JSON.stringify(expeditionRecords));expeditionWritable=true; } catch (_) {expeditionWritable=false;}
+  }
+  function utcDay() { return new Date().toISOString().slice(0,10); }
+  function seedForDay(date) {
+    let value = 2166136261;
+    for (const character of date) value = Math.imul(value ^ character.charCodeAt(0),16777619);
+    return value >>> 0;
+  }
+  function dailyBlessing(date) { return ["combo","meteor","prism"][seedForDay(date)%3]; }
+  function gameRandom() {
+    if (runMode !== "daily") return Math.random();
+    rngState = (rngState + 0x6D2B79F5) >>> 0;
+    let value = rngState;
+    value = Math.imul(value ^ (value >>> 15),value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7),value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  }
+  function runElapsed(now = performance.now()) {
+    if (!runStartedAt) return 0;
+    return Math.max(0,(runEndedAt || (state === "paused" ? pausedAt : now)) - runStartedAt);
+  }
+  function clockText(ms) {
+    const seconds = Math.max(0,Math.ceil(ms/1000));
+    return Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
+  }
+  function recordForMode(mode = runMode) {
+    return mode === "adventure" ? high : mode === "daily" ? expeditionRecords.daily[dailyDate || utcDay()] || 0 : mode === "rush" ? expeditionRecords.rush.score : 0;
+  }
+  function renderModeMenu() {
+    const date = utcDay();
+    for (const button of document.querySelectorAll("[data-mode]")) button.setAttribute("aria-pressed",String(button.dataset.mode === selectedMode));
+    document.getElementById("modePicker").setAttribute("aria-label",t("mode.start"));
+    document.getElementById("loadoutPicker").classList.toggle("hidden",selectedMode !== "rush");
+    document.getElementById("loadoutNote").classList.toggle("hidden",selectedMode !== "rush");
+    document.getElementById("loadoutNote").textContent = t("rush."+selectedLoadout);
+    for (const button of document.querySelectorAll("[data-loadout]")) button.setAttribute("aria-pressed",String(button.dataset.loadout === selectedLoadout));
+    let description = t("mode."+selectedMode+".desc");
+    if (selectedMode === "daily") description += " " + t("daily."+dailyBlessing(date)+".desc");
+    document.getElementById("modeDescription").textContent = description;
+    const best = selectedMode === "adventure" ? high : selectedMode === "daily" ? expeditionRecords.daily[date] || 0 : expeditionRecords.rush.score;
+    document.getElementById("modeRecord").textContent = (selectedMode === "daily" ? date+" · UTC · " : "") + (best ? t("mode.best")+": "+best.toLocaleString(lang === "id"?"id-ID":"en-US") : t("mode.noRecord"));
+    document.getElementById("trainingBtn").textContent = t(expeditionRecords.trained?"training.replay":"training.open");
+    document.getElementById("menuPlayerName").textContent=(elPlayerName.value || "").trim().slice(0,20)||"PLAYER";
+  }
+  function selectMode(mode) {
+    if (!["adventure","daily","rush"].includes(mode) || state !== "start") return;
+    selectedMode=mode;renderModeMenu();
+  }
+  function updateExpeditionHud(now = performance.now()) {
+    const hud = document.getElementById("expeditionHud");
+    const visible = runMode !== "adventure" && state !== "start";
+    setClass(hud,"hidden",!visible);
+    if (!visible) return;
+    const elapsed = runElapsed(now);
+    const time = runMode === "daily" ? Math.max(0,DAILY_DURATION-elapsed) : elapsed;
+    const key = [lang,runMode,state,tutorialStep,runBosses,Math.ceil(time/1000),score,rushResting,dailyDate].join("|");
+    if (key === lastExpeditionKey) return;
+    lastExpeditionKey=key;
+    const title=document.getElementById("expeditionTitle"),clock=document.getElementById("expeditionClock"),progress=document.getElementById("expeditionProgress"),hint=document.getElementById("expeditionHint");
+    setClass(hud,"urgent",runMode === "daily" && time <= 20000 && state !== "over");
+    title.textContent=t("mode."+runMode);
+    clock.textContent=runMode === "training" ? Math.min(5,tutorialStep+1)+" / 5" : clockText(time);
+    progress.max = runMode === "daily" ? DAILY_DURATION : runMode === "rush" ? RUSH_ROUNDS : 5;
+    progress.value = runMode === "daily" ? Math.min(DAILY_DURATION,elapsed) : runMode === "rush" ? runBosses : tutorialStep;
+    progress.setAttribute("aria-label",t("mode."+runMode));
+    clock.setAttribute("aria-label",t(runMode === "daily"?"daily.time":"run.time")+" "+clockText(time));
+    hint.textContent=runMode === "daily" ? dailyDate+" UTC · "+t("daily."+dailyBlessing(dailyDate))+" · "+t("daily.medalHint")
+      : runMode === "rush" ? t("rush.round")+" "+Math.min(RUSH_ROUNDS,runBosses+1)+" / "+RUSH_ROUNDS+" · "+(rushResting?t("rush.recover"):t("rush.hint")) : t("training."+Math.min(4,tutorialStep)+".hint");
+  }
+  function renderLesson() {
+    if (tutorialStep >= LESSONS.length) return;
+    const lesson=LESSONS[tutorialStep];
+    document.getElementById("lessonStep").textContent=t("training.step")+" "+(tutorialStep+1)+" / "+LESSONS.length;
+    document.getElementById("lessonIcon").textContent=lesson.icon;
+    document.getElementById("lessonTitle").textContent=t("training."+tutorialStep+".title");
+    document.getElementById("lessonDescription").textContent=t("training."+tutorialStep+".desc");
+    document.getElementById("lessonControls").innerHTML=lesson.keys.map(key=>`<kbd>${key}</kbd>`).join("");
+  }
+  function showLesson() {
+    pauseGame();pauseOverlay.classList.add("hidden");
+    document.getElementById("lessonOverlay").classList.remove("hidden");
+    renderLesson();updateJourney();updateExpeditionHud();
+    document.getElementById("lessonStartBtn").focus({preventScroll:true});
+  }
+  function prepareTrainingStage() {
+    const now=performance.now();
+    snake=[{x:8,y:10},{x:7,y:10},{x:6,y:10}];dir=DIRS.right;nextDir=dir;turnQueue=[];
+    steeringFrom=null;steeringStartedAt=0;dragonAngle=0;dragonVisualAt=now;
+    rocks=[];wilds=[];portals=[];terrain=[];meteors=[];natureOrbs=[];boss=null;bossAttacks=[];magikarp=null;
+    upgradeChoices=[];beam=null;ascent=null;reflection=null;particles=[];popups=[];rings=[];
+    food=null;shield=0;shieldGraceUntil=0;evolved=false;evolveUntil=0;mega=false;megaUntil=0;
+    weather=null;weatherUntil=0;slowmo=false;speedUp=false;multiplier=1;combo=0;comboUntil=0;
+    natureBalance=0;airLockCharge=0;airLockUntil=0;ascentCharge=0;beamCooldown=0;
+    lastTick=now;moveDuration=speedMs();bossHud.classList.add("hidden");bossSkill.textContent="";
+    if (tutorialStep===0) food={x:8,y:6,type:FOODS.find(f=>f.kind==="oran"),shiny:false};
+    if (tutorialStep===1) rocks=[{x:12,y:10}];
+    if (tutorialStep===2) {
+      airLockCharge=100;natureBalance=-65;
+      terrain=[{x:12,y:10,kind:"fissure",activeAt:now+1500,until:now+60000}];
+      meteors=[{x:12,y:11,landAt:now+1500}];
+    }
+    if (tutorialStep===3) food={x:11,y:10,type:FOODS.find(f=>f.kind==="metal"),shiny:false};
+    if (tutorialStep===4) {
+      evolved=true;evolveUntil=now+60000;ascentCharge=100;
+      boss={...BOSS_TYPES[0],x:14,y:10,hp:5,maxHp:5,nextAttack:now+600000,recoveryAt:0,attackCycle:0,hitTaken:false,phase:1,phaseUntil:0};
+      bossHud.classList.remove("hidden");updateBossHud();
+    }
+    lastJourneyKey="";lastNatureHudKey="";lastCombatHudKey="";
+    updateHud();updateNatureHud(now);updateExpeditionHud();
+  }
+  function checkTrainingProgress() {
+    if (runMode!=="training" || state!=="playing") return;
+    const achieved=[runItems>=1,rocks.length===0,airLockActive(performance.now()),evolved,runBosses>=1][tutorialStep];
+    if (!achieved) return;
+    tutorialStep++;sfx.level();
+    if (tutorialStep>=LESSONS.length) {
+      expeditionRecords.trained=true;saveExpeditions();finishRun("victory");
+    } else showLesson();
+  }
+  function openRushRest() {
+    rushResting=true;
+    rushChoices=shuffled(UPGRADES.filter(item=>upgrades[item.id]<3)).slice(0,3);
+    pauseGame();pauseOverlay.classList.add("hidden");
+    document.getElementById("rushOverlay").classList.remove("hidden");
+    renderRushRewards();updateExpeditionHud();
+    document.querySelector("[data-rush-upgrade]")?.focus({preventScroll:true});
+  }
+  function renderRushRewards() {
+    document.getElementById("rushRound").textContent=t("rush.round")+" "+runBosses+" / "+RUSH_ROUNDS+" · "+t("rush.recover");
+    document.getElementById("rushRewards").innerHTML=rushChoices.length ? rushChoices.map(item=>{
+      const rank=upgrades[item.id]+1;
+      const future={...upgrades,[item.id]:rank};
+      const synergies=SYNERGIES.filter(s=>!synergyActive(s.id)&&synergyActive(s.id,future));
+      return `<button type="button" class="reward-choice" data-rush-upgrade="${item.id}"><b>${item.icon} ${item.name[lang]} · Lv.${rank}</b><small>${item.levels[lang][rank-1]}${synergies.length?" · "+t("synergy.unlock")+": "+synergies.map(s=>t("synergy."+s.id)).join(" + "):""}</small></button>`;
+    }).join("") : `<button type="button" class="reward-choice" data-rush-upgrade="continue"><b>${t("rush.next")}</b></button>`;
+  }
+  function nextRushRound(id) {
+    if (!rushResting || state!=="paused") return;
+    const upgrade=rushChoices.find(item=>item.id===id);
+    if (!upgrade && !(id==="continue" && !rushChoices.length)) return;
+    if (upgrade) selectUpgrade({...snake[0],upgrade});
+    rushResting=false;rushChoices=[];document.getElementById("rushOverlay").classList.add("hidden");
+    resumeGame();
+    const now=performance.now();
+    snake=[{x:8,y:10},{x:7,y:10},{x:6,y:10}];dir=DIRS.right;nextDir=dir;turnQueue=[];
+    steeringFrom=null;steeringStartedAt=0;dragonAngle=0;dragonVisualAt=now;
+    rocks=[];wilds=[];portals=[];terrain=[];meteors=[];natureOrbs=[];magikarp=null;food=null;
+    beam=null;ascent=null;reflection=null;particles=[];popups=[];rings=[];combo=0;comboUntil=0;
+    shield=Math.min(3,shield+1);beamCooldown=0;ascentCharge=Math.max(40,ascentCharge);
+    lastTick=now;lastMeteorTime=now;lastMagikarpSpawn=now;moveDuration=speedMs();
+    spawnFood();startBoss();updateHud();updateExpeditionHud();
+    canvas.focus({preventScroll:true});
+  }
+  function returnToMenu() {
+    flushCollection();runMode=selectedMode;state="start";reset();
+    overOverlay.classList.add("hidden");startOverlay.classList.remove("hidden");
+    renderModeMenu();updateExpeditionHud();draw();
+    document.getElementById("startBtn").focus({preventScroll:true});
+  }
+  function renderResult() {
+    if (!lastResult) return;
+    const r=lastResult, victory=r.outcome!=="defeat";
+    overOverlay.classList.toggle("victory",victory);
+    document.getElementById("resultMode").textContent=t("mode."+r.mode)+(r.mode==="daily"?" · "+r.day+" UTC":"");
+    overOverlay.querySelector("h2").textContent=t(victory ? r.mode==="training"?"training.complete":r.mode==="rush"?"rush.victory":"daily.complete" : "over.title");
+    finalScore.textContent=t("over.scorePrefix")+r.score.toLocaleString(lang==="id"?"id-ID":"en-US");
+    document.getElementById("overTip").textContent=r.mode==="training"&&victory?t("training.desc"):victory?t(r.mode==="rush"?"rush.completed":"daily.hint"):t("over."+r.reason);
+    document.getElementById("runItems").textContent=r.items;
+    document.getElementById("runCombo").textContent="×"+r.combo;
+    document.getElementById("runBosses").textContent=r.bosses;
+    document.getElementById("resultDuration").textContent=t("run.time")+" · "+clockText(r.elapsed)+(r.mode==="daily"||r.mode==="rush"?" · "+t(expeditionWritable?"mode.local":"collection.unsaved"):"");
+    document.getElementById("resultMedal").textContent=r.mode==="daily"?"✧ "+t("daily.medal"+(r.score>=3000?3:r.score>=1500?2:r.score>=500?1:0))+" ✧":r.mode==="rush"&&victory?"✧ EMERALD CHAMPION ✧":"";
+    newRecord.textContent=t(r.mode==="adventure"?"over.record":"run.bestLocal");
+    newRecord.classList.toggle("hidden",!r.record);
+  }
+  function resultShareText() {
+    const r=lastResult;
+    if (!r) return "";
+    let text=`Storm Emeralda · ${t("mode."+r.mode)}${r.mode==="daily"?" · "+r.day+" UTC":""}\n${r.name} · ${t("hud.score")}: ${r.score}\n${t("run.bosses")}: ${r.bosses} · ${t("run.time")}: ${clockText(r.elapsed)}\n${t("share.challenge")}`;
+    if (/^https?:$/.test(location.protocol)) {
+      const url=new URL(location.href);url.search="";url.hash="";
+      if (r.mode==="daily"||r.mode==="rush") url.searchParams.set("mode",r.mode);
+      text+="\n"+url.href;
+    }
+    return text;
+  }
+  function resultCard() {
+    if (!lastResult) return null;
+    const r=lastResult,card=document.createElement("canvas");card.width=1200;card.height=630;
+    const c=card.getContext("2d"),background=c.createLinearGradient(0,0,1200,630);
+    background.addColorStop(0,"#123d32");background.addColorStop(.55,"#101f30");background.addColorStop(1,"#241d3e");
+    c.fillStyle=background;c.fillRect(0,0,1200,630);
+    c.strokeStyle="#78c6a060";c.lineWidth=2;c.strokeRect(24,24,1152,582);
+    c.fillStyle="#a7e2bf";c.font="700 17px Segoe UI, sans-serif";c.fillText("EMERALD EXPEDITIONS",60,72);
+    c.fillStyle="#ffe19b";c.font="900 37px Segoe UI, sans-serif";c.fillText("STORM EMERALDA",60,125);
+    c.fillStyle="#c4d4da";c.font="600 18px Segoe UI, sans-serif";c.fillText(t("mode."+r.mode)+(r.mode==="daily"?" · "+r.day+" UTC":""),60,165,610);
+    c.fillStyle="#ffffff";c.font="800 96px Segoe UI, sans-serif";c.fillText(r.score.toLocaleString(lang==="id"?"id-ID":"en-US"),55,282,600);
+    c.fillStyle="#9ac9b7";c.font="600 19px Segoe UI, sans-serif";c.fillText(t("hud.score").toUpperCase(),60,315);
+    c.fillStyle="#f7e1ac";c.font="700 26px Segoe UI, sans-serif";c.fillText(r.name,60,368,580);
+    const values=[[t("run.items"),r.items],[t("run.bosses"),r.bosses],[t("run.time"),clockText(r.elapsed)]];
+    values.forEach(([label,value],index)=>{
+      const x=60+index*205;c.fillStyle="#adc9c5";c.font="500 16px Segoe UI, sans-serif";c.fillText(label,x,425,195);
+      c.fillStyle="#e5f6df";c.font="800 33px Segoe UI, sans-serif";c.fillText(String(value),x,468);
+    });
+    if(resultArt) c.drawImage(resultArt,708,76,416,416);
+    c.strokeStyle="#91c0b060";c.strokeRect(708,76,416,416);
+    c.fillStyle="#ffe19b";c.font="700 18px Segoe UI, sans-serif";c.fillText(t("share.challenge"),60,543,650);
+    c.fillStyle="#8eb6b3";c.font="600 12px Segoe UI, sans-serif";c.fillText(t("share.tagline"),60,578,1080);
+    return card;
+  }
+  async function saveResultCard() {
+    const card=resultCard(),result=lastResult;if(!card)return;
+    const status=document.getElementById("shareStatus");status.textContent=t("share.pending");
+    try {
+      const blob=await new Promise(resolve=>card.toBlob(resolve,"image/png"));
+      if(!blob) throw new Error("No image");
+      const url=URL.createObjectURL(blob),link=document.createElement("a");
+      link.href=url;link.download="storm-emeralda-"+result.mode+"-"+result.score+".png";
+      link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);status.textContent=t("share.saved");
+    } catch(_){status.textContent=t("share.failed");}
+  }
+  async function shareResult() {
+    if(!lastResult)return;
+    const status=document.getElementById("shareStatus"),text=resultShareText();
+    try {
+      if(navigator.share) {await navigator.share({title:t("share.title"),text});status.textContent=t("share.sent");}
+      else {await navigator.clipboard.writeText(text);status.textContent=t("share.copied");}
+    } catch(error) {
+      if(error.name==="AbortError") return;
+      const field=document.createElement("textarea");field.value=text;field.style.cssText="position:fixed;left:-9999px;top:0";document.body.append(field);field.select();
+      let copied=false;try{copied=document.execCommand("copy");}catch(_){}field.remove();
+      status.textContent=t(copied?"share.copied":"share.failed");
+    }
+  }
+
   // Permanent cosmetic progression never changes simulation, scoring or leaderboard data.
   const MISSIONS = [
     { id:"snack", stat:"berries", goal:10, icon:"🍒", reward:"scarf" },
@@ -1537,6 +2382,7 @@
     if (!profileSaveTimer) profileSaveTimer = setTimeout(flushCollection, 1000);
   }
   function trackCollection(changes) {
+    if (runMode === "training" || runMode === "rush") return;
     const before = MISSIONS.filter(item => missionDone(item)).map(item => item.id);
     let changed = false;
     for (const [key,value] of Object.entries(changes)) {
@@ -1717,7 +2563,7 @@
       )
       .map(f => f.kind === "metal" ? { ...f, weight: f.weight + upgrades.mega * 2 } : f);
     const total = pool.reduce((s, f) => s + f.weight, 0);
-    let r = Math.random() * total;
+    let r = gameRandom() * total;
     for (const f of pool) { r -= f.weight; if (r <= 0) return f; }
     return pool[0];
   }
@@ -1743,7 +2589,7 @@
 
   function randomCell() {
     for (let i = 0; i < 200; i++) {
-      const x = Math.floor(Math.random() * COLS), y = Math.floor(Math.random() * ROWS);
+      const x = Math.floor(gameRandom() * COLS), y = Math.floor(gameRandom() * ROWS);
       if (!occupied(x, y)) return { x, y };
     }
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
@@ -1755,8 +2601,8 @@
   function safeCell() {
     const head = snake[0];
     for (let i = 0; i < 200; i++) {
-      const x = Math.floor(Math.random() * COLS);
-      const y = Math.floor(Math.random() * ROWS);
+      const x = Math.floor(gameRandom() * COLS);
+      const y = Math.floor(gameRandom() * ROWS);
       if (occupied(x, y)) continue;
       if (Math.abs(x - head.x) <= 1 && Math.abs(y - head.y) <= 1) continue;
       return { x, y };
@@ -1798,7 +2644,7 @@
   function shuffled(items) {
     const result = items.slice();
     for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(gameRandom() * (i + 1));
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
@@ -1880,7 +2726,7 @@
 
   function spawnFood() {
     const pos = randomCell();
-    food = pos ? { ...pos, type: pickFood(), shiny: Math.random() < Math.min(0.3, 0.15 + upgrades.lucky * 0.05) } : null;
+    food = pos ? { ...pos, type: pickFood(), shiny: gameRandom() < Math.min(0.3, 0.15 + upgrades.lucky * 0.05) } : null;
   }
 
   // Nature energy does not grow the snake: it is a separate route choice.
@@ -1941,6 +2787,7 @@
   }
 
   function updateNature(now) {
+    if (runMode === "training") return;
     if (now >= nextNaturePulse && !airLockActive(now)) {
       natureTurn++;
       const influence = boss?.skill === "groudon" ? -1 : boss?.skill === "kyogre" ? 1
@@ -1989,9 +2836,15 @@
     elAirLock.title = t("air.help");
     elAirLock.textContent = active ? "AIR LOCK · " + Math.ceil((airLockUntil - now) / 1000) + "s"
       : airLockCharge >= 100 ? t("air.ready") : "AIR LOCK · " + airLockCharge + "%";
+    const touch=document.getElementById("airTouchBtn");
+    touch.disabled=elAirLock.disabled;touch.title=t("air.help");
+    touch.setAttribute("aria-label",elAirLock.textContent);
+    touch.classList.toggle("ready",airLockCharge>=100&&!active);
+    touch.textContent=active?"Q · "+Math.ceil((airLockUntil-now)/1000)+"s":airLockCharge>=100?"Q ✦":"Q "+airLockCharge+"%";
   }
 
   function syncRocks() {
+    if (runMode === "training" || runMode === "rush") return;
     const target = Math.min(12, Math.max(0, level() - 1));
     while (rocks.length < target) {
       const c = safeCell();
@@ -2011,6 +2864,7 @@
   }
 
   function syncWilds() {
+    if (runMode === "training" || runMode === "rush") return;
     const target = level() >= 5 ? 2 : (level() >= 2 ? 1 : 0);
     // evolusi Pokémon liar sesuai level
     for (const w of wilds) {
@@ -2029,6 +2883,7 @@
   }
 
   function syncPortals() {
+    if (runMode === "training" || runMode === "rush") return;
     if (level() < 3) { portals = []; return; }
     while (portals.length < 2) {
       const c = safeCell();
@@ -2057,7 +2912,7 @@
           const n = opts[0];
           w.x = n.x; w.y = n.y;
         } else {
-          const n = opts[Math.floor(Math.random() * opts.length)];
+          const n = opts[Math.floor(gameRandom() * opts.length)];
           w.x = n.x; w.y = n.y;
         }
       }
@@ -2149,7 +3004,7 @@
     sfx.evolve();sfx.beam();updateCombatHud();
   }
   function reflectBossAttack(step, now) {
-    if(!boss || !synergyActive("mirror") || !step.hitBossSkill || step.hitBoss || step.hitSelf || step.hitRock || step.hitWild) return;
+    if(!boss || (!synergyActive("mirror")&&!pathActive("ancient")) || !step.hitBossSkill || step.hitBoss || step.hitSelf || step.hitRock || step.hitWild) return;
     reflection={from:{...snake[0]},to:{x:boss.x,y:boss.y},until:now+400};
     disruptBossAttacks([{x:step.nx,y:step.ny}],now,true);
     spawnPopup(snake[0].x,snake[0].y-2,t("synergy.reflected"),"#e7c2ff");
@@ -2163,8 +3018,10 @@
 
     const hx = snake[0].x, hy = snake[0].y;
     const aim = turnQueue[0] || dir;
-    const rays=shotRays({x:hx,y:hy},aim,evolved,synergyActive("fork"));
+    habits.shots.push({...aim});if(habits.shots.length>8)habits.shots.shift();
+    const rays=prismRays(shotRays({x:hx,y:hy},aim,evolved,synergyActive("fork")||pathActive("prism")));
     const cells=uniqueGridCells(rays.flatMap(ray=>ray.cells));
+    applyTempest(cells,now);
     clearCombatCells(cells,"#7cf0ff");
     disruptBossAttacks(cells, now);
     if (boss && cells.some(c => c.x === boss.x && c.y === boss.y)) {
@@ -2216,11 +3073,13 @@
     updateBossHud();
     updateBossSkillHud(performance.now());
     spawnPopup(boss.x, boss.y - 2, t("boss.appears"), type.accent);
+    queueCinematic("arrival",type.skill);
     sfx.meteor();
   }
 
   function damageBoss(amount) {
     if (!boss) return;
+    boss.hurtUntil=performance.now()+180;
     boss.hp = Math.max(0, boss.hp - amount);
     burst(boss.x, boss.y, boss.accent);
     spawnPopup(boss.x, boss.y - 1, "-" + amount, "#ffffff");
@@ -2228,6 +3087,7 @@
     if (boss.phase===1 && boss.hp<=boss.maxHp/2) {
       const now=performance.now();
       boss.phase=2;boss.phaseUntil=now+1800;boss.nextAttack=boss.phaseUntil;
+      queueCinematic("awakening",boss.skill);
       boss.recoveryAt=0;bossAttacks=[];
       meteors=meteors.filter(m=>!m.bossAttack);
       spawnRing(boss.x,boss.y,"#ffe19b");
@@ -2241,6 +3101,7 @@
     runBosses++;
     gainAscent(25);
     const defeated = boss;
+    pendingScene=null;
     trackCollection({ bosses:collection.stats.bosses+1, clean:collection.stats.clean+(defeated.hitTaken?0:1) });
     const bonus = 250 + bossCount * 75;
     score += bonus;
@@ -2259,6 +3120,10 @@
     meteors = meteors.filter(m => !m.bossAttack);
     updateHud();
     sfx.evolve();
+    if (runMode === "rush") {
+      if (runBosses >= RUSH_ROUNDS) finishRun("victory");
+      else openRushRest();
+    }
   }
 
   function updateBossHud() {
@@ -2386,10 +3251,14 @@
     const head = snake[0];
     let pos = null;
     for (let attempt = 0; attempt < 160; attempt++) {
-      const candidate = { x: 2 + Math.floor(Math.random() * (COLS - 4)), y: 2 + Math.floor(Math.random() * (ROWS - 4)) };
+      const candidate = { x: 2 + Math.floor(gameRandom() * (COLS - 4)), y: 2 + Math.floor(gameRandom() * (ROWS - 4)) };
       if (Math.abs(candidate.x - head.x) + Math.abs(candidate.y - head.y) < 8) continue;
       const overlapsSnake = snake.some(segment => Math.abs(segment.x - candidate.x) <= 1 && Math.abs(segment.y - candidate.y) <= 1);
       if (overlapsSnake) continue;
+      if (boss.tactic==="beam" && attempt<100) {
+        const shot=habits.shots.at(-1);
+        if(shot && (shot.x?Math.abs(candidate.y-head.y)<4:Math.abs(candidate.x-head.x)<4))continue;
+      }
       pos = candidate;
       break;
     }
@@ -2413,10 +3282,7 @@
   function createGroudonAttack(now, tier) {
     const head = snake[0];
     const lead = 6;
-    const target = {
-      x: gridClamp(head.x + dir.x * lead, 1),
-      y: gridClamp(head.y + dir.y * lead, 1),
-    };
+    const target = predictedBossTarget(lead);
     const side = { x: -dir.y, y: dir.x };
     const cells = [];
     const end = 3 + Math.min(2, tier);
@@ -2439,7 +3305,7 @@
   }
 
   function createKyogreAttack(now) {
-    const vertical = boss.attackCycle % 2 === 1;
+    const vertical = boss.tactic==="edge" ? (snake[0].x<3||snake[0].x>16) : boss.tactic==="straight" ? dir.y!==0 : boss.attackCycle % 2 === 1;
     const axis = vertical ? "vertical" : "horizontal";
     const corridorPrediction = vertical ? snake[0].y + dir.y * 3 : snake[0].x + dir.x * 3;
     return {
@@ -2457,11 +3323,12 @@
 
   function createDeoxysAttack(now) {
     const head = snake[0];
+    const target=predictedBossTarget();
     return {
       type: "psycho",
       diagonal: boss.phase===2,
-      x: gridClamp(head.x + dir.x * 6, 1),
-      y: gridClamp(head.y + dir.y * 6, 1),
+      x: target.x,
+      y: target.y,
       activeAt: now + (boss.phase===2?1500:1250),
       until: now + (boss.phase===2?2700:2200),
       blocked: [],
@@ -2469,27 +3336,28 @@
   }
 
   function bossAttack(now) {
+    if (runMode === "training") return;
     if (!boss || now < boss.nextAttack || now < boss.phaseUntil) return;
     if (airLockActive(now) && boss.skill !== "deoxys") return;
     boss.attackCycle++;
+    boss.tactic=readHabits();
     const tier = Math.floor(Math.max(0, bossCount - 1) / BOSS_TYPES.length);
     let attack;
     let interval;
     if (boss.skill === "groudon") {
       attack = createGroudonAttack(now, tier);
       interval = Math.max(2900, 3500 - tier * 150);
-      sfx.meteor();
     } else if (boss.skill === "kyogre") {
       attack = createKyogreAttack(now);
       // Leave recovery time between waves, including later boss rounds.
       interval = Math.max(6200, 7000 - tier * 150);
-      sfx.slow();
     } else {
       attack = createDeoxysAttack(now);
       interval = Math.max(3000, 3600 - tier * 120);
       teleportDeoxys();
-      sfx.beam();
     }
+    if(!validateBossEscape(attack,now)) {boss.nextAttack=now+1000;boss.tactic="reposition";return;}
+    if(boss.skill==="groudon")sfx.meteor();else if(boss.skill==="kyogre")sfx.slow();else sfx.beam();
     bossAttacks.push(attack);
     boss.recoveryAt = attack.until;
     boss.nextAttack = Math.max(now + interval, attack.until + 2200);
@@ -2501,6 +3369,11 @@
 
   function checkProgression() {
     if (state !== "playing") return;
+    if (runMode === "training") return;
+    if (runMode === "rush") {
+      if (!boss && !rushResting && runBosses < RUSH_ROUNDS) startBoss();
+      return;
+    }
     while (level() >= nextUpgradeLevel) {
       nextUpgradeLevel += 3;
       pendingUpgrades++;
@@ -2525,6 +3398,15 @@
   }
 
   function reset() {
+    resetLegends();
+    runSession++;
+    runStartedAt=0;runEndedAt=0;lastResult=null;resultArt=null;
+    dailyDate=runMode === "daily" ? utcDay() : "";
+    rngState=seedForDay(dailyDate || "emerald");
+    tutorialStep=0;rushResting=false;rushChoices=[];lastExpeditionKey="";
+    for (const id of ["lessonOverlay","rushOverlay"]) document.getElementById(id).classList.add("hidden");
+    elLeaderboard.classList.add("hidden");
+    document.getElementById("shareStatus").textContent="";
     ascentCharge=0;ascent=null;reflection=null;
     lastCombatHudKey="";lastSynergyKey="";
     biomeIndex = 0; biomeFrom = 0; biomeChangedAt = 0;
@@ -2551,7 +3433,7 @@
     nextDir = DIRS.right;
     score = 0;
     evolved = false;
-    snakeShiny = Math.random() < 1 / 64; // peluang langka shiny hitam
+    snakeShiny = gameRandom() < 1 / 64; // peluang langka shiny hitam
     evolveUntil = 0;
     multiplier = 1;
     multiplierUntil = 0;
@@ -2616,8 +3498,13 @@
     updateNatureHud(performance.now());
   }
 
-  function level() { return Math.floor(score / 100) + 1; }
+  function level() {
+    if (runMode === "training") return 1;
+    if (runMode === "rush") return 5 + runBosses * 2;
+    return Math.floor(score / 100) + 1;
+  }
   function speedMs() {
+    if (runMode === "training") return 230;
     const lv = level();
     let ms;
     if (lv <= 2)      ms = 170; // fase 1: santai
@@ -2629,6 +3516,7 @@
     else              ms = 112; // fase 7: batas akhir lebih ramah untuk run panjang
 
     if (evolved) ms -= 5;   // Mega Rayquaza sedikit lebih cepat
+    if (pathActive("tempest")) ms -= 8;
     if (speedUp && performance.now() < speedUpUntil) ms = Math.max(75, ms - 22); // ngebut
     if (slowmo && performance.now() < slowmoUntil) ms = Math.min(260, ms + 80);  // lambat
     const now = performance.now();
@@ -2638,10 +3526,13 @@
   }
 
   function updateJourney() {
+    updateLegendsHud(state==="paused"?pausedAt:performance.now());
+    setAttribute(document.documentElement,"data-screen",state);
     updateCombatHud();
     syncBiome();
     if (state === "playing" && level() > collection.stats.level) trackCollection({level:level()});
-    const signature = [lang, state, score, !!boss, nextUpgradeLevel, nextBossLevel, runItems, runBestCombo, runBosses, ...Object.values(upgrades)].join("|");
+    const lessonVisible=!document.getElementById("lessonOverlay").classList.contains("hidden");
+    const signature = [lang, state, runMode, tutorialStep, rushResting, lessonVisible, score, !!boss, nextUpgradeLevel, nextBossLevel, runItems, runBestCombo, runBosses, ...Object.values(upgrades)].join("|");
     if (signature === lastJourneyKey) return;
     lastJourneyKey = signature;
     const progress = document.getElementById("levelProgress");
@@ -2649,13 +3540,15 @@
     progress.setAttribute("aria-label", t("journey.level") + " " + (level() + 1));
     document.getElementById("levelProgressLabel").textContent = (score % 100) + " / 100";
     document.getElementById("journeyNext").textContent = boss ? t("journey.fight")
+      : runMode === "rush" ? t("rush.round")+" "+Math.min(RUSH_ROUNDS,runBosses+1)+" / "+RUSH_ROUNDS
+      : runMode === "training" ? t("training."+Math.min(4,tutorialStep)+".hint")
       : (Object.values(upgrades).some(value => value < 3) ? t("journey.upgrade") + " " + nextUpgradeLevel + " · " : "")
         + t("journey.boss") + " " + nextBossLevel;
     document.getElementById("runItems").textContent = runItems;
     document.getElementById("runCombo").textContent = "×" + runBestCombo;
     document.getElementById("runBosses").textContent = runBosses;
     const pauseButton = document.getElementById("pauseBtn");
-    pauseButton.disabled = state !== "playing" && state !== "paused";
+    pauseButton.disabled = (state !== "playing" && state !== "paused") || rushResting || lessonVisible;
     pauseButton.textContent = t(state === "paused" ? "pause.resume" : "pause.button");
   }
 
@@ -2663,7 +3556,8 @@
     updateJourney();
     setText(elScore, score);
     setText(elLevel, level());
-    setText(elHigh, Math.max(high, score));
+    setText(elHigh, Math.max(recordForMode(), score));
+    setText(document.getElementById("highLabel"),t("mode.best")+(runMode==="daily"||runMode==="rush"?" · LOCAL":""));
 
     const earned = BADGES.filter(b => score >= b.threshold);
     if (earned.length > badgeCount) {
@@ -2740,7 +3634,7 @@
       if (now < shieldGraceUntil) return;
       if (shield > 0) {
         shield--;
-        if (upgrades.shield >= 3) shieldGraceUntil = now + 1000;
+        if (upgrades.shield >= 3 || pathActive("ancient")) shieldGraceUntil = now + (pathActive("ancient" )?700+pathRank()*150:1000);
         spawnPopup(head.x, head.y - 1, upgrades.shield >= 3 ? "GUARD 1s" : "SHIELD!", "#76e69a");
         sfx.shield();
         reflectBossAttack(step,now);
@@ -2759,7 +3653,7 @@
     snake.unshift({ x: nx, y: ny });
     if (growing) {
       eat(food);
-      spawnFood();
+      if (runMode !== "training") spawnFood(); else food=null;
       syncRocks();
       syncWilds();
       syncPortals();
@@ -2769,7 +3663,7 @@
 
     if (pickedUpgrade) selectUpgrade(pickedUpgrade);
     if (pickedNature) collectNatureOrb(pickedNature, now);
-    if (!food) spawnFood();
+    if (!food && runMode !== "training") spawnFood();
 
     if (ateMagikarp) {
       score += 200;
@@ -2781,6 +3675,8 @@
 
     updateHud();
     checkProgression();
+    rememberMove();
+    updatePartner(now);
     updateJourney();
     // Animate over the entire NEXT step, including a speed change caused by food.
     moveDuration = speedMs();
@@ -2833,6 +3729,7 @@
   }
 
   function doEvolve() {
+    if(!evolved && runPath==="ancient" && runMode!=="training")shield=Math.min(3,shield+1);
     evolved = true;
     trackCollection({mega:collection.stats.mega+1});
     evolveUntil = performance.now() + 15000 + upgrades.mega * 3000;
@@ -2845,6 +3742,22 @@
   }
 
   function gameOver(reason = "hazard") {
+    if (runMode === "training" && state === "playing") {
+      prepareTrainingStage();
+      spawnPopup(snake[0].x,snake[0].y-2,t("training.retry"),"#c2eaba");
+      return;
+    }
+    finishRun("defeat",reason);
+  }
+
+  function finishRun(outcome, reason = "hazard") {
+    if (state !== "playing" && state !== "paused") return;
+    const now=performance.now();
+    // Freeze the canvas into a separate image before clearing combat effects.
+    draw();resultArt=document.createElement("canvas");resultArt.width=480;resultArt.height=480;
+    resultArt.getContext("2d").drawImage(canvas,0,0);
+    const elapsed=runElapsed(now);
+    runEndedAt=state==="paused"?pausedAt:now;
     flushCollection();
     deathReason = reason;
     state = "over";
@@ -2856,29 +3769,44 @@
     natureOrbs = [];
     terrain = [];
     airLockUntil = 0;
+    rushResting=false;rushChoices=[];
+    for(const id of ["lessonOverlay","rushOverlay"]) document.getElementById(id).classList.add("hidden");
     renderUpgradeHint();
     bossHud.classList.add("hidden");
     bossSkill.textContent = "";
-    sfx.over();
-    finalScore.textContent = t("over.scorePrefix") + score;
-    document.getElementById("overTip").textContent = t("over." + deathReason);
+    if(outcome==="defeat") sfx.over();else sfx.evolve();
 
     let record = false;
-    if (score > high) {
+    if (runMode === "adventure" && score > high) {
       high = score;
       record = true;
       try { localStorage.setItem("steelix-dig-high", String(high)); } catch (e) {}
       elHigh.textContent = high;
     }
-    newRecord.classList.toggle("hidden", !record);
+    if(runMode==="daily" && score>(expeditionRecords.daily[dailyDate] || 0)) {
+      expeditionRecords.daily[dailyDate]=score;record=true;saveExpeditions();
+    }
+    if(runMode==="rush") {
+      const previous=expeditionRecords.rush;
+      if(runBosses>previous.bosses || (runBosses===previous.bosses && (score>previous.score || (score===previous.score && (!previous.time || elapsed<previous.time))))) {
+        expeditionRecords.rush={score,bosses:runBosses,time:elapsed};record=true;saveExpeditions();
+      }
+    }
+    const name=(elPlayerName.value || "").trim().slice(0,20) || "PLAYER";
+    lastResult={mode:runMode,score,items:runItems,combo:runBestCombo,bosses:runBosses,elapsed,day:dailyDate,reason,outcome,name,record};
+    renderResult();updateExpeditionHud();
     overOverlay.classList.remove("hidden");
 
     // Leaderboard online: simpan nama + submit skor + tampilkan top 10
-    const name = (elPlayerName.value || "").trim().slice(0, 20) || "PLAYER";
     try { localStorage.setItem("storm-emeralda-name", name); } catch (e) {}
+    if(runMode!=="adventure") {elLeaderboard.classList.add("hidden");return;}
     leaderboardCache = { weekly: null, all: null };
     leaderboardPeriod = "weekly";
-    submitScore(name, score).then(() => loadLeaderboard());
+    const session=runSession;
+    elLeaderboard.classList.remove("hidden");elLeaderboard.textContent=t("lb.loading");
+    submitScore(name, score).then(() => {
+      if(runSession===session && runMode==="adventure" && state==="over") loadLeaderboard(session);
+    });
   }
 
   // ---------- Leaderboard online (Supabase) ----------
@@ -2897,12 +3825,14 @@
           "Content-Type": "application/json",
           "Prefer": "return=minimal"
         },
-        body: JSON.stringify({ name: name, score: score })
+        body: JSON.stringify({ name: name, score: score }),
+        signal: AbortSignal.timeout(8000)
       });
     } catch (e) { /* offline — abaikan */ }
   }
 
-  async function loadLeaderboard() {
+  async function loadLeaderboard(session = runSession) {
+    if (runMode !== "adventure" || state !== "over") return;
     const period = leaderboardPeriod;
     try {
       let filter = "";
@@ -2915,19 +3845,25 @@
       }
       const fields = period === "weekly" ? "name,score,created_at" : "name,score";
       const res = await fetch(`${SB_URL}/rest/v1/scores?select=${fields}${filter}&order=score.desc&limit=100`, {
-        headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY }
+        headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY },
+        signal: AbortSignal.timeout(8000)
       });
+      if(session!==runSession || runMode!=="adventure" || state!=="over") return;
       if (!res.ok) {
         if (period === "weekly") {
           leaderboardPeriod = "all";
-          return loadLeaderboard();
+          return loadLeaderboard(session);
         }
+        elLeaderboard.textContent=t("lb.offline");
         return;
       }
       const rows = await res.json();
+      if(session!==runSession || state!=="over" || runMode!=="adventure") return;
       leaderboardCache[period] = rows;
-      renderLeaderboard(rows, period);
-    } catch (e) { /* offline — abaikan */ }
+      if(period===leaderboardPeriod) renderLeaderboard(rows, period);
+    } catch (e) {
+      if(session===runSession && state==="over" && runMode==="adventure") elLeaderboard.textContent=t("lb.offline");
+    }
   }
 
   function bestScoresByPlayer(rows) {
@@ -3303,133 +4239,254 @@
     ctx.stroke();
   }
 
-  function drawDiglett(x, y) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    ctx.fillStyle = "#6e4620";
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + CELL * 0.32, CELL * 0.44, CELL * 0.26, 0, 0, Math.PI * 2);
-    ctx.fill();
-    const g = ctx.createLinearGradient(cx, cy - CELL * 0.28, cx, cy + CELL * 0.2);
-    g.addColorStop(0, "#b07a4a");
-    g.addColorStop(1, "#7a4c24");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy - CELL * 0.04, CELL * 0.26, CELL * 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(0,0,0,0.45)";
-    ctx.stroke();
-    ctx.fillStyle = "#1a1a1a";
-    ctx.beginPath(); ctx.arc(cx - CELL * 0.09, cy - CELL * 0.12, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + CELL * 0.09, cy - CELL * 0.12, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#e87a90";
-    ctx.beginPath(); ctx.ellipse(cx, cy + CELL * 0.03, CELL * 0.09, CELL * 0.13, 0, 0, Math.PI * 2); ctx.fill();
-  }
-
-  function drawGeodude(x, y) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    // badan batu (polygon)
-    const g = ctx.createRadialGradient(cx - CELL * 0.1, cy - CELL * 0.1, CELL * 0.05, cx, cy, CELL * 0.36);
-    g.addColorStop(0, "#9a938a");
-    g.addColorStop(1, "#5a544c");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(cx - CELL * 0.32, cy - CELL * 0.08);
-    ctx.lineTo(cx - CELL * 0.2, cy - CELL * 0.34);
-    ctx.lineTo(cx + CELL * 0.12, cy - CELL * 0.36);
-    ctx.lineTo(cx + CELL * 0.32, cy - CELL * 0.1);
-    ctx.lineTo(cx + CELL * 0.28, cy + CELL * 0.22);
-    ctx.lineTo(cx - CELL * 0.06, cy + CELL * 0.34);
-    ctx.closePath();
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(0,0,0,0.5)";
-    ctx.stroke();
-    // lengan
-    ctx.fillStyle = "#7a746a";
-    ctx.beginPath(); ctx.ellipse(cx - CELL * 0.42, cy - CELL * 0.02, CELL * 0.13, CELL * 0.08, 0.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx + CELL * 0.42, cy + CELL * 0.04, CELL * 0.13, CELL * 0.08, -0.5, 0, Math.PI * 2); ctx.fill();
-    // mata
-    ctx.fillStyle = "#1a1a1a";
-    ctx.beginPath(); ctx.arc(cx - CELL * 0.1, cy - CELL * 0.12, 2.2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + CELL * 0.12, cy - CELL * 0.12, 2.2, 0, Math.PI * 2); ctx.fill();
-    // mulut
-    ctx.strokeStyle = "#1a1a1a";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx + CELL * 0.02, cy + CELL * 0.08, CELL * 0.1, 0.2, Math.PI - 0.2); ctx.stroke();
-  }
-
-  function drawGraveler(x, y) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    // 4 lengan
-    ctx.fillStyle = "#7a746a";
-    ctx.beginPath(); ctx.ellipse(cx - CELL * 0.42, cy - CELL * 0.12, CELL * 0.11, CELL * 0.08, 0.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx - CELL * 0.44, cy + CELL * 0.12, CELL * 0.11, CELL * 0.08, -0.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx + CELL * 0.42, cy - CELL * 0.12, CELL * 0.11, CELL * 0.08, -0.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx + CELL * 0.44, cy + CELL * 0.12, CELL * 0.11, CELL * 0.08, 0.6, 0, Math.PI * 2); ctx.fill();
-    // badan bulat
-    const g = ctx.createRadialGradient(cx - CELL * 0.1, cy - CELL * 0.1, CELL * 0.06, cx, cy, CELL * 0.38);
-    g.addColorStop(0, "#a49c90");
-    g.addColorStop(1, "#5f584e");
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.32, 0, Math.PI * 2); ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.stroke();
-    ctx.strokeStyle = "rgba(0,0,0,0.18)"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(cx, cy - CELL * 0.04, CELL * 0.2, 0.3, Math.PI - 0.3); ctx.stroke();
-    // mata
-    ctx.fillStyle = "#1a1a1a";
-    ctx.beginPath(); ctx.arc(cx - CELL * 0.1, cy - CELL * 0.12, 2.2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + CELL * 0.1, cy - CELL * 0.12, 2.2, 0, Math.PI * 2); ctx.fill();
-    // mulut
-    ctx.strokeStyle = "#1a1a1a"; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx, cy + CELL * 0.06, CELL * 0.1, 0.2, Math.PI - 0.2); ctx.stroke();
-  }
-
-  function drawGolem(x, y) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    // kaki
-    ctx.fillStyle = "#6f685c";
-    ctx.beginPath(); ctx.ellipse(cx - CELL * 0.16, cy + CELL * 0.34, CELL * 0.1, CELL * 0.12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx + CELL * 0.16, cy + CELL * 0.34, CELL * 0.1, CELL * 0.12, 0, 0, Math.PI * 2); ctx.fill();
-    // lengan
-    ctx.fillStyle = "#7a746a";
-    ctx.beginPath(); ctx.ellipse(cx - CELL * 0.42, cy + CELL * 0.04, CELL * 0.1, CELL * 0.14, 0.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx + CELL * 0.42, cy + CELL * 0.04, CELL * 0.1, CELL * 0.14, -0.5, 0, Math.PI * 2); ctx.fill();
-    // badan bulat
-    const g = ctx.createRadialGradient(cx - CELL * 0.1, cy - CELL * 0.12, CELL * 0.06, cx, cy, CELL * 0.36);
-    g.addColorStop(0, "#b0a89a");
-    g.addColorStop(1, "#5a5347");
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(cx, cy - CELL * 0.02, CELL * 0.3, 0, Math.PI * 2); ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.stroke();
-    // kepala/moncong
-    ctx.fillStyle = "#8a8072";
-    ctx.beginPath(); ctx.ellipse(cx, cy - CELL * 0.3, CELL * 0.16, CELL * 0.12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.stroke();
-    // mata
-    ctx.fillStyle = "#1a1a1a";
-    ctx.beginPath(); ctx.arc(cx - CELL * 0.07, cy - CELL * 0.32, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + CELL * 0.07, cy - CELL * 0.32, 2, 0, Math.PI * 2); ctx.fill();
-    // mulut
-    ctx.strokeStyle = "#1a1a1a"; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx, cy + CELL * 0.06, CELL * 0.1, 0.2, Math.PI - 0.2); ctx.stroke();
-  }
-
-  function drawDugtrio(x, y) {
-    const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
-    for (const dx of [-CELL * 0.24, 0, CELL * 0.24]) {
-      const bx = cx + dx;
-      ctx.fillStyle = "#6e4620";
-      ctx.beginPath(); ctx.ellipse(bx, cy + CELL * 0.3, CELL * 0.2, CELL * 0.12, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#a5713f";
-      ctx.beginPath(); ctx.ellipse(bx, cy - CELL * 0.06, CELL * 0.12, CELL * 0.16, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(0,0,0,0.45)"; ctx.stroke();
-      ctx.fillStyle = "#1a1a1a";
-      ctx.beginPath(); ctx.arc(bx - CELL * 0.04, cy - CELL * 0.12, 1.4, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(bx + CELL * 0.04, cy - CELL * 0.12, 1.4, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#e87a90";
-      ctx.beginPath(); ctx.ellipse(bx, cy - CELL * 0.02, CELL * 0.04, CELL * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  // Finite, pre-rasterized creature art: animation never allocates new sprites.
+  const MONSTER_TYPES = ["diglett","dugtrio","geodude","graveler","golem","groudon","kyogre","deoxys"];
+  const monsterSprites = new Map();
+  function monsterSprite(type, frame = 0) {
+    frame = ((frame % 4) + 4) % 4;
+    const key = type + ":" + frame;
+    if (monsterSprites.has(key)) return monsterSprites.get(key);
+    const surface = document.createElement("canvas");
+    surface.width = surface.height = 192;
+    const c = surface.getContext("2d");
+    c.scale(1.5,1.5);c.translate(64,64);
+    c.lineJoin="round";c.lineCap="round";
+    const beat = [0,1,0,-1][frame];
+    const shade = (light,dark,y1=-40,y2=45) => {
+      const g=c.createLinearGradient(-25,y1,24,y2);g.addColorStop(0,light);g.addColorStop(1,dark);return g;
+    };
+    const path = (d,fill,stroke="#101b29",width=2.1) => {
+      const p=new Path2D(d);if(fill){c.fillStyle=fill;c.fill(p);}if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke(p);}
+    };
+    const oval = (x,y,rx,ry,fill,stroke=null,width=2) => {
+      c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();
+      if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();}
+    };
+    const eye = (x,y,side=1) => {
+      path(`M ${x-6} ${y-3} L ${x+6} ${y-1} L ${x+4} ${y+4} L ${x-4} ${y+4} Z`,"#fff3bf",null);
+      oval(x+side,y+1,1.8,3,"#17232c");oval(x+side-.6,y, .65,1,"#ffffff");
+    };
+    const claws = (x,y,side=1) => {
+      for(let i=0;i<3;i++)path(`M ${x+i*5*side} ${y} l ${3*side} -3 l ${1*side} 10 l ${-5*side} -2 Z`,"#f5f0d7","#35323d",1);
+    };
+    if(type==="groudon") {
+      path("M 14 29 Q 36 42 50 27 L 48 41 L 35 50 L 5 44 Z",shade("#fa645a","#8c253c"));
+      for(const side of [-1,1]) {
+        c.save();c.scale(side,1);
+        path("M 17 8 Q 39 16 33 36 L 43 42 L 35 49 L 12 43 L 10 25 Z",shade("#e96752","#85213b"));
+        claws(26,40);
+        path(`M 20 -22 Q 34 -25 38 ${-7+beat*2} L 45 ${6+beat*2} L 34 15 L 19 4 Z`,shade("#ff9271","#b53342"));
+        claws(31,7);
+        path("M 23 -29 L 34 -36 L 29 -17 L 41 -21 L 31 -7", "#f2edcf","#542c38",1.5);
+        c.restore();
+      }
+      path("M -22 -25 L 0 -35 L 24 -23 L 23 24 L 13 39 L -13 39 L -24 23 Z",shade("#ff715a","#a7273f"));
+      path("M -10 -17 L 9 -18 L 16 11 L 9 30 L -9 30 L -17 11 Z",shade("#faf0d0","#a5b4a4"),"#73333b",1.6);
+      for(let y=-7;y<=23;y+=9)path(`M -12 ${y} Q 0 ${y+5} 12 ${y}`,null,"#6c7476",1.4);
+      path("M -24 -25 L -20 -42 L -9 -36 L 0 -48 L 10 -37 L 23 -41 L 25 -23 L 18 -10 L -17 -10 Z",shade("#ff9470","#ca3444"));
+      path("M -18 -22 L -10 -10 L 10 -10 L 20 -22 L 15 -1 L -14 -1 Z",shade("#e9e1c0","#9eaca0"),"#582b37",1.6);
+      path("M -18 -12 L -8 -7 L 9 -7 L 17 -12",null,"#4f3036",1.5);
+      eye(-12,-27,1);eye(12,-27,-1);
+      path("M -21 -32 L -9 -29 M 9 -29 L 21 -32",null,"#731c39",3);
+      path("M -5 -39 L 0 -43 L 6 -37 M -18 1 L -21 12 L -14 21 M 18 1 L 21 12 L 14 21",null,"#ffbd79",2);
+    } else if(type==="kyogre") {
+      path("M -10 19 L -13 34 L -33 43 L -34 52 L -12 46 L 0 50 L 12 46 L 34 52 L 33 43 L 13 34 L 10 19 Z",shade("#448cec","#193761"));
+      for(const side of [-1,1]) {
+        c.save();c.scale(side,1);c.translate(0,beat*1.3);
+        path("M 14 -19 C 28 -32 42 -28 58 -10 L 57 5 L 52 17 L 47 9 L 42 22 L 36 13 L 29 22 L 19 12 Z",shade("#51b9fa","#224baf"));
+        path("M 23 -12 L 38 -13 L 47 -4 L 46 5 M 28 -4 L 36 -4 L 39 4 M 27 4 L 30 12",null,"#ff6475",2.5);
+        for(let i=0;i<3;i++)oval(37+i*6,8-i*5,2.8,2.3,"#ecfaff");
+        path("M 21 -18 Q 38 -26 52 -12",null,"#9addff",1.5);
+        c.restore();
+      }
+      path("M 0 -43 C 29 -44 31 -12 23 16 Q 0 40 -23 16 C -31 -12 -29 -44 0 -43 Z",shade("#5bbef4","#1d3e94"));
+      path("M -23 -8 Q 0 9 23 -8 L 18 20 Q 0 35 -18 20 Z",shade("#f1ffff","#8cc8e1"),"#315e98",1.5);
+      path("M -19 -14 Q 0 -1 19 -14",null,"#122d5a",2);
+      path("M -7 -34 L -12 -24 L -7 -15 M 7 -34 L 12 -24 L 7 -15",null,"#ff687c",2.4);
+      eye(-15,-21,1);eye(15,-21,-1);
+      path("M -8 -38 Q 0 -42 8 -38",null,"#caf2ff",2);
+      path("M -10 32 L 0 39 L 10 32",null,"#f06278",2);
+    } else if(type==="deoxys") {
+      for(const side of [-1,1]) {
+        c.save();c.scale(side,1);
+        path(`M 12 -22 C 43 -29 34 ${7+beat*6} 51 ${27+beat*4} L 44 ${39+beat*2} C 25 20 33 -8 14 -10 Z`,shade("#fb9970","#b84339"));
+        path(`M 17 -16 C 45 -5 26 ${16+beat*4} 45 39`,null,"#53d9d4",4.5);
+        path("M 5 14 L 21 21 L 24 49 L 13 54 L 12 29 L 2 26 Z",shade("#62d5d2","#246b86"));
+        path("M 13 26 L 20 47",null,"#c2fff1",1.4);
+        c.restore();
+      }
+      path("M 0 -30 L 20 -20 L 11 4 L 17 16 L 0 29 L -17 16 L -11 4 L -20 -20 Z",shade("#fbab72","#c64c46"));
+      path("M -12 -18 L -8 -1 L 0 10 L 8 -1 L 12 -18",null,"#84e2d4",3);
+      path("M 0 -14 L 8 -7 L 0 3 L -8 -7 Z",shade("#f4c8ff","#8045dc"),"#45205f",2);
+      oval(-1,-8,2,3,"#fff7ff");
+      path("M 0 -54 L 15 -43 L 13 -26 L 0 -17 L -13 -26 L -15 -43 Z",shade("#ffa26b","#cf5146"));
+      path("M 0 -49 L 7 -41 L 5 -28 L 0 -23 L -5 -28 L -7 -41 Z",shade("#82e5d7","#2b849b"),null);
+      path("M -12 -37 L -4 -34 L -6 -29 L -13 -31 Z M 12 -37 L 4 -34 L 6 -29 L 13 -31 Z","#e8fbff",null);
+      oval(-8,-33,1.3,2.2,"#422668");oval(8,-33,1.3,2.2,"#422668");
+    } else if(type==="diglett" || type==="dugtrio") {
+      oval(0,29,49,17,"#1b2630");oval(0,27,44,13,shade("#ad8970","#614237"));
+      for(let i=0;i<9;i++) {
+        const a=i*Math.PI*2/9;
+        oval(Math.cos(a)*39,27+Math.sin(a)*9,6,4,i%2?"#ae957b":"#66564e","#302e30",1);
+      }
+      const mole=(x,y,scale)=>{
+        c.save();c.translate(x,y+beat);c.scale(scale,scale);
+        path("M -23 23 L -23 -12 C -23 -44 23 -44 23 -12 L 23 23 Q 0 33 -23 23 Z",shade("#e2b989","#845036"));
+        path("M -16 -13 Q -16 -28 -6 -29",null,"#f5d5a4",3);
+        for(const side of [-1,1]) {
+          oval(side*8,-12,3.8,7,"#1b2630");oval(side*8-1,-15,1.25,2.1,"#fff9e8");
+        }
+        oval(0,0,10,6,shade("#ffb5bc","#b35377",-7,7),"#793b50",1.3);oval(-3,-2,4,1.5,"#ffe1cd");
+        c.restore();
+      };
+      if(type==="dugtrio") {mole(0,-17,.92);mole(-23,7,.8);mole(23,9,.78);} else mole(0,0,1.28);
+    } else {
+      const isGolem=type==="golem", isGraveler=type==="graveler";
+      const limb=(side,y,lower=false)=>{
+        c.save();c.scale(side,1);c.translate(0,beat*(lower?-1.5:1.5));
+        path(`M 22 ${y} L 37 ${y-10} L 43 ${y-21} L 51 ${y-20} L 55 ${y-9} L 47 ${y+4} L 30 ${y+10} Z`,shade("#b3bec0","#697b83"));
+        path(`M 42 ${y-15} L 50 ${y-14} M 38 ${y-9} L 45 ${y-5}`,null,"#e1dfc3",1.7);c.restore();
+      };
+      if(isGolem) {
+        for(const side of [-1,1]) {c.save();c.scale(side,1);path("M 16 23 L 32 29 L 36 43 L 13 45 L 9 34 Z",shade("#d3b99b","#92735c"));claws(18,39);c.restore();}
+        limb(-1,12);limb(1,12);
+      } else {if(isGraveler){limb(-1,21,true);limb(1,21,true);}limb(-1,-5);limb(1,-5);}
+      path("M -31 -20 L -15 -35 L 15 -34 L 34 -14 L 31 19 L 13 34 L -17 31 L -34 10 Z",shade(isGolem?"#bdc9b4":"#c3cecd",isGolem?"#526664":"#5d6f80"));
+      path("M -31 -20 L -10 -16 L -15 -35 M -10 -16 L 11 -17 L 15 -34 M 11 -17 L 22 4 L 34 -14 M 22 4 L 12 22 L 13 34 M 12 22 L -12 18 L -17 31 M -12 18 L -25 0 L -34 10 M -25 0 L -10 -16",null,"#354950",2);
+      path("M -28 -19 L -16 -30 L -11 -20 Z M 14 -29 L 27 -14 L 14 -15 Z","#e3e6cd",null);
+      if(isGolem) {
+        path("M -18 -16 L -17 -36 L -6 -45 L 12 -44 L 23 -31 L 18 -11 L 0 -4 Z",shade("#d7b88b","#9a7257"));
+        eye(-8,-29,1);eye(10,-29,-1);
+        path("M -9 -16 Q 2 -12 13 -17",null,"#493b39",2);
+        path("M -10 -16 L -6 -10 L -3 -15 M 9 -16 L 7 -10 L 3 -14","#f0edcc",null);
+      } else {
+        eye(-12,-8,1);eye(12,-8,-1);
+        path("M -21 -15 L -6 -10 M 21 -15 L 6 -10",null,"#405461",3);
+        path("M -11 8 Q 0 16 12 7 L 8 19 L -7 20 Z","#36404b",null);
+        path("M -8 10 L 9 10 L 6 14 L -5 14 Z","#ececd1",null);
+      }
     }
+    const flash=document.createElement("canvas");flash.width=flash.height=192;
+    const fc=flash.getContext("2d");fc.drawImage(surface,0,0);fc.globalCompositeOperation="source-in";fc.fillStyle="#fff9da";fc.fillRect(0,0,192,192);
+    const sprite={image:surface,flash};monsterSprites.set(key,sprite);return sprite;
+  }
+  function drawWildMonster(type,x,y) {
+    const now=visualTime(), moving=!reducedMotion.matches&&richEffects;
+    const frame=moving?Math.floor(now/260+x*2+y)%4:0;
+    const cx=x*CELL+CELL/2,cy=y*CELL+CELL/2;
+    const bob=moving?Math.sin(now/330+x+y)*.7:0;
+    ctx.save();ctx.fillStyle="#030a1499";ctx.beginPath();ctx.ellipse(cx,cy+9,10,3,0,0,Math.PI*2);ctx.fill();
+    ctx.drawImage(monsterSprite(type,frame).image,cx-15,cy-15+bob,30,30);ctx.restore();
+  }
+  function drawDiglett(x,y) {drawWildMonster("diglett",x,y);}
+  function drawDugtrio(x,y) {drawWildMonster("dugtrio",x,y);}
+  function drawGeodude(x,y) {drawWildMonster("geodude",x,y);}
+  function drawGraveler(x,y) {drawWildMonster("graveler",x,y);}
+  function drawGolem(x,y) {drawWildMonster("golem",x,y);}
+
+  function renderMonsterAtlas() {
+    const order=["groudon","kyogre","deoxys","diglett","dugtrio","geodude","graveler","golem"];
+    document.getElementById("monsterGrid").innerHTML=order.map((type,index)=>
+      `<article class="monster-card ${index<3?"boss":""}"><span class="monster-kind">${t(index<3?"monster.legend":"monster.wild")}</span><canvas width="288" height="210" data-monster="${type}" role="img" aria-label="${type.toUpperCase()}"></canvas><h3>${type.toUpperCase()}</h3><p>${t("monster."+type)}</p></article>`
+    ).join("");
+    for(const preview of document.querySelectorAll("[data-monster]")) {
+      const c=preview.getContext("2d");
+      c.fillStyle="#07151d88";c.beginPath();c.ellipse(144,183,72,12,0,0,Math.PI*2);c.fill();
+      c.drawImage(monsterSprite(preview.dataset.monster,0).image,44,0,200,200);
+    }
+  }
+  function openMonsterAtlas() {
+    pauseGame();renderMonsterAtlas();document.getElementById("monsterDialog").showModal();
+  }
+
+  // Decorative arena lighting stays beneath every gameplay object and warning.
+  function drawBossDomain(now) {
+    if(!boss || !richEffects)return;
+    const time=reducedMotion.matches?0:now/1000;
+    const kind=boss.skill, w=canvas.width,h=canvas.height;
+    ctx.save();
+    const tint=kind==="groudon"?"#ed642b":kind==="kyogre"?"#349cdd":"#9872ed";
+    const veil=ctx.createRadialGradient(w/2,h/2,w*.22,w/2,h/2,w*.72);
+    veil.addColorStop(0,tint+"00");veil.addColorStop(1,tint+(boss.phase===2?"55":"35"));
+    ctx.fillStyle=veil;ctx.fillRect(0,0,w,h);
+    ctx.lineWidth=1.3;
+    // Keep ornament at the perimeter so it cannot be mistaken for attack cells.
+    for(let side=0;side<4;side++) {
+      ctx.save();ctx.translate(w/2,h/2);ctx.rotate(side*Math.PI/2);ctx.translate(-w/2,-h/2);
+      if(kind==="groudon") {
+        for(let i=0;i<7;i++) {
+          const x=18+i*69,pulse=.15+.07*Math.sin(time*1.2+i);
+          ctx.globalAlpha=pulse;ctx.fillStyle="#ffbd67";
+          ctx.beginPath();ctx.moveTo(x,3);ctx.lineTo(x+17,9);ctx.lineTo(x+11,16);ctx.lineTo(x+34,24);ctx.lineTo(x+17,13);ctx.lineTo(x+23,7);ctx.closePath();ctx.fill();
+        }
+      } else if(kind==="kyogre") {
+        for(let band=0;band<3;band++) {
+          ctx.globalAlpha=.16-band*.035;ctx.strokeStyle="#95e7ff";ctx.beginPath();
+          for(let x=0;x<=w;x+=8) {
+            const y=7+band*8+Math.sin(x/38+time*.7+band)*3;
+            if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+          }
+          ctx.stroke();
+        }
+      } else {
+        ctx.strokeStyle="#c4acff";ctx.fillStyle="#d4eaff";ctx.globalAlpha=.22;
+        ctx.beginPath();
+        for(let i=0;i<9;i++) {const x=12+i*57,y=9+(i%3)*7;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+        ctx.stroke();
+        for(let i=0;i<9;i++) {const x=12+i*57,y=9+(i%3)*7;ctx.globalAlpha=.25+.12*Math.sin(time+i);ctx.fillRect(x-1,y-1,2,2);}
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawBoss(now) {
+    if(!boss)return;
+    const cx=boss.x*CELL+CELL/2,cy=boss.y*CELL+CELL/2;
+    const animate=richEffects&&!reducedMotion.matches;
+    const time=animate?now:0,type=boss.skill || boss.name.toLowerCase();
+    const frame=animate?Math.floor(time/170)%4:0;
+    const recovering=bossRecovering(now),second=boss.phase===2;
+    const active=bossAttacks.some(a=>now>=a.activeAt&&now<a.until);
+    const bob=animate?Math.sin(time/360)*(type==="groudon"?.6:1.6):0;
+    const size=type==="kyogre"?65:60;
+    ctx.save();
+    ctx.fillStyle="#030a14aa";ctx.beginPath();ctx.ellipse(cx,cy+21,25,7,0,0,Math.PI*2);ctx.fill();
+    if(richEffects) {
+      const aura=ctx.createRadialGradient(cx,cy,8,cx,cy,43);
+      aura.addColorStop(0,boss.accent+(second?"46":"28"));aura.addColorStop(1,boss.accent+"00");
+      ctx.fillStyle=aura;ctx.fillRect(cx-43,cy-43,86,86);
+      for(let i=0;i<4;i++) {
+        const a=time/1500+i*Math.PI/2,rr=32+(second?4:0);
+        ctx.fillStyle=recovering?"#9cf3b9":boss.accent;
+        ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*.7,second?1.6:1,0,Math.PI*2);ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    // The small central contact marker keeps the grid position readable beneath the larger art.
+    ctx.strokeStyle=boss.accent+"88";ctx.lineWidth=1;ctx.strokeRect(cx-10,cy-10,20,20);
+    if(second || recovering) {
+      ctx.strokeStyle=recovering?"#8ff0ac":now<boss.phaseUntil?"#ffedba":"#fbb18a";
+      ctx.lineWidth=recovering?2.4:1.5;ctx.setLineDash(recovering?[5,4]:[8,5]);
+      ctx.beginPath();ctx.ellipse(cx,cy+5,34,28,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    }
+    const sprite=monsterSprite(type,frame);
+    // Local HP stays readable without looking away from the arena.
+    ctx.fillStyle="#071321ee";ctx.fillRect(cx-21,cy-39,42,6);
+    ctx.fillStyle=recovering?"#8ff0ac":boss.accent;
+    ctx.fillRect(cx-20,cy-38,40*Math.max(0,Math.min(1,boss.hp/boss.maxHp)),4);
+    ctx.fillStyle="#071321";ctx.fillRect(cx-.5,cy-38,1,4);
+    const preparing=bossAttacks.some(a=>now<a.activeAt&&now<a.until&&!(airLockActive(now)&&a.type!=="psycho"));
+    if(preparing) {
+      ctx.fillStyle="#ffdc86";ctx.beginPath();ctx.moveTo(cx+27,cy-41);ctx.lineTo(cx+33,cy-30);ctx.lineTo(cx+21,cy-30);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#372617";ctx.fillRect(cx+26.3,cy-37,1.4,3);ctx.fillRect(cx+26.3,cy-32.5,1.4,1.4);
+    }
+    ctx.translate(cx,cy+bob);
+    if(animate&&active)ctx.rotate(Math.sin(time/75)*.025);
+    ctx.drawImage(sprite.image,-size/2,-size/2,size,size);
+    const hurt=Math.max(0,((boss.hurtUntil||0)-now)/180);
+    if(hurt>0) {ctx.globalAlpha=Math.min(.75,hurt*.8);ctx.drawImage(sprite.flash,-size/2,-size/2,size,size);ctx.globalAlpha=1;}
+    ctx.restore();
   }
 
   function drawPortal(x, y) {
@@ -3528,6 +4585,11 @@
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
+            ctx.shadowBlur=0;
+            ctx.fillStyle="#ffd294";
+            ctx.beginPath();ctx.moveTo(cx,cy-CELL*.43);ctx.lineTo(cx+CELL*.08,cy+CELL*.25);ctx.lineTo(cx+CELL*.3,cy+CELL*.34);ctx.closePath();ctx.fill();
+            ctx.strokeStyle="#7d253d";ctx.lineWidth=1;
+            ctx.beginPath();ctx.moveTo(cx-CELL*.3,cy+CELL*.34);ctx.lineTo(cx+CELL*.08,cy+CELL*.25);ctx.stroke();
           }
         } else if (attack.type === "wave") {
           ctx.shadowColor = "#6fdcff";
@@ -3543,6 +4605,10 @@
             ctx.fillStyle = "rgba(255,255,255,.8)";
             ctx.beginPath(); ctx.arc(cx - 4, cy - 3, 2, 0, Math.PI * 2); ctx.fill();
             ctx.beginPath(); ctx.arc(cx + 4, cy + 3, 1.5, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur=0;
+            ctx.strokeStyle="#d0f7ff";ctx.lineWidth=1.4;
+            const drift=richEffects&&!reducedMotion.matches?Math.sin(now/200+cell.x*.7+cell.y)*2:0;
+            ctx.beginPath();ctx.moveTo(x+4,cy+drift);ctx.bezierCurveTo(x+9,cy-6+drift,x+14,cy+6+drift,x+20,cy+drift);ctx.stroke();
           }
         } else {
           ctx.shadowColor = "#c47cff";
@@ -3556,69 +4622,15 @@
           ctx.moveTo(cx - 5, cy - 5); ctx.lineTo(cx + 5, cy + 5);
           ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx - 5, cy + 5);
           ctx.stroke();
+          if(!warning) {
+            ctx.shadowBlur=0;ctx.strokeStyle="#e5c7ff";ctx.lineWidth=1;
+            ctx.beginPath();ctx.moveTo(cx,cy-8);ctx.lineTo(cx+8,cy);ctx.lineTo(cx,cy+8);ctx.lineTo(cx-8,cy);ctx.closePath();ctx.stroke();
+            ctx.fillStyle="#f5ebff";ctx.beginPath();ctx.arc(cx,cy,1.8,0,Math.PI*2);ctx.fill();
+          }
         }
       }
       ctx.restore();
     }
-  }
-
-  function drawBoss(now) {
-    if (!boss) return;
-    const cx = boss.x * CELL + CELL / 2;
-    const cy = boss.y * CELL + CELL / 2;
-    const pulse = reducedMotion.matches ? 1 : 1 + Math.sin(now / 180) * 0.06;
-    const r = CELL * 0.75 * pulse;
-    if(boss.phase===2) {
-      ctx.save();ctx.strokeStyle=now<boss.phaseUntil?"#ffe4a6":"#f6a465";ctx.lineWidth=2;
-      ctx.setLineDash([6,5]);ctx.beginPath();ctx.arc(cx,cy,r*1.5,0,Math.PI*2);ctx.stroke();ctx.restore();
-    }
-    if (bossRecovering(now)) {
-      ctx.save();
-      ctx.strokeStyle = "#76e69a";
-      ctx.lineWidth = 3;
-      ctx.setLineDash([5, 4]);
-      ctx.beginPath(); ctx.arc(cx, cy, CELL * 1.15, 0, Math.PI * 2); ctx.stroke();
-      ctx.restore();
-    }
-    ctx.save();
-    ctx.globalAlpha = .5;
-    ctx.fillStyle = "#02050a";
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + r * .78, r * 1.05, r * .34, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = .36;
-    ctx.strokeStyle = boss.accent;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * (1.28 + (reducedMotion.matches ? 0 : Math.sin(now / 240) * .08)), 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.shadowColor = boss.accent;
-    ctx.shadowBlur = richEffects ? 18 : 0;
-    ctx.fillStyle = boss.color;
-    ctx.strokeStyle = "#160b10";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    if (boss.name === "KYOGRE") {
-      ctx.moveTo(-r * 1.25, 0); ctx.quadraticCurveTo(0, -r, r * 1.25, 0);
-      ctx.quadraticCurveTo(0, r * .8, -r * 1.25, 0);
-    } else if (boss.name === "DEOXYS") {
-      ctx.moveTo(0, -r * 1.25); ctx.lineTo(r * .75, r * .75);
-      ctx.lineTo(0, r * .35); ctx.lineTo(-r * .75, r * .75); ctx.closePath();
-    } else {
-      ctx.moveTo(-r, r * .6); ctx.lineTo(-r * .75, -r * .8);
-      ctx.lineTo(0, -r * 1.1); ctx.lineTo(r * .75, -r * .8);
-      ctx.lineTo(r, r * .6); ctx.closePath();
-    }
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = boss.accent;
-    ctx.beginPath(); ctx.arc(-r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(r * .28, -r * .15, r * .12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,.8)";
-    ctx.beginPath(); ctx.arc(0, r * .28, r * .16, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
   }
 
   function drawNature(now) {
@@ -4059,6 +5071,9 @@
     shinymegarayquaza: { top: "#a4adbb", mid: "#4d5867", bottom: "#171f2b", outline: "#080e16", horn: "#ffe19b", fin: "#edae57" },
     pastel: { top:"#e2f9d6", mid:"#8dd5b7", bottom:"#4f9687", outline:"#29584e", horn:"#fff0bd", fin:"#efb2c3" },
     pastelmega: { top:"#f0f9d1", mid:"#a4dcb9", bottom:"#5b9b86", outline:"#355a4f", horn:"#fff0bd", fin:"#efd19d" },
+    tempestmega: { top:"#c5ffff", mid:"#3bb3ae", bottom:"#164459", outline:"#0a202e", horn:"#eff8b6", fin:"#87eeff" },
+    prismmega: { top:"#e7d7ff", mid:"#9770c3", bottom:"#363464", outline:"#181d38", horn:"#c0fff3", fin:"#f0b1e5" },
+    ancientmega: { top:"#f1e7af", mid:"#a39050", bottom:"#344438", outline:"#1b2c27", horn:"#fff3c2", fin:"#90c6a1" },
   };
   const dragonSprites = new Map();
 
@@ -4209,6 +5224,7 @@
   function playerPalette() {
     if(snakeShiny) return evolved?PALETTE.shinymegarayquaza:PALETTE.shinyrayquaza;
     if(collection.equipped.palette==="pastel") return evolved?PALETTE.pastelmega:PALETTE.pastel;
+    if(evolved&&runMode!=="training")return PALETTE[runPath+"mega"];
     return evolved?PALETTE.megarayquaza:PALETTE.rayquaza;
   }
   function drawAccessory(c, id, time) {
@@ -4246,6 +5262,43 @@
     }
     ctx.restore();
   }
+  function drawLobbyArt() {
+    const art=document.getElementById("lobbyArt"),c=art.getContext("2d");
+    c.clearRect(0,0,art.width,art.height);c.save();c.scale(2,2);
+    const glow=c.createRadialGradient(210,85,8,210,85,180);
+    glow.addColorStop(0,"#6acfac40");glow.addColorStop(.55,"#397d7730");glow.addColorStop(1,"#173a3a00");
+    c.fillStyle=glow;c.fillRect(0,0,420,174);
+    c.strokeStyle="#b9dcae38";c.lineWidth=1;
+    for(const radius of [62,76]) {c.beginPath();c.arc(210,83,radius,0,Math.PI*2);c.stroke();}
+    for(let i=0;i<12;i++) {const a=i*Math.PI/6;c.beginPath();c.moveTo(210+Math.cos(a)*72,83+Math.sin(a)*72);c.lineTo(210+Math.cos(a)*79,83+Math.sin(a)*79);c.stroke();}
+    // Mountain silhouettes and a quiet horizon frame the central character.
+    for(let layer=0;layer<2;layer++) {
+      c.fillStyle=layer?"#0d252d":"#214246";c.beginPath();c.moveTo(0,174);
+      for(let i=0;i<=14;i++)c.lineTo(i*30,139+layer*17-Math.sin(i*2.6+layer)*12);
+      c.lineTo(420,174);c.closePath();c.fill();
+    }
+    for(let i=0;i<22;i++) {const x=(i*97+31)%410,y=(i*43+11)%137;c.fillStyle=i%3?"#96cfbf66":"#e3dda7bb";c.fillRect(x,y,i%3?1:2,i%3?1:2);}
+    c.globalAlpha=.78;
+    c.drawImage(monsterSprite("groudon").image,27,69,91,91);
+    c.drawImage(monsterSprite("kyogre").image,303,71,98,98);
+    c.globalAlpha=1;
+    const body=new Path2D("M 158 146 C 260 161 289 115 222 109 C 155 103 153 61 228 52");
+    c.lineCap="round";c.lineJoin="round";
+    c.strokeStyle="#061c25";c.lineWidth=25;c.stroke(body);
+    c.strokeStyle="#368777";c.lineWidth=20;c.stroke(body);
+    c.strokeStyle="#a4dca566";c.lineWidth=5;c.stroke(body);
+    const pal=PALETTE.rayquaza;
+    for(const [x,y,angle] of [[184,146,.1],[231,140,-.3],[252,121,-1.6],[218,109,3.2],[181,93,4],[184,66,5.5]]) {
+      c.save();c.translate(x,y);c.rotate(angle);c.drawImage(dragonPart("ring",pal,false),-32,-32,64,64);c.restore();
+    }
+    c.save();c.translate(232,51);c.rotate(-.22);c.scale(2.1,2.1);
+    c.drawImage(dragonPart("arms",pal,false),-46,-32,64,64);
+    c.drawImage(dragonPart("head",pal,false),-32,-32,64,64);c.restore();
+    c.strokeStyle="#dce7b373";c.lineWidth=1;c.beginPath();c.moveTo(52,165);c.lineTo(167,165);c.moveTo(254,165);c.lineTo(369,165);c.stroke();
+    c.fillStyle="#dce7b3";c.beginPath();c.moveTo(210,160);c.lineTo(214,165);c.lineTo(210,170);c.lineTo(206,165);c.closePath();c.fill();
+    c.restore();
+  }
+
   function drawCollectionPreview() {
     const c=document.getElementById("collectionPreview").getContext("2d");c.clearRect(0,0,260,200);
     const pal=playerPalette();
@@ -4536,6 +5589,7 @@
     const rendered = renderedSnake(now);
     drawBackground(now);
     drawBiomeAtmosphere(visualTime(), rendered[0]);
+    drawBossDomain(now);
 
     ctx.save();
 
@@ -4562,6 +5616,7 @@
     drawUpgradeChoices(now);
     drawMagikarp();
     drawSnake(rendered, now);
+    drawLegendEffects(now,rendered[0]);
     if (beam && now < beam.until) drawBeam(beam, now);
     if (ascent && now < ascent.until) drawBeam(ascent, now);
     drawReflection(now);
@@ -4571,9 +5626,25 @@
     ctx.restore();
 
     drawWeather(now);
+    if(runMode==="training" && state==="playing") drawTrainingTarget(now);
+  }
+
+  function drawTrainingTarget(now) {
+    const target=tutorialStep===0||tutorialStep===3?food:tutorialStep===1?rocks[0]:tutorialStep===4?boss:terrain[0];
+    if(!target)return;
+    const x=target.x*CELL+CELL/2,y=target.y*CELL+CELL/2;
+    ctx.save();ctx.strokeStyle="#e5efad";ctx.lineWidth=2;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.arc(x,y,20+(reducedMotion.matches?0:Math.sin(now/240)*3),0,Math.PI*2);ctx.stroke();ctx.restore();
   }
 
   function loop(now) {
+    if(pendingScene&&state==="playing")openCinematic();
+    if(cinematic) {
+      drawCinematic(now);
+      if(now-cinematic.started>=3400&&!document.hidden)finishCinematic();
+    }
+    if(chainFlash&&now>=chainFlash.until&&state==="playing")chainFlash=null;
+    if(state==="playing" && runMode==="daily" && runElapsed(now)>=DAILY_DURATION) finishRun("time");
     if (state === "playing") {
       if(ascent && now>=ascent.until) ascent=null;
       if(reflection && now>=reflection.until) reflection=null;
@@ -4619,6 +5690,7 @@
       }
 
       // Magikarp emas
+      if (runMode !== "training" && runMode !== "rush") {
       if (!magikarp) {
         if (now - lastMagikarpSpawn >= 15000) {
           const c = randomCell();
@@ -4632,6 +5704,7 @@
         if (c) { magikarp.x = c.x; magikarp.y = c.y; }
         magikarpMove = now;
       }
+      }
 
       bossAttacks = bossAttacks.filter(attack => now < attack.until);
       bossAttack(now);
@@ -4639,7 +5712,7 @@
 
       // Draco Meteor (hujan meteor)
       meteors = meteors.filter(m => now < m.landAt + 5000);
-      if (!boss && !airLockActive(now) && !terrain.length && now >= upgradeCalmUntil && now - lastMeteorTime >= (effectiveWeather(now) === "hail" ? 5000 : 10000)) {
+      if (runMode !== "training" && runMode !== "rush" && !boss && !airLockActive(now) && !terrain.length && now >= upgradeCalmUntil && now - lastMeteorTime >= (effectiveWeather(now) === "hail" ? 5000 : 10000)) {
         for (let i = 0; i < 3; i++) {
           const c = randomCell();
           if (!c) break;
@@ -4651,14 +5724,16 @@
 
       // Cuaca (Sunny / Rain / Sandstorm / Hail)
       if (now > weatherUntil) weather = null;
-      if (!airLockActive(now) && Math.abs(natureBalance) < 25 && now >= upgradeCalmUntil && now - lastWeatherTime >= 15000) {
+      if (runMode !== "training" && !airLockActive(now) && Math.abs(natureBalance) < 25 && now >= upgradeCalmUntil && now - lastWeatherTime >= 15000) {
         const weathers = ["sunny", "rain", "sandstorm", "hail"];
-        weather = weathers[Math.floor(Math.random() * weathers.length)];
+        weather = weathers[Math.floor(gameRandom() * weathers.length)];
         weatherUntil = now + 10000;
         lastWeatherTime = now;
       }
+      checkTrainingProgress();
     }
     if (state !== "paused") updateFX(now);
+    updateLegendsHud(state==="paused"?pausedAt:now);
 
     // Saat pause, HUD membaca waktu saat tombol pause ditekan agar semua countdown benar-benar beku.
     const effectNow = state === "paused" ? pausedAt : now;
@@ -4670,6 +5745,7 @@
     setAttribute(document.getElementById("comboMeter"), "aria-valuenow", Math.round(comboPercent));
     updateNatureHud(effectNow);
     updateCombatHud();
+    updateExpeditionHud(effectNow);
 
     const rem = multiplierUntil - effectNow;
     if (multiplier > 1 && rem > 0) {
@@ -4755,12 +5831,19 @@
     state = "paused";
     updateJourney();
     pauseOverlay.classList.remove("hidden");
+    updateExpeditionHud();
   }
 
   function resumeGame() {
     if (state !== "paused") return;
+    if(cinematic)return;
+    if(rushResting || !document.getElementById("lessonOverlay").classList.contains("hidden")) return;
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
+    partner.nextCollect=shiftPausedDeadline(partner.nextCollect,pauseDuration);
+    partner.flashUntil=shiftPausedDeadline(partner.flashUntil,pauseDuration);
+    if(chainFlash)chainFlash.until+=pauseDuration;
+    runStartedAt=shiftPausedDeadline(runStartedAt,pauseDuration);
     steeringStartedAt = shiftPausedDeadline(steeringStartedAt, pauseDuration);
     dragonVisualAt = shiftPausedDeadline(dragonVisualAt, pauseDuration);
     biomeChangedAt = shiftPausedDeadline(biomeChangedAt, pauseDuration);
@@ -4803,6 +5886,7 @@
       boss.nextAttack += pauseDuration;
       boss.recoveryAt = shiftPausedDeadline(boss.recoveryAt, pauseDuration);
       boss.phaseUntil = shiftPausedDeadline(boss.phaseUntil, pauseDuration);
+      boss.hurtUntil = shiftPausedDeadline(boss.hurtUntil || 0, pauseDuration);
     }
     if (beam) beam.until += pauseDuration;
     if (ascent) ascent.until += pauseDuration;
@@ -4812,6 +5896,7 @@
     state = "playing";
     pauseOverlay.classList.add("hidden");
     updateJourney();
+    updateExpeditionHud();
     if (audio && audio.state === "suspended") audio.resume().catch(() => {});
   }
 
@@ -4894,8 +5979,12 @@
 
   window.addEventListener("keydown", (e) => {
     if (document.getElementById("collectionDialog").open) return;
+    if (document.getElementById("monsterDialog").open) return;
+    if (document.getElementById("cinematicDialog").open) return;
+    if(!document.getElementById("lessonOverlay").classList.contains("hidden") || rushResting) return;
     // Collection is keyboard-accessible without changing the existing gameplay shortcuts.
-    if ((e.key === " " || e.key === "Enter") && (["collectionBtn","ascentBtn","ascentTouchBtn"].includes(e.target.id) || e.target.tagName==="SUMMARY")) return;
+    if ((e.key === " " || e.key === "Enter") && e.target?.closest?.("button, a, summary")) return;
+    if (state === "start" && e.target?.closest?.("[data-mode], [data-loadout], [data-path], [data-partner], #cinematicsSetting, #trainingBtn")) return;
     if (e.key === "Escape") {
       if (state === "playing") {
         e.preventDefault();
@@ -4962,6 +6051,7 @@
 
   // Tombol Hyper Beam (laser) di layar sentuh.
   elAirLock.addEventListener("click", () => { initAudio(); activateAirLock(); });
+  document.getElementById("airTouchBtn").addEventListener("click",()=>{initAudio();activateAirLock();});
   for(const id of ["ascentBtn","ascentTouchBtn"]) document.getElementById(id).addEventListener("click", () => { initAudio();activateAscent(); });
   elFire.addEventListener("click", () => {
     initAudio();
@@ -5021,6 +6111,24 @@
     if (state === "playing") pauseGame();
     else if (state === "paused") resumeGame();
   });
+  document.getElementById("modePicker").addEventListener("click",event=>{
+    const button=event.target.closest("[data-mode]");if(button)selectMode(button.dataset.mode);
+  });
+  document.getElementById("loadoutPicker").addEventListener("click",event=>{
+    const button=event.target.closest("[data-loadout]");
+    if(button && LOADOUTS[button.dataset.loadout]) {selectedLoadout=button.dataset.loadout;renderModeMenu();}
+  });
+  document.getElementById("trainingBtn").addEventListener("click",()=>{initAudio();start("training");});
+  document.getElementById("lessonStartBtn").addEventListener("click",()=>{
+    document.getElementById("lessonOverlay").classList.add("hidden");initAudio();resumeGame();prepareTrainingStage();canvas.focus({preventScroll:true});
+  });
+  document.getElementById("rushRewards").addEventListener("click",event=>{
+    const button=event.target.closest("[data-rush-upgrade]");if(button)nextRushRound(button.dataset.rushUpgrade);
+  });
+  for(const id of ["pauseMenuBtn","lessonMenuBtn","rushMenuBtn","resultMenuBtn"]) document.getElementById(id).addEventListener("click",returnToMenu);
+  document.getElementById("shareBtn").addEventListener("click",shareResult);
+  document.getElementById("saveCardBtn").addEventListener("click",saveResultCard);
+  elPlayerName.addEventListener("input",()=>{document.getElementById("menuPlayerName").textContent=elPlayerName.value.trim()||"PLAYER";});
   document.getElementById("qualityBtn").addEventListener("click", () => {
     richEffects = !richEffects;
     for(let i=0;i<4;i++) biomeLayer(i);
@@ -5034,10 +6142,13 @@
     updatePreferences();
   });
   document.addEventListener("visibilitychange", () => {
+    if(document.hidden&&cinematic)cinematic.interrupted=true;
     if (document.hidden) { pauseGame(); flushCollection(); }
   });
   window.addEventListener("pagehide", flushCollection);
   document.getElementById("collectionBtn").addEventListener("click", openCollection);
+  document.getElementById("monsterBtn").addEventListener("click",openMonsterAtlas);
+  document.getElementById("monsterClose").addEventListener("click",()=>document.getElementById("monsterDialog").close());
   document.getElementById("collectionClose").addEventListener("click", () => document.getElementById("collectionDialog").close());
   document.getElementById("wardrobeGrid").addEventListener("click", event => {
     const card=event.target.closest("button[data-cosmetic]");
@@ -5049,15 +6160,32 @@
   document.querySelectorAll(".lang-toggle button").forEach(btn => {
     btn.addEventListener("click", () => setLang(btn.dataset.lang));
   });
+  try {
+    const requestedMode=new URL(location.href).searchParams.get("mode");
+    if(["adventure","daily","rush"].includes(requestedMode))selectedMode=requestedMode;
+  } catch(_) {}
   applyI18n();
 
-  function start() {
+  function start(mode = selectedMode) {
+    if(!["adventure","daily","rush","training"].includes(mode))return;
+    runMode=mode;
     reset();
+    if(mode==="daily") {
+      const blessing=dailyBlessing(dailyDate);
+      if(blessing==="combo")upgrades.combo=1;
+      if(blessing==="meteor")upgrades.mega=1;
+      if(blessing==="prism"){upgrades.beam=2;upgrades.combo=1;}
+      shield=1;food=null;spawnFood();
+    }
+    if(mode==="rush") {
+      upgrades={...LOADOUTS[selectedLoadout]};shield=selectedLoadout==="guard"?2:1;ascentCharge=40;airLockCharge=50;
+    }
     if (snakeShiny) {
       spawnPopup(snake[0].x, snake[0].y - 2, "✨ SHINY RAYQUAZA!", "#ffe98a");
       sfx.shiny();
     }
     state = "playing";
+    runStartedAt=performance.now();
     lastTick = performance.now();
     lastWildMove = performance.now();
     lastMagikarpSpawn = performance.now();
@@ -5066,21 +6194,22 @@
     lastTrail = performance.now();
     startOverlay.classList.add("hidden");
     overOverlay.classList.add("hidden");
-    updateJourney();
+    renderUpgradeChips();renderSynergies();updateHud();updateExpeditionHud();
+    moveDuration=speedMs();
+    if(mode==="rush")startBoss();
+    if(mode==="training")showLesson();
+    else canvas.focus({preventScroll:true});
   }
 
   function restart() {
-    reset();
-    state = "playing";
-    lastTick = performance.now();
-    lastWildMove = performance.now();
-    lastMagikarpSpawn = performance.now();
-    lastMeteorTime = performance.now();
-    lastWeatherTime = performance.now();
-    lastTrail = performance.now();
-    overOverlay.classList.add("hidden");
-    updateJourney();
+    start(runMode);
   }
+
+  document.querySelectorAll("[data-path]").forEach(button=>button.addEventListener("click",()=>{selectedPath=button.dataset.path;saveLegendPreferences();renderLegendMenu();}));
+  document.querySelectorAll("[data-partner]").forEach(button=>button.addEventListener("click",()=>{selectedPartner=button.dataset.partner;saveLegendPreferences();renderLegendMenu();}));
+  document.getElementById("cinematicsSetting").addEventListener("change",event=>{cinematicsEnabled=event.target.checked;saveLegendPreferences();});
+  document.getElementById("cinematicSkip").addEventListener("click",()=>finishCinematic(true));
+  document.getElementById("cinematicDialog").addEventListener("cancel",event=>{event.preventDefault();finishCinematic(true);});
 
   // ---------- Jalan ----------
   reset();
@@ -5090,6 +6219,8 @@
     for(const part of ["head","fin","arms","tail","ring"]) dragonPart(part,pal,form);
   }
   for(let i=0;i<4;i++) biomeLayer(i);
+  for(const type of MONSTER_TYPES) for(let frame=0;frame<4;frame++) monsterSprite(type,frame);
+  drawLobbyArt();
   requestAnimationFrame(loop);
 })();
 </script>
