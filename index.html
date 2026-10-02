@@ -5993,8 +5993,10 @@
     if (document.getElementById("monsterDialog").open) return;
     if (document.getElementById("cinematicDialog").open) return;
     if(!document.getElementById("lessonOverlay").classList.contains("hidden") || rushResting) return;
-    // Collection is keyboard-accessible without changing the existing gameplay shortcuts.
-    if ((e.key === " " || e.key === "Enter") && e.target?.closest?.("button, a, summary")) return;
+    // During play, Space belongs to Hyper Beam even when a utility button retains focus.
+    // Keep native keyboard activation in menus/dialogs and Enter on buttons.
+    if ((e.key === "Enter" || (e.key === " " && state !== "playing"))
+      && e.target?.closest?.("button, a, summary")) return;
     if (state === "start" && e.target?.closest?.("[data-mode], [data-loadout], [data-path], [data-partner], #cinematicsSetting, #trainingBtn")) return;
     if (e.key === "Escape") {
       if (state === "playing") {
