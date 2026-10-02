@@ -1044,13 +1044,13 @@
   .legends-hud strong { display:block;font-size:11px;color:#ddedb8; }
   .legends-hud small { display:block;font-size:10px;color:#a8c8c5;line-height:1.7;margin-top:3px; }
   .legends-hud #bossRead { color:#edcf9e; }
-  #cinematicDialog { width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:0 0 22px;border:1px solid var(--scene-accent,#8fd2b3);border-radius:20px;background:#0b1823;color:#eff6de;text-align:center;box-shadow:0 30px 100px #000b; }
-  #cinematicDialog::backdrop { background:#020914df; }
-  #cinematicArt { width:100%;height:auto;display:block;border:0;border-radius:20px 20px 0 0;box-shadow:none; }
-  #cinematicDialog h2 { color:var(--scene-accent);font-size:clamp(17px,4vw,27px);letter-spacing:.09em;margin:15px 12px 8px; }
-  #cinematicDialog p { color:#b5cbcb;font-size:12px;line-height:1.7;margin:8px 24px 18px; }
-  #cinematicSkip { min-height:44px;min-width:160px; }
   @media(max-width:899px) { .legends-hud { order:9; } }
+  .sky-hud { order:6; height:88px; flex-shrink:0; padding:9px 12px; border:1px solid #71d6c344; border-radius:10px; background:#10262b; overflow:hidden; }
+  .sky-hud strong,.sky-hud small { display:block; line-height:1.5; }
+  .sky-hud strong { color:#b6f6df; font-size:11px; }
+  .sky-hud small { color:#bdd1d5; font-size:10px; }
+  #bossNotice { color:#ffe19b; }
+  :root[data-screen="start"] .sky-hud { display:none; }
 </style>
 </head>
 <body>
@@ -1100,6 +1100,7 @@
       <div class="combo-life" role="meter" id="comboMeter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="comboFill"></span></div>
     </div>
 
+    <div class="sky-hud" id="skyHud"><strong id="skyTitle"></strong><small id="skyHint"></small><small id="bossNotice" role="status"></small></div>
     <div class="journey">
       <div class="journey-heading"><strong data-i18n="journey.title">PERJALANAN EMERALD</strong><span id="levelProgressLabel"></span></div>
       <progress id="levelProgress" max="100" value="0" aria-label="Level"></progress>
@@ -1262,7 +1263,6 @@
   <div class="collection-head"><h2 id="monsterTitle" data-i18n="monster.title">ATLAS MONSTER</h2><button class="utility-btn" id="monsterClose" type="button" data-i18n="collection.close">TUTUP</button></div>
   <p id="monsterNote" data-i18n="monster.note"></p><div class="monster-grid" id="monsterGrid"></div>
 </dialog>
-<dialog id="cinematicDialog" aria-labelledby="cinematicTitle" aria-describedby="cinematicText"><canvas id="cinematicArt" width="800" height="400" aria-hidden="true"></canvas><h2 id="cinematicTitle"></h2><p id="cinematicText"></p><button type="button" id="cinematicSkip" class="utility-btn" data-i18n="scene.skip"></button></dialog>
 <script>
 (() => {
   "use strict";
@@ -1610,7 +1610,7 @@
     "partner.collector.desc":"Pip mengambil berry yang dapat dijangkau setiap 8–12 detik. Berry jarak jauh memberi poin tanpa memanjangkan tubuh. Jangkauan bertambah setiap 8 item.",
     "partner.none.desc":"Terbang solo dengan kemampuanmu sendiri.", "partner.bond":"Ikatan", "partner.route":"Titik mint: saran rute saat ini", "partner.wait":"Luma mencari jalur terbuka", "partner.cooldown":"Pip siap dalam", "partner.collected":"PIP · BERRY!",
     "boss.read":"Boss membaca", "habit.observe":"Mengamati", "habit.edge":"Pola di tepi", "habit.beam":"Arah Beam berulang", "habit.straight":"Gerakan lurus", "habit.weave":"Gerakan berkelok", "habit.reposition":"Menunggu ruang serang",
-    "scene.setting":"Sinematik boss · permainan dijeda", "scene.skip":"LANJUT / LEWATI", "scene.arrival":"SANG LEGENDA", "scene.awakening":"KEKUATAN BANGKIT",
+    "scene.setting":"Notifikasi boss - tanpa jeda", "scene.skip":"LANJUT / LEWATI", "scene.arrival":"SANG LEGENDA", "scene.awakening":"KEKUATAN BANGKIT",
     "scene.groudon":"Tanah bergetar. Magma bangkit. Temukan celah di antara retakan.", "scene.kyogre":"Laut menjawab panggilan badai. Baca arus, lalu tembus gelombang.", "scene.deoxys":"Energi kosmik membelah langit. Ubah arah sebelum pola menguncimu."
   });
   Object.assign(I18N.en, {
@@ -1625,8 +1625,26 @@
     "partner.collector.desc":"Pip collects reachable berries every 8–12 seconds. Remote berries award points without growing your body. Range grows every 8 items.",
     "partner.none.desc":"Fly solo with your own abilities.", "partner.bond":"Bond", "partner.route":"Mint dots: current route suggestion", "partner.wait":"Luma is looking for an open route", "partner.cooldown":"Pip ready in", "partner.collected":"PIP · BERRY!",
     "boss.read":"Boss reads", "habit.observe":"Observing", "habit.edge":"Edge movement", "habit.beam":"Repeated Beam direction", "habit.straight":"Straight movement", "habit.weave":"Weaving movement", "habit.reposition":"Waiting for attack space",
-    "scene.setting":"Boss cinematics · gameplay pauses", "scene.skip":"CONTINUE / SKIP", "scene.arrival":"LEGEND AWAKENS", "scene.awakening":"POWER UNLEASHED",
+    "scene.setting":"Boss notices - no pause", "scene.skip":"CONTINUE / SKIP", "scene.arrival":"LEGEND AWAKENS", "scene.awakening":"POWER UNLEASHED",
     "scene.groudon":"The earth trembles. Magma rises. Find your opening between the fissures.", "scene.kyogre":"The ocean answers the storm. Read the current, then break through the waves.", "scene.deoxys":"Cosmic energy splits the sky. Change direction before the pattern locks you in."
+  });
+  Object.assign(I18N.id, {
+    "rift.idle":"SKY RIFT", "rift.wait":"Portal bonus muncul setiap 60-90 detik di luar boss.",
+    "rift.choose":"SKY RIFT | pilih portal", "rift.enter":"B: berry | M: meteor | G: emas. Masuk satu atau abaikan.",
+    "rift.berry":"BERRY RUSH", "rift.meteor":"METEOR DASH", "rift.golden":"GOLDEN CHASE",
+    "rift.berryHint":"Ambil 3 berry rift biru; tubuh tidak memanjang.", "rift.meteorHint":"Bertahan sampai waktu habis. Hindari tanda meteor!",
+    "rift.goldenHint":"Tangkap ikan emas rift sebelum berpindah!", "rift.win":"RIFT SELESAI | 2x poin 10s +20 Ascent",
+    "rift.fail":"Rift tertutup | coba lagi nanti", "rift.boss":"Rift ditutup | boss mendekat", "rift.disabled":"Sky Rift tersedia di Adventure dan Harian.",
+    "dodge.perfect":"PERFECT DODGE | +15 Ascent +10 Air Lock"
+  });
+  Object.assign(I18N.en, {
+    "rift.idle":"SKY RIFT", "rift.wait":"Bonus portals appear every 60-90 seconds outside boss fights.",
+    "rift.choose":"SKY RIFT | choose a portal", "rift.enter":"B: berries | M: meteors | G: gold. Enter one or ignore.",
+    "rift.berry":"BERRY RUSH", "rift.meteor":"METEOR DASH", "rift.golden":"GOLDEN CHASE",
+    "rift.berryHint":"Collect 3 blue rift berries; no body growth.", "rift.meteorHint":"Survive until time runs out. Watch the meteor warnings!",
+    "rift.goldenHint":"Catch the golden rift fish before it moves!", "rift.win":"RIFT CLEAR | 2x points 10s +20 Ascent",
+    "rift.fail":"Rift closed | try again next time", "rift.boss":"Rift closed | boss approaching", "rift.disabled":"Sky Rift is available in Adventure and Daily.",
+    "dodge.perfect":"PERFECT DODGE | +15 Ascent +10 Air Lock"
   });
   function t(key) {
     return (I18N[lang] && I18N[lang][key]) || I18N.id[key] || key;
@@ -1814,7 +1832,7 @@
   const PARTNERS = ["guide","collector","none"];
   let selectedPath="tempest",selectedPartner="guide",runPath="tempest",runPartner="guide";
   let habits={moves:[],shots:[]},partner={nextCollect:0,route:[],bond:0,mood:"calm",flashUntil:0};
-  let chainFlash=null,pendingScene=null,cinematic=null,cinematicsEnabled=true;
+  let chainFlash=null,pendingScene=null,cinematicsEnabled=true;
   try {
     const saved=JSON.parse(localStorage.getItem("storm-emeralda-legends-v1")||"null");
     if(PATHS.includes(saved?.path))selectedPath=saved.path;
@@ -1828,8 +1846,7 @@
   function pathActive(id) {return evolved && runMode!=="training" && runPath===id;}
   function pathRank() {const key={tempest:"combo",prism:"beam",ancient:"shield"}[runPath];return 1+Math.min(2,upgrades[key]||0);}
   function resetLegends() {
-    habits={moves:[],shots:[]};chainFlash=null;pendingScene=null;cinematic=null;
-    const dialog=document.getElementById("cinematicDialog");if(dialog.open)dialog.close();
+    habits={moves:[],shots:[]};chainFlash=null;pendingScene=null;
     runPath=selectedPath;runPartner=runMode==="training"?"none":selectedPartner;
     partner={nextCollect:performance.now()+12000,route:[],bond:0,mood:"calm",flashUntil:0};
   }
@@ -1991,74 +2008,154 @@
     if(cinematicsEnabled&&runMode!=="training")pendingScene={kind,type};
   }
   function openCinematic() {
-    if(!pendingScene||state!=="playing")return;
-    const next=pendingScene;pendingScene=null;pauseGame();pauseOverlay.classList.add("hidden");
-    cinematic={...next,started:performance.now(),interrupted:false};
-    const dialog=document.getElementById("cinematicDialog");
-    dialog.style.setProperty("--scene-accent",next.type==="groudon"?"#ffbc82":next.type==="kyogre"?"#a0e9ff":"#d4bbff");
-    setText(document.getElementById("cinematicTitle"),next.type.toUpperCase()+" · "+t("scene."+next.kind));
-    setText(document.getElementById("cinematicText"),t("scene."+next.type));
-    dialog.showModal();document.getElementById("cinematicSkip").focus();
-    const base=next.type==="groudon"?110:next.type==="kyogre"?146.83:164.81;
-    for(let i=0;i<4;i++){tone(base*Math.pow(1.5,i),.65,"triangle",.055,i*.23);tone(base/2,.8,"sine",.045,i*.23);}
-    drawCinematic(performance.now());
+    if (!pendingScene || state !== "playing") return;
+    const next = pendingScene; pendingScene = null;
+    bossNotice = { ...next, until: performance.now() + 3200 };
   }
-  function finishCinematic(explicit=false) {
-    if(!cinematic)return;
-    const interrupted=cinematic.interrupted;cinematic=null;
-    document.getElementById("cinematicDialog").close();
-    if(!document.hidden&&(explicit||!interrupted))resumeGame();else pauseOverlay.classList.remove("hidden");
+
+  let skyRift = null, nextSkyRift = 0, skyMessage = null, bossNotice = null, dodgeCooldown = 0;
+  const RIFT_KINDS = ["berry", "meteor", "golden"];
+  function resetSkyEvents() {
+    skyRift = null; skyMessage = null; bossNotice = null; dodgeCooldown = 0;
+    // Set on the first playing frame so time in the lobby does not consume the timer.
+    nextSkyRift = 0;
+    for (const id of ["skyTitle", "skyHint", "bossNotice"]) setText(document.getElementById(id), "");
   }
-  function drawCinematic(now) {
-    if(!cinematic)return;
-    const art=document.getElementById("cinematicArt"),c=art.getContext("2d"),type=cinematic.type;
-    const elapsed=Math.max(0,now-cinematic.started),motion=richEffects&&!reducedMotion.matches;
-    const p=motion?Math.min(1,elapsed/900):1,t=motion?elapsed/1000:0;
-    c.clearRect(0,0,800,400);
-    const glow=c.createRadialGradient(400,200,10,400,200,440);
-    glow.addColorStop(0,type==="groudon"?"#724135":type==="kyogre"?"#1f526b":"#493965");glow.addColorStop(1,"#07131e");c.fillStyle=glow;c.fillRect(0,0,800,400);
-    c.save();c.translate(400,205);c.strokeStyle=type==="groudon"?"#ffbd7844":type==="kyogre"?"#9cddff44":"#c1a1ff44";
-    for(let i=0;i<4;i++){c.lineWidth=1;c.beginPath();c.ellipse(0,25,110+i*45,45+i*23,t*.04,0,Math.PI*2);c.stroke();}
-    c.restore();
-    for(let i=0;i<(richEffects?34:12);i++) {
-      const x=(i*137+23)%800,y=(i*71+400-t*(type==="groudon"?20:8))%400;
-      c.fillStyle=type==="groudon"?"#ffc08088":type==="kyogre"?"#8cdfff55":"#d5bdff99";
-      c.beginPath();c.arc(x,y,1+i%3,0,Math.PI*2);c.fill();
+  function skyOccupied(x, y) {
+    return !!skyRift && (skyRift.entries.some(cell => cell.x === x && cell.y === y)
+      || !!skyRift.token && skyRift.token.x === x && skyRift.token.y === y);
+  }
+  function scheduleSkyRift(now) { nextSkyRift = now + 60000 + gameRandom() * 30000; }
+  function riftCell() {
+    // Reachability and occupancy are checked only on spawn, never on draw.
+    const choices = reachableUpgradeCells().filter(c => !occupied(c.x, c.y));
+    return choices.length ? choices[Math.floor(gameRandom() * choices.length)] : null;
+  }
+  function spawnSkyRift(now) {
+    if (boss || runMode === "training" || runMode === "rush") return false;
+    skyRift = {phase:"offer", entries:[], token:null, kind:null, count:0, until:now+15000, nextAction:0};
+    for (const kind of RIFT_KINDS) {
+      const cell = riftCell();
+      if (cell) skyRift.entries.push({...cell, kind});
     }
-    c.save();c.lineWidth=2;
-    if(type==="groudon") {
-      for(let i=0;i<7;i++) {
-        const x=i*140-30;c.fillStyle="#1d2029";c.beginPath();c.moveTo(x,382);c.lineTo(x+30,300-(i%3)*17);c.lineTo(x+70,270+(i%2)*35);c.lineTo(x+125,382);c.closePath();c.fill();
-        c.strokeStyle="#f8a56a88";c.beginPath();c.moveTo(x+40,382);c.lineTo(x+63,339);c.lineTo(x+48,317);c.lineTo(x+70,285+(i%2)*26);c.stroke();
+    if (!skyRift.entries.length) { skyRift = null; nextSkyRift = now + 5000; return false; }
+    skyMessage = null;
+    return true;
+  }
+  function endSkyRift(won, now, key = "rift.fail") {
+    if (!skyRift) return;
+    skyRift = null;
+    meteors = meteors.filter(m => !m.skyRift);
+    scheduleSkyRift(now);
+    skyMessage = {key:won ? "rift.win" : key, until:now+4000};
+    if (won) {
+      multiplier = Math.max(2, multiplier); multiplierUntil = Math.max(multiplierUntil, now+10000);
+      gainAscent(20);
+      spawnRing(snake[0].x, snake[0].y, "#93f6d2");
+      sfx.rare();
+    }
+  }
+  function collectSkyRift(x, y, now) {
+    if (!skyRift) return;
+    if (now >= skyRift.until) { endSkyRift(skyRift.phase === "active" && skyRift.kind === "meteor", now); return; }
+    if (skyRift.phase === "offer") {
+      const entry = skyRift.entries.find(c => c.x === x && c.y === y);
+      if (!entry) return;
+      skyRift.phase = "active"; skyRift.kind = entry.kind; skyRift.entries = [];
+      skyRift.until = now + 15000; skyRift.nextAction = now + (entry.kind === "golden" ? 2400 : 0);
+      if (entry.kind !== "meteor") skyRift.token = riftCell();
+      spawnRing(x, y, "#9ce6ff");
+      return;
+    }
+    if (skyRift.token && skyRift.token.x === x && skyRift.token.y === y) {
+      skyRift.count++;
+      spawnParticles(x, y, skyRift.kind === "berry" ? "#8fc0ff" : "#ffe08a", 6, 1.5);
+      sfx.eat();
+      if (skyRift.kind === "golden" || skyRift.count >= 3) endSkyRift(true, now);
+      else { skyRift.token = null; skyRift.token = riftCell(); }
+    }
+  }
+  function updateSkyRift(now) {
+    if (state !== "playing" || runMode === "training" || runMode === "rush") return;
+    if (skyMessage && now >= skyMessage.until) skyMessage = null;
+    if (!nextSkyRift) scheduleSkyRift(now);
+    if (boss) { if (skyRift) endSkyRift(false, now, "rift.boss"); return; }
+    if (!skyRift) {
+      if (now >= nextSkyRift && !upgradeChoices.length) spawnSkyRift(now);
+      return;
+    }
+    if (now >= skyRift.until) { endSkyRift(skyRift.phase === "active" && skyRift.kind === "meteor", now); return; }
+    if (skyRift.phase !== "active" || now < skyRift.nextAction) return;
+    skyRift.nextAction = now + (skyRift.kind === "golden" ? 2400 : 2500);
+    if (skyRift.kind === "meteor") {
+      if (airLockActive(now)) return;
+      // Two spaced warnings per wave; no meteor may spawn on the player or rift targets.
+      for (let i=0; i<2; i++) {
+        const c = safeCell();
+        if (c) meteors.push({...c, landAt:now+1800, skyRift:true});
       }
-    } else if(type==="kyogre") {
-      for(let band=0;band<4;band++) {
-        c.strokeStyle=band%2?"#88dbed77":"#378ba866";c.beginPath();
-        for(let x=0;x<=800;x+=8){const y=300+band*23+Math.sin(x/64-t*.8+band)*12;x?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();
+    } else if (!skyRift.token || skyRift.kind === "golden") {
+      const next = riftCell();
+      if (next) skyRift.token = next;
+    }
+  }
+  function updateSkyHud(now) {
+    const active = state === "playing" || state === "paused";
+    let title = t("rift.idle"), hint = t(runMode === "training" || runMode === "rush" ? "rift.disabled" : "rift.wait");
+    if (active && skyRift) {
+      title = t(skyRift.phase === "offer" ? "rift.choose" : "rift."+skyRift.kind) + " · " + Math.max(0, Math.ceil((skyRift.until-now)/1000)) + "s";
+      hint = skyRift.phase === "offer" ? t("rift.enter") : t("rift."+skyRift.kind+"Hint") + (skyRift.kind === "berry" ? " "+skyRift.count+"/3" : "");
+    } else if (active && skyMessage && now < skyMessage.until) hint = t(skyMessage.key);
+    setText(document.getElementById("skyTitle"), title);
+    setText(document.getElementById("skyHint"), hint);
+    setText(document.getElementById("bossNotice"), active && bossNotice && now < bossNotice.until
+      ? bossNotice.type.toUpperCase()+" · "+t("scene."+bossNotice.kind) : "");
+  }
+  function drawSkyRift(now) {
+    if (!skyRift) return;
+    ctx.save(); ctx.shadowBlur = 0;
+    for (const gate of skyRift.entries) {
+      const x=(gate.x+.5)*CELL, y=(gate.y+.5)*CELL;
+      const pulse = reducedMotion.matches ? 1 : 1+Math.sin(now/260)*.08;
+      ctx.strokeStyle = gate.kind === "berry" ? "#8fc0ff" : gate.kind === "meteor" ? "#ffb38a" : "#ffe08a";
+      ctx.fillStyle = "#102c3c"; ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(x,y,9*pulse,11*pulse,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle="#ffffff";ctx.font="bold 10px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText(gate.kind === "berry" ? "B" : gate.kind === "meteor" ? "M" : "G",x,y);
+    }
+    if (skyRift.token) {
+      const x=(skyRift.token.x+.5)*CELL,y=(skyRift.token.y+.5)*CELL;
+      ctx.strokeStyle="#a7f8ee";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);ctx.stroke();
+      if (skyRift.kind === "berry") berry(x,y,6,"#4a90d9","#8fc0ff");
+      else {
+        ctx.fillStyle="#ffd765";ctx.beginPath();ctx.ellipse(x-1,y,6,4,0,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.moveTo(x+3,y);ctx.lineTo(x+9,y-5);ctx.lineTo(x+9,y+5);ctx.closePath();ctx.fill();
+        ctx.fillStyle="#17222c";ctx.fillRect(x-4,y-1,2,2);
       }
-    } else {
-      c.strokeStyle="#c19bef55";c.beginPath();
-      for(let i=0;i<9;i++){const a=i*Math.PI/4+t*.04,x=400+Math.cos(a)*235,y=195+Math.sin(a)*145;i?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();
-      c.strokeStyle="#86e9d666";c.beginPath();c.ellipse(400,200,260,55,-.35,0,Math.PI*2);c.stroke();
     }
-    c.restore();
-    c.save();c.translate(400,194+Math.sin(t*2)*3);c.scale(.8+p*.2,.8+p*.2);
-    c.drawImage(monsterSprite(type,motion?Math.floor(t*5)%4:0).image,-151,-151,302,302);c.restore();
-    // Rayquaza enters the foreground; no flashes or camera shake.
-    const neckX=110+p*34;
-    c.save();c.lineCap="round";
-    const ribbon=new Path2D("M -35 371 C 43 333 63 382 99 350 C 117 328 75 302 "+neckX+" 292");
-    c.strokeStyle="#071f26";c.lineWidth=29;c.stroke(ribbon);
-    c.strokeStyle="#3b9f7d";c.lineWidth=23;c.stroke(ribbon);
-    c.strokeStyle="#b3e9ac77";c.lineWidth=5;c.stroke(ribbon);
-    for(const [x,y,a] of [[25,352,.15],[65,359,-.1],[96,347,-1.2],[99,315,-.8]]) {
-      c.save();c.translate(x,y);c.rotate(a);c.scale(1.4,1.4);c.drawImage(dragonPart("ring",PALETTE.rayquaza,false),-32,-32,64,64);c.restore();
+    ctx.restore();
+  }
+  function recordPerfectDodge(from, to, now, teleported) {
+    if (runMode === "training" || teleported || now < shieldGraceUntil || now < dodgeCooldown || bossAttackHits(to.x,to.y,now)) return;
+    for (const attack of bossAttacks) {
+      if (attack.dodgeRewarded || now < attack.activeAt-250 || now >= attack.until || (airLockActive(now) && attack.type !== "psycho")) continue;
+      const cells = bossAttackCells(attack, Math.max(now, attack.activeAt));
+      const hits = point => cells.some(c => c.x === point.x && c.y === point.y);
+      if (hits(from) && !hits(to)) attack.dodgeFrom = {...from};
     }
-    c.restore();
-    const pal=PALETTE.rayquaza;c.save();c.translate(110+p*34,292);c.rotate(-.25);c.scale(2.4,2.4);
-    c.drawImage(dragonPart("head",pal,false),-32,-32,64,64);c.restore();
-    c.strokeStyle="#98e8c64d";c.lineWidth=2;c.beginPath();c.moveTo(0,348);c.bezierCurveTo(45,280,65,344,136,302);c.stroke();
-    c.fillStyle="#060f19";c.fillRect(0,0,800,18);c.fillRect(0,382,800,18);
+  }
+  function updatePerfectDodge(now) {
+    if (state !== "playing" || runMode === "training") return;
+    for (const attack of bossAttacks) {
+      if (!attack.dodgeFrom || attack.dodgeRewarded || now < attack.activeAt) continue;
+      const from = attack.dodgeFrom; attack.dodgeFrom = null;
+      if (now >= attack.until || now < dodgeCooldown || now < shieldGraceUntil || (airLockActive(now) && attack.type !== "psycho") || bossAttackHits(snake[0].x,snake[0].y,now)) continue;
+      if (!bossAttackCells(attack,now).some(c => c.x === from.x && c.y === from.y)) continue;
+      attack.dodgeRewarded = true; dodgeCooldown = now+1200;
+      gainAscent(15); airLockCharge = Math.min(100,airLockCharge+10);
+      skyMessage = {key:"dodge.perfect",until:now+2500};
+      spawnPopup(snake[0].x,snake[0].y-1,"PERFECT DODGE","#b6f6df");
+    }
   }
 
   // Each expedition owns its clock and records; special-mode scores never enter Adventure.
@@ -2573,7 +2670,7 @@
   }
 
   function occupied(x, y) {
-    return snake.some(s => s.x === x && s.y === y) ||
+    return skyOccupied(x, y) || snake.some(s => s.x === x && s.y === y) ||
            (food && food.x === x && food.y === y) ||
            rocks.some(r => r.x === x && r.y === y) ||
            wilds.some(w => w.x === x && w.y === y) ||
@@ -2617,7 +2714,7 @@
       ...natureOrbs, ...terrain, ...(food ? [food] : []), ...(magikarp ? [magikarp] : [])]) {
       occupiedCells.add(cell.x + "," + cell.y);
     }
-    const blocked = (x, y) => occupiedCells.has(x + "," + y) || insideBossBody(x, y);
+    const blocked = (x, y) => occupiedCells.has(x + "," + y) || skyOccupied(x, y) || insideBossBody(x, y);
     const start = snake[0];
     const queue = [start];
     const seen = new Set([start.x + "," + start.y]);
@@ -3048,6 +3145,7 @@
     if (!pos) return; // Retry progression after the player opens space.
     const hp = 7 + bossCount * 3;
     const now = performance.now();
+    if (skyRift) endSkyRift(false, now, "rift.boss");
     boss = { ...type, x: pos.x, y: pos.y, hp, maxHp: hp,
       nextAttack: Math.max(now + 2200, type.skill !== "deoxys" ? airLockUntil + 1400 : 0),
       recoveryAt: 0, attackCycle: 0, hitTaken:false, phase:1, phaseUntil:0 };
@@ -3097,7 +3195,7 @@
     runBosses++;
     gainAscent(25);
     const defeated = boss;
-    pendingScene=null;
+    pendingScene=null; bossNotice=null;
     trackCollection({ bosses:collection.stats.bosses+1, clean:collection.stats.clean+(defeated.hitTaken?0:1) });
     const bonus = 250 + bossCount * 75;
     score += bonus;
@@ -3394,6 +3492,7 @@
   }
 
   function reset() {
+    resetSkyEvents();
     resetLegends();
     runSession++;
     runStartedAt=0;runEndedAt=0;lastResult=null;resultArt=null;
@@ -3644,6 +3743,7 @@
       sfx.portal();
     }
 
+    recordPerfectDodge(head, {x:nx,y:ny}, now, !!step.portal);
     const ateMagikarp = !!(magikarp && nx === magikarp.x && ny === magikarp.y);
 
     snake.unshift({ x: nx, y: ny });
@@ -3657,6 +3757,7 @@
       snake.pop();
     }
 
+    collectSkyRift(nx, ny, now);
     if (pickedUpgrade) selectUpgrade(pickedUpgrade);
     if (pickedNature) collectNatureOrb(pickedNature, now);
     if (!food && runMode !== "training") spawnFood();
@@ -5624,6 +5725,7 @@
 
     drawBoss(now);
     drawFood();
+    drawSkyRift(now);
     drawUpgradeChoices(now);
     drawMagikarp();
     drawSnake(rendered, now);
@@ -5650,15 +5752,14 @@
 
   function loop(now) {
     if(pendingScene&&state==="playing")openCinematic();
-    if(cinematic) {
-      drawCinematic(now);
-      if(now-cinematic.started>=3400&&!document.hidden)finishCinematic();
-    }
+    if (bossNotice && state !== "paused" && now >= bossNotice.until) bossNotice = null;
     if(chainFlash&&now>=chainFlash.until&&state==="playing")chainFlash=null;
     if(state==="playing" && runMode==="daily" && runElapsed(now)>=DAILY_DURATION) finishRun("time");
     if (state === "playing") {
       if(ascent && now>=ascent.until) ascent=null;
       if(reflection && now>=reflection.until) reflection=null;
+      updateSkyRift(now);
+      updatePerfectDodge(now);
       updateNature(now);
       // Mega Rayquaza hanya 15 detik, lalu kembali normal
       if (evolved && now > evolveUntil) {
@@ -5757,6 +5858,7 @@
     updateNatureHud(effectNow);
     updateCombatHud();
     updateExpeditionHud(effectNow);
+    updateSkyHud(effectNow);
 
     const rem = multiplierUntil - effectNow;
     if (multiplier > 1 && rem > 0) {
@@ -5847,10 +5949,17 @@
 
   function resumeGame() {
     if (state !== "paused") return;
-    if(cinematic)return;
     if(rushResting || !document.getElementById("lessonOverlay").classList.contains("hidden")) return;
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
+    nextSkyRift = shiftPausedDeadline(nextSkyRift, pauseDuration);
+    dodgeCooldown = shiftPausedDeadline(dodgeCooldown, pauseDuration);
+    if (bossNotice) bossNotice.until += pauseDuration;
+    if (skyMessage) skyMessage.until += pauseDuration;
+    if (skyRift) {
+      skyRift.until += pauseDuration;
+      skyRift.nextAction = shiftPausedDeadline(skyRift.nextAction, pauseDuration);
+    }
     partner.nextCollect=shiftPausedDeadline(partner.nextCollect,pauseDuration);
     partner.flashUntil=shiftPausedDeadline(partner.flashUntil,pauseDuration);
     if(chainFlash)chainFlash.until+=pauseDuration;
@@ -5991,7 +6100,6 @@
   window.addEventListener("keydown", (e) => {
     if (document.getElementById("collectionDialog").open) return;
     if (document.getElementById("monsterDialog").open) return;
-    if (document.getElementById("cinematicDialog").open) return;
     if(!document.getElementById("lessonOverlay").classList.contains("hidden") || rushResting) return;
     // During play, Space belongs to Hyper Beam even when a utility button retains focus.
     // Keep native keyboard activation in menus/dialogs and Enter on buttons.
@@ -6156,7 +6264,6 @@
     updatePreferences();
   });
   document.addEventListener("visibilitychange", () => {
-    if(document.hidden&&cinematic)cinematic.interrupted=true;
     if (document.hidden) { pauseGame(); flushCollection(); }
   });
   window.addEventListener("pagehide", flushCollection);
@@ -6222,8 +6329,6 @@
   document.querySelectorAll("[data-path]").forEach(button=>button.addEventListener("click",()=>{selectedPath=button.dataset.path;saveLegendPreferences();renderLegendMenu();}));
   document.querySelectorAll("[data-partner]").forEach(button=>button.addEventListener("click",()=>{selectedPartner=button.dataset.partner;saveLegendPreferences();renderLegendMenu();}));
   document.getElementById("cinematicsSetting").addEventListener("change",event=>{cinematicsEnabled=event.target.checked;saveLegendPreferences();});
-  document.getElementById("cinematicSkip").addEventListener("click",()=>finishCinematic(true));
-  document.getElementById("cinematicDialog").addEventListener("cancel",event=>{event.preventDefault();finishCinematic(true);});
 
   // ---------- Jalan ----------
   reset();

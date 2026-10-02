@@ -18,7 +18,7 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 Di lobby, buka **Gaya bermain / Play style** untuk memilih jalur Mega dan partner. Pilihan serta pengaturan sinematik disimpan di browser. Jalur dan partner berlaku untuk Adventure, Daily, dan Boss Rush; latihan tetap menggunakan mekanik dasarnya.
 
 - **Boss adaptif:** membaca maksimal 32 gerakan dan 8 arah Beam terakhir. Pola di tepi, gerakan lurus, gerakan berkelok, serta arah Beam berulang memengaruhi prediksi serangan; Deoxys dapat memilih posisi teleport di luar jalur tembakan yang sering dipakai. HUD menunjukkan pola yang sedang dibaca. Serangan tetap memberi peringatan minimal 1,25 detik. Pencarian rute memeriksa kemungkinan keluar berdasarkan posisi dan bahaya saat ini; bila tidak menemukan rute, boss menunda serangan. Musuh bergerak dan keputusan pemain masih dapat mengubah kondisi sesudah pemeriksaan.
-- **Sinematik boss:** kedatangan dan fase kedua mendapat adegan singkat bertema magma, laut, atau kosmik, ilustrasi Rayquaza, serta rangkaian nada khusus. Permainan dan seluruh timer dijeda. Adegan berakhir setelah 3,4 detik atau lewat tombol Lanjut/Escape; bisa dimatikan di lobby. Setelah tab tersembunyi, permainan tetap dijeda sampai pemain melanjutkan. Pengaturan tanpa suara, efek ringan, dan reduced motion didukung.
+- **Notifikasi boss:** kedatangan dan fase kedua menampilkan pemberitahuan singkat selama 3,2 detik. Game tetap berjalan tanpa dialog atau tombol Lanjut. Notifikasi bisa dimatikan di Gaya bermain; pause manual dan otomatis ketika tab tersembunyi tetap berlaku.
 - **Tempest:** saat Mega, gerak lebih cepat 8 ms per langkah dan Beam menyambarkan petir ke 1–3 monster liar dalam jarak 4 petak dari target sebelumnya. Upgrade Combo menaikkan jumlah sambaran. Petir tambahan tidak menggandakan damage boss.
 - **Prism:** saat Mega, Beam bercabang dan membelok sekali di tepi arena. Upgrade Hyper Core memperpanjang pantulan 6–10 petak. Seluruh cabang hanya menghitung satu hit pada boss per tembakan.
 - **Ancient:** saat masuk Mega dari bentuk normal, mendapat 1 Shield (maksimum 3). Shield yang pecah memberi perlindungan 0,85–1,15 detik sesuai tier Guard; serangan skill boss bisa dipantulkan untuk 2 damage. Tabrakan dinding tetap fatal dan menabrak tubuh sendiri/boss tidak memantulkan serangan. Memperpanjang Mega yang masih aktif tidak memberi Shield lagi.
@@ -27,6 +27,16 @@ Di lobby, buka **Gaya bermain / Play style** untuk memilih jalur Mega dan partne
 - **Pip, kolektor:** mengambil berry dalam jangkauan rute 3–5 langkah setiap 12/10/8 detik. Berry memberi poin dan efek combo tanpa memanjangkan tubuh. Pip tidak mengambil item evolusi atau power-up lain. Kedua partner naik tingkat ikatan pada 8 dan 16 item dalam satu run; reset saat memulai run baru.
 
 Semua keputusan dijalankan lokal tanpa API AI. Perubahan ini tidak mengirim atau memigrasikan skor lama.
+
+### Sky Rift & Perfect Dodge
+
+- **Sky Rift:** di Adventure dan Harian, tiga portal opsional muncul setiap 60-90 detik di luar pertarungan boss. Dalam 15 detik, masuk portal B/M/G untuk memilih tantangan tanpa menu atau jeda. Tantangan berjalan 15 detik di arena yang sama.
+- **Berry Rush (B):** ambil 3 berry biru bercincin; tubuh tidak memanjang.
+- **Meteor Dash (M):** bertahan 15 detik, dengan dua meteor per gelombang dan tanda peringatan 1,8 detik.
+- **Golden Chase (G):** tangkap ikan emas bercincin yang berpindah setiap 2,4 detik.
+- Berhasil memberi **2x poin selama 10 detik dan +20 charge Ascent**. Mengabaikan atau gagal tidak mengurangi skor. Rift ditutup saat boss datang; meteor khusus event dibersihkan. Pause membekukan timer. Latihan dan Boss Rush tidak memunculkan Rift.
+- **Perfect Dodge:** keluar dari petak serangan boss yang aktif atau maksimal 250 ms sebelum aktif, lalu tetap aman saat aktivasi, memberi **+15 Ascent dan +10 Air Lock**. Maksimum sekali per serangan, cooldown 1,2 detik. Teleportasi, serangan yang dibersihkan, dan masa kebal Shield tidak memberi bonus.
+- `node sky-rift-check.cjs` menguji tantangan, hadiah, penempatan, timer, mode, Perfect Dodge, notifikasi boss tanpa jeda, dan tampilan mobile. Semua request eksternal diblokir.
 
 ### Emerald Expeditions
 
@@ -77,7 +87,7 @@ Timer hanya menghitung waktu bermain aktif; pause, berpindah tab, dan pilihan up
 
 ## Validasi lokal
 
-`node legends-check.cjs` menguji adaptasi boss dan rute keluar, ketiga jalur Mega, partner, sinematik dengan frame loop asli, pause/reset/expiry, penyimpanan pilihan, serta UI ID/EN dan mobile. Request eksternal diblokir selama pengujian.
+`node legends-check.cjs` menguji adaptasi boss dan rute keluar, ketiga jalur Mega, partner, notifikasi boss tanpa jeda dengan frame loop asli, pause/reset/expiry, penyimpanan pilihan, serta UI ID/EN dan mobile. Request eksternal diblokir selama pengujian.
 
 `node monster-art-check.cjs` memeriksa delapan ilustrasi, cache, atlas, pause, ID/EN, tampilan HP 320px, dan pengaturan gerakan/efek ringan. Gunakan pengaturan Playwright yang sama seperti pengujian di bawah.
 
