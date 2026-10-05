@@ -1072,6 +1072,18 @@
   .chapter-path span { flex:1; height:4px; border-radius:4px; background:#89c6be29; }
   .chapter-path span.reached { background:#ace4bc; box-shadow:0 0 8px #a3e6c037; }
   @media(max-width:400px) { .haven-dialog { padding:14px; } .haven-dialog h2 { font-size:20px; } }
+
+  .pikachu-card { margin:16px 0; padding:14px; border:1px solid #e9c56b59; border-radius:16px; background:radial-gradient(ellipse at 80% 15%,#957b242b,transparent 65%),#10212d; }
+  .pikachu-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .pikachu-heading strong { color:#ffe398; font-size:15px; letter-spacing:.13em; }
+  .pikachu-heading .haven-kicker { color:#d2ba80; font-size:9px; letter-spacing:.11em; }
+  .pikachu-portrait { display:block; width:100%; padding:0; margin:10px 0; border:0; background:transparent; cursor:pointer; border-radius:12px; }
+  .pikachu-portrait canvas { border:0; }
+  .pikachu-portrait:focus-visible { outline:2px solid #ffe39a; outline-offset:4px; }
+  .pikachu-card p { margin:10px 0; }
+  .legend-options button:disabled { opacity:.5; cursor:default; }
+  #pikachuEquip { width:100%; border-color:#c5a45f; color:#ffe3a3; }
+  #pikachuEquip:disabled { opacity:.65; cursor:default; }
 </style>
 </head>
 <body>
@@ -1079,6 +1091,10 @@
     <span class="haven-kicker" data-i18n="haven.kicker"></span><h2 id="gardenTitle" data-i18n="haven.title"></h2>
     <canvas id="gardenArt" width="960" height="440" role="img" data-i18n-aria="haven.title"></canvas>
     <p data-i18n="haven.description"></p><div class="haven-roster" id="gardenRoster"></div><p id="gardenStorage"></p>
+    <section class="pikachu-card"><div class="pikachu-heading"><span class="haven-kicker">THUNDER GUARDIAN</span><strong>PIKACHU</strong></div>
+      <button type="button" id="pikachuGreet" class="pikachu-portrait" aria-label="Pikachu"><canvas id="pikachuPortrait" width="720" height="400"></canvas></button>
+      <p id="pikachuStatus"></p><button type="button" id="pikachuEquip" class="utility-btn"></button>
+    </section>
     <button class="utility-btn" id="gardenClose" data-i18n="haven.close"></button>
   </dialog>
   <dialog class="haven-dialog" id="chapterDialog" aria-labelledby="chapterTitle">
@@ -1198,7 +1214,7 @@
             <button type="button" data-path="tempest" aria-pressed="true">TEMPEST</button><button type="button" data-path="prism" aria-pressed="false">PRISM</button><button type="button" data-path="ancient" aria-pressed="false">ANCIENT</button>
           </div><p id="pathDescription"></p>
           <h3 data-i18n="legends.partner"></h3><div class="legend-options" role="group" aria-label="Partner">
-            <button type="button" data-partner="guide" data-i18n="partner.guide" aria-pressed="true"></button><button type="button" data-partner="collector" data-i18n="partner.collector" aria-pressed="false"></button><button type="button" data-partner="none" data-i18n="partner.none" aria-pressed="false"></button>
+            <button type="button" data-partner="guide" data-i18n="partner.guide" aria-pressed="true"></button><button type="button" data-partner="collector" data-i18n="partner.collector" aria-pressed="false"></button><button type="button" data-partner="pikachu" data-i18n="partner.pikachu" aria-pressed="false"></button><button type="button" data-partner="none" data-i18n="partner.none" aria-pressed="false"></button>
           </div><p id="partnerDescription"></p>
           <label class="scene-setting"><input id="cinematicsSetting" type="checkbox" checked><span data-i18n="scene.setting"></span></label>
         </details>
@@ -1763,6 +1779,31 @@
     "mode.adventure.desc":"Rescue eggs, unlock four regions through boss victories, and build synergies. Scores join the world leaderboard."
   });
 
+
+  Object.assign(I18N.id, {
+    "partner.pikachu":"Pikachu - Penjaga Telur", "partner.pikachu.desc":"Adventure: sekali per misi telur, Thunder Shock menggagalkan sambaran Murkrow yang hampir mencuri telur. Di mode lain Pikachu menemani tanpa bonus pertempuran.",
+    "pika.locked":"Temukan Pikachu di pulau Lautan Safir setelah boss pertama. Dekati hingga 3 petak, lalu aktifkan Air Lock (Q) saat meter penuh.",
+    "pika.island":"PIKACHU TERJEBAK BADAI", "pika.near":"Dekati pulau hingga 3 petak, lalu gunakan Air Lock (Q atau tombol Air Lock) untuk menolongnya.",
+    "pika.charge":"Kamu sudah dekat. Isi Air Lock sampai 100%, lalu tekan Q atau tombol Air Lock.",
+    "pika.ready":"Kamu sudah dekat! Aktifkan Air Lock untuk menenangkan badai dan menolong Pikachu.",
+    "pika.found":"PIKACHU BERGABUNG!", "pika.foundHint":"Pikachu menunggu di taman. Pilih sebagai partner untuk perjalanan berikutnya.",
+    "pika.saved":"Sudah diselamatkan. Sentuh Pikachu untuk menyapanya, atau ajak sebagai partner perjalanan berikutnya.",
+    "pika.unsaved":"Pikachu sudah diselamatkan, tetapi penyimpanan diblokir. Pertemanan hanya bertahan selama halaman terbuka.",
+    "pika.equip":"Ajak untuk perjalanan berikutnya", "pika.equipped":"Terpilih untuk perjalanan berikutnya", "pika.greet":"Sapa Pikachu", "pika.find":"Temukan di Lautan Safir",
+    "pika.guard":"Thunder Shock siap - satu perlindungan per misi telur", "pika.rest":"Pikachu beristirahat sampai misi telur berikutnya", "pika.social":"Pikachu menemani. Perlindungan telur tersedia di Adventure.", "pika.shock":"THUNDER SHOCK! TELUR AMAN"
+  });
+  Object.assign(I18N.en, {
+    "partner.pikachu":"Pikachu - Egg Guardian", "partner.pikachu.desc":"Adventure: once per egg mission, Thunder Shock stops a Murkrow swoop that would steal the egg. In other modes Pikachu accompanies you without a combat bonus.",
+    "pika.locked":"Find Pikachu on an island in Sapphire Sea after the first boss. Get within 3 cells, then activate Air Lock (Q) with a full meter.",
+    "pika.island":"PIKACHU IS STRANDED", "pika.near":"Get within 3 cells of the island, then use Air Lock (Q or the Air Lock button) to help.",
+    "pika.charge":"You are close. Fill Air Lock to 100%, then press Q or the Air Lock button.",
+    "pika.ready":"You are close! Activate Air Lock to calm the storm and help Pikachu.",
+    "pika.found":"PIKACHU JOINS YOU!", "pika.foundHint":"Pikachu is waiting in your garden. Choose it as your partner for the next run.",
+    "pika.saved":"Rescued! Tap Pikachu to say hello, or choose it as your partner for the next run.",
+    "pika.unsaved":"Pikachu is rescued, but storage is blocked. Your friendship lasts only while this page is open.",
+    "pika.equip":"Choose for the next run", "pika.equipped":"Selected for the next run", "pika.greet":"Say hello to Pikachu", "pika.find":"Find in Sapphire Sea",
+    "pika.guard":"Thunder Shock ready - one protection per egg mission", "pika.rest":"Pikachu rests until the next egg mission", "pika.social":"Pikachu accompanies you. Egg protection is available in Adventure.", "pika.shock":"THUNDER SHOCK! EGG SAFE"
+  });
   function setLang(l) {
     if (l !== "id" && l !== "en") return;
     lang = l;
@@ -1907,14 +1948,18 @@
 
   // Legends: bounded local decision making; visual functions never consume game RNG.
   const PATHS = ["tempest","prism","ancient"];
-  const PARTNERS = ["guide","collector","none"];
+  const PIKACHU_KEY = "storm-emeralda-pikachu-v1";
+  let pikachuUnlocked=false,pikachuWritable=true;
+  try {pikachuUnlocked=localStorage.getItem(PIKACHU_KEY)==="rescued";}catch(_){pikachuWritable=false;}
+  let pikachuIsland=null,nextPikachuIsland=0,pikachuFlash=null,pikachuNoticeUntil=0,pikachuGreetingUntil=0,lastPikachuPortrait=0;
+  const PARTNERS = ["guide","collector","pikachu","none"];
   let selectedPath="tempest",selectedPartner="guide",runPath="tempest",runPartner="guide";
   let habits={moves:[],shots:[]},partner={nextCollect:0,route:[],bond:0,mood:"calm",flashUntil:0};
   let chainFlash=null,pendingScene=null,cinematicsEnabled=true;
   try {
     const saved=JSON.parse(localStorage.getItem("storm-emeralda-legends-v1")||"null");
     if(PATHS.includes(saved?.path))selectedPath=saved.path;
-    if(PARTNERS.includes(saved?.partner))selectedPartner=saved.partner;
+    if(PARTNERS.includes(saved?.partner) && (saved.partner!=="pikachu" || pikachuUnlocked))selectedPartner=saved.partner;
     if(typeof saved?.cinematics==="boolean")cinematicsEnabled=saved.cinematics;
   } catch(_) {}
   function saveLegendPreferences() {
@@ -1933,7 +1978,7 @@
     document.querySelector("[data-path]").parentElement.setAttribute("aria-label",t("legends.path"));
     document.querySelector("[data-partner]").parentElement.setAttribute("aria-label",t("legends.partner"));
     document.querySelectorAll("[data-path]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.path===selectedPath));
-    document.querySelectorAll("[data-partner]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.partner===selectedPartner));
+    document.querySelectorAll("[data-partner]").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.partner===selectedPartner);b.disabled=b.dataset.partner==="pikachu"&&!pikachuUnlocked;if(b.dataset.partner==="pikachu")b.title=t(pikachuUnlocked?"partner.pikachu.desc":"pika.locked");});
     setText(document.getElementById("pathDescription"),t("path."+selectedPath+".desc"));
     setText(document.getElementById("partnerDescription"),t("partner."+selectedPartner+".desc"));
     setText(document.getElementById("legendMenuSummary"),t("path."+selectedPath)+" · "+t("partner."+selectedPartner));
@@ -1942,8 +1987,8 @@
     const panel=document.getElementById("legendsHud");
     setClass(panel,"hidden",state==="start"||runMode==="training");
     setText(document.getElementById("pathStatus"),t("path."+runPath)+" · "+(evolved?t("legends.active")+" "+pathRank():t("legends.dormant")));
-    setText(document.getElementById("partnerStatus"),t("partner."+runPartner)+(runPartner!=="none"?" · "+t("partner.bond")+" "+(1+Math.min(2,Math.floor(partner.bond/8))):""));
-    setText(document.getElementById("partnerHint"),runPartner==="collector"?t("partner.cooldown")+" "+Math.max(0,Math.ceil((partner.nextCollect-now)/1000))+"s":runPartner==="guide"?t("partner."+(partner.route.length?"route":"wait")):t("partner.none.desc"));
+    setText(document.getElementById("partnerStatus"),t("partner."+runPartner)+(runPartner!=="none"&&runPartner!=="pikachu"?" · "+t("partner.bond")+" "+(1+Math.min(2,Math.floor(partner.bond/8))):""));
+    setText(document.getElementById("partnerHint"),runPartner==="pikachu"?t(runMode!=="adventure"?"pika.social":rescue?.pikaUsed?"pika.rest":"pika.guard"):runPartner==="collector"?t("partner.cooldown")+" "+Math.max(0,Math.ceil((partner.nextCollect-now)/1000))+"s":runPartner==="guide"?t("partner."+(partner.route.length?"route":"wait")):t("partner.none.desc"));
     setText(document.getElementById("bossRead"),boss?t("boss.read")+" · "+t("habit."+(boss.tactic||"observe")):t("path."+runPath+".short"));
   }
   function rememberMove() {
@@ -2026,7 +2071,7 @@
     if(cells.length)rays.push({origin:{...last},direction:side,cells,branch:true});return rays;
   }
   function updatePartner(now) {
-    if(runPartner==="none"||runMode==="training")return;
+    if(runPartner==="none"||runPartner==="pikachu"||runMode==="training")return;
     partner.bond=runItems;const rank=1+Math.min(2,Math.floor(partner.bond/8));
     if(runPartner==="guide") {
       const routes=reachableRoutes(now,rank+2);
@@ -2064,7 +2109,7 @@
       for(const l of chainFlash.links){ctx.beginPath();ctx.moveTo((l.from.x+.5)*CELL,(l.from.y+.5)*CELL);ctx.lineTo((l.from.x+l.to.x+1)*CELL/2+4,(l.from.y+l.to.y+1)*CELL/2-4);ctx.lineTo((l.to.x+.5)*CELL,(l.to.y+.5)*CELL);ctx.stroke();}
     }
     ctx.globalAlpha=1;
-    if(runPartner!=="none"&&runMode!=="training") {
+    if(runPartner!=="none"&&runPartner!=="pikachu"&&runMode!=="training") {
       if(runPartner==="guide")for(let i=0;i<partner.route.length;i++) {
         const p=partner.route[i];if(forecastBlocked(p.x,p.y,now+(i+1)*speedMs()))break;
         ctx.strokeStyle="#aef4d9";ctx.globalAlpha=.55-i*.07;ctx.lineWidth=1.5;
@@ -2617,6 +2662,124 @@
   }
 
   // ---------- Egg sanctuary & Adventure regions ----------
+  function updatePikachuEncounter(now) {
+    if(state!=="playing" || runMode!=="adventure") return;
+    if(pikachuFlash && now>=pikachuFlash.until)pikachuFlash=null;
+    if(pikachuUnlocked || region!==1 || boss) {pikachuIsland=null;return;}
+    if(!nextPikachuIsland)nextPikachuIsland=now+6000;
+    if(!pikachuIsland && now>=nextPikachuIsland && !upgradeChoices.length && !skyRift) {
+      const cells=reachableUpgradeCells().filter(c=>c.x>=2&&c.y>=2&&c.x<COLS-2&&c.y<ROWS-2
+        && [-1,0,1].every(dx=>[-1,0,1].every(dy=>!occupied(c.x+dx,c.y+dy))));
+      if(cells.length)pikachuIsland={...cells[Math.floor(gameRandom()*cells.length)]};
+      else nextPikachuIsland=now+2500;
+    }
+    if(!pikachuIsland || !airLockActive(now))return;
+    const h=snake[0];if(Math.abs(h.x-pikachuIsland.x)+Math.abs(h.y-pikachuIsland.y)>3)return;
+    const island=pikachuIsland;pikachuUnlocked=true;pikachuIsland=null;pikachuNoticeUntil=now+7000;
+    try {localStorage.setItem(PIKACHU_KEY,"rescued");pikachuWritable=true;}catch(_){pikachuWritable=false;}
+    spawnRing(island.x,island.y,"#ffe999");spawnParticles(island.x,island.y,"#fff1ac",14,1.7);
+    spawnPopup(island.x,island.y,t("pika.found"),"#ffe28c");sfx.rare();renderLegendMenu();renderHaven();
+  }
+  // Art is articulated in local coordinates; animation never consumes gameplay RNG.
+  function paintPikachu(c,x,y,size,now,pose="idle") {
+    const moving=!reducedMotion.matches,t=moving?now/1000:0,power=pose==="power",hello=pose==="hello";
+    const asleep=pose==="garden" && moving && now%22000>19000;
+    const blink=asleep || (moving && !power && now%4300>4170);
+    c.save();c.translate(x,y);c.scale(size,size);
+    c.fillStyle="#04142150";c.beginPath();c.ellipse(0,34,30,6,0,0,Math.PI*2);c.fill();
+    c.translate(0,moving?Math.sin(t*3)*(hello?2.4:1):0);
+    const outline="#6f481d",ink="#283039";
+    const fur=c.createLinearGradient(-28,-55,29,30);fur.addColorStop(0,"#fff3a1");fur.addColorStop(.35,"#ffdd51");fur.addColorStop(.76,"#edb633");fur.addColorStop(1,"#ca8127");
+    const shape=(fill,draw,width=1.6)=>{c.fillStyle=fill;c.strokeStyle=outline;c.lineWidth=width;c.lineJoin="round";c.lineCap="round";c.beginPath();draw();c.closePath();c.fill();c.stroke();};
+    const oval=(cx,cy,rx,ry,fill,angle=0)=>{c.fillStyle=fill;c.beginPath();c.ellipse(cx,cy,rx,ry,angle,0,Math.PI*2);c.fill();};
+    // Broad lightning-bolt tail with a brown root and lit bevel.
+    c.save();c.translate(18,18);c.rotate((power?-.2:.02)+(moving?Math.sin(t*2.6)*.085:0));
+    shape(fur,()=>{c.moveTo(0,7);c.lineTo(11,-2);c.lineTo(7,-11);c.lineTo(24,-22);c.lineTo(17,-32);c.lineTo(40,-53);c.lineTo(53,-37);c.lineTo(32,-24);c.lineTo(37,-13);c.lineTo(19,-5);c.lineTo(21,5);c.lineTo(5,15);});
+    shape("#a67538",()=>{c.moveTo(0,7);c.lineTo(11,-2);c.lineTo(13,5);c.lineTo(21,5);c.lineTo(5,15);},1);
+    c.strokeStyle="#fff3b5";c.lineWidth=2;c.beginPath();c.moveTo(20,-32);c.lineTo(40,-49);c.lineTo(49,-38);c.stroke();c.restore();
+    // Feet angle outward; the body has a soft belly and two visible back stripes.
+    shape("#eec14b",()=>{c.moveTo(-18,22);c.bezierCurveTo(-42,25,-34,37,-16,34);c.lineTo(-6,25);});
+    shape("#eec14b",()=>{c.moveTo(12,23);c.bezierCurveTo(22,22,40,33,27,35);c.bezierCurveTo(19,37,8,31,6,27);});
+    shape(fur,()=>{c.moveTo(-17,-12);c.bezierCurveTo(-30,4,-29,27,-12,31);c.bezierCurveTo(3,37,23,31,25,17);c.bezierCurveTo(26,1,13,-15,-17,-12);});
+    oval(-5,15,14,14,"#ffe59280",-.2);
+    shape("#a97835",()=>{c.moveTo(17,3);c.lineTo(24,7);c.lineTo(25,12);c.lineTo(18,9);},.5);
+    shape("#a97835",()=>{c.moveTo(19,15);c.lineTo(25,17);c.lineTo(23,22);c.lineTo(18,20);},.5);
+    // Ear pivots are independent, avoiding a rigid cutout appearance.
+    c.save();c.translate(-5,-25);c.rotate((power?-.10:hello?.06:-.04)+(moving?Math.sin(t*1.8)*.035:0));
+    const ear=(ex,ey,angle)=>{c.save();c.translate(ex,ey);c.rotate(angle);shape(fur,()=>{c.moveTo(-5,5);c.bezierCurveTo(-12,-12,-6,-43,0,-47);c.bezierCurveTo(7,-37,11,-10,5,5);});shape(ink,()=>{c.moveTo(-6,-28);c.bezierCurveTo(-4,-40,-1,-47,0,-47);c.bezierCurveTo(4,-41,6,-33,7,-27);c.quadraticCurveTo(0,-30,-6,-28);},.7);c.restore();};
+    ear(-15,-16,-.36+(moving?Math.sin(t*2.1)*.10:0));ear(14,-18,.42+(moving?Math.sin(t*2.4+.7)*.13:0));
+    shape(fur,()=>{c.moveTo(-24,-12);c.bezierCurveTo(-22,-34,13,-39,25,-17);c.bezierCurveTo(36,-7,27,9,12,13);c.bezierCurveTo(-4,19,-30,11,-29,-3);c.quadraticCurveTo(-30,-9,-24,-12);});
+    // Forehead highlight, round red cheeks, bright eyes and a determined brow in combat.
+    oval(-9,-21,11,5,"#fff8c344",-.2);
+    oval(-23,2,6.4,5.3,"#dc5639",.15);oval(22,0,6,5.6,"#e65b3e",-.2);
+    oval(-24,.5,2,1.5,"#ffb17b80");oval(21,-1.5,2,1.5,"#ffb17b80");
+    if(blink){c.strokeStyle=ink;c.lineWidth=2;c.beginPath();c.moveTo(-16,-10);c.quadraticCurveTo(-12,-7,-8,-10);c.moveTo(5,-11);c.quadraticCurveTo(9,-8,13,-11);c.stroke();}
+    else {oval(-12,-11,4.3,6,ink,-.06);oval(9,-12,4.5,6.4,ink,.06);oval(-13,-13,1.8,2.2,"#fff9df");oval(8,-14,1.9,2.3,"#fff9df");oval(-11,-8,1,.8,"#8b6849");oval(10,-9,1,.8,"#8b6849");}
+    if(power){c.strokeStyle=outline;c.lineWidth=2;c.beginPath();c.moveTo(-18,-18);c.lineTo(-8,-15);c.moveTo(4,-16);c.lineTo(15,-20);c.stroke();}
+    shape(ink,()=>{c.moveTo(-3,-4);c.quadraticCurveTo(0,-6,3,-4);c.lineTo(0,-1);},.5);
+    c.strokeStyle="#794929";c.lineWidth=1.2;c.beginPath();c.moveTo(-6,2);c.quadraticCurveTo(-3,5,0,2);c.quadraticCurveTo(3,5,6,1);c.stroke();
+    if(hello||power){shape("#9a483b",()=>{c.moveTo(-4,4);c.quadraticCurveTo(0,6,5,3);c.quadraticCurveTo(3,12,-1,10);c.quadraticCurveTo(-4,8,-4,4);},.8);oval(1,8,2.6,1.5,"#ee9690");}
+    c.restore();
+    // A reaching front paw and a waving/off-hand pose add a forward silhouette.
+    shape(fur,()=>{c.moveTo(-17,-6);c.bezierCurveTo(-28,-3,power?-41:-29,power?-13:10,power?-29:-20,power?-16:16);c.quadraticCurveTo(-12,13,-10,3);});
+    c.save();c.translate(13,-3);c.rotate(hello?-1.0+(moving?Math.sin(t*10)*.22:0):power?-.8:.12);
+    shape(fur,()=>{c.moveTo(0,-4);c.bezierCurveTo(13,-7,25,1,19,7);c.quadraticCurveTo(11,12,1,6);});
+    c.strokeStyle="#c09033";c.lineWidth=.8;c.beginPath();c.moveTo(17,3);c.lineTo(20,4);c.moveTo(15,6);c.lineTo(18,7);c.stroke();c.restore();
+    if(power||hello){c.strokeStyle="#fff1a8";c.lineWidth=1.5;for(const side of [-1,1]){c.beginPath();c.moveTo(side*27,-21);c.lineTo(side*35,-26);c.lineTo(side*31,-31);c.lineTo(side*42,-38);c.stroke();}}
+    if(asleep){c.fillStyle="#d4e5df";c.font="bold 10px sans-serif";c.fillText("z",28,-48);c.font="bold 7px sans-serif";c.fillText("z",37,-57);}
+    c.restore();
+  }
+  function drawPikachuWorld(now,rendered) {
+    if(!rendered.length)return;
+    ctx.save();
+    if(pikachuIsland && runMode==="adventure" && !boss) {
+      const x=(pikachuIsland.x+.5)*CELL,y=(pikachuIsland.y+.5)*CELL;
+      ctx.fillStyle="#21353f";ctx.strokeStyle="#90b8b7";ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(x,y+6,20,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.strokeStyle="#efce7c";ctx.beginPath();ctx.ellipse(x,y+8,26,13,0,0,Math.PI*2);ctx.stroke();
+      paintPikachu(ctx,x-3,y-3,.35,now,"idle");
+      ctx.strokeStyle="#a8c5e66b";ctx.lineWidth=1;
+      const shift=reducedMotion.matches?0:(now/80)%8;
+      for(let i=0;i<5;i++){const rx=x-18+i*9;ctx.beginPath();ctx.moveTo(rx,y-29+shift);ctx.lineTo(rx-3,y-22+shift);ctx.stroke();}
+    }
+    if(runPartner==="pikachu" && pikachuUnlocked && runMode!=="training" && (state==="playing"||state==="paused")) {
+      const target=runMode==="adventure"&&rescue?.phase==="carry"?rendered[rendered.length-1]:rendered[0];
+      const x=Math.max(17,Math.min(447,(target.x+.5)*CELL-8)),y=Math.max(31,Math.min(462,(target.y+.5)*CELL-10));
+      paintPikachu(ctx,x,y,.34,now,pikachuFlash&&now<pikachuFlash.until?"power":"idle");
+      if(pikachuFlash && now<pikachuFlash.until) {
+        const tx=(pikachuFlash.x+.5)*CELL,ty=(pikachuFlash.y+.5)*CELL-20;
+        ctx.globalAlpha=Math.min(1,(pikachuFlash.until-now)/350);ctx.strokeStyle="#fff5b1";ctx.lineWidth=reducedMotion.matches?1:2;
+        ctx.beginPath();ctx.moveTo(x,y-8);ctx.lineTo((x+tx)/2+5,(y+ty)/2-7);ctx.lineTo((x+tx)/2-3,(y+ty)/2);ctx.lineTo(tx,ty);ctx.stroke();
+        ctx.strokeStyle="#e9bb50";ctx.beginPath();ctx.arc(tx,ty,12,0,Math.PI*2);ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  let pikachuPortraitBackdrop=null;
+  function drawPikachuPortrait(now) {
+    const c=document.getElementById("pikachuPortrait").getContext("2d");
+    if(!pikachuPortraitBackdrop) {
+      const art=document.createElement("canvas");art.width=720;art.height=400;const p=art.getContext("2d");
+      const g=p.createRadialGradient(370,200,10,370,200,330);g.addColorStop(0,"#365359");g.addColorStop(.6,"#19343f");g.addColorStop(1,"#0b1b2a");p.fillStyle=g;p.fillRect(0,0,720,400);
+      for(let i=0;i<4;i++){p.strokeStyle=i%2?"#dcc28218":"#8ebcb016";p.lineWidth=i?1:2;p.beginPath();p.ellipse(360,292,180+i*38,39+i*12,0,0,Math.PI*2);p.stroke();}
+      for(let i=0;i<22;i++){p.fillStyle=i%3?"#eff0ce3b":"#fae2a677";p.beginPath();p.arc(48+(i*173)%630,25+(i*97)%280,i%3===0?2:1,0,Math.PI*2);p.fill();}
+      for(const [x,y] of [[75,200],[592,82]]){p.strokeStyle="#ddc27424";p.lineWidth=3;p.beginPath();p.moveTo(x,y);p.lineTo(x+30,y-43);p.lineTo(x+10,y-43);p.lineTo(x+41,y-92);p.stroke();}
+      pikachuPortraitBackdrop=art;
+    }
+    c.drawImage(pikachuPortraitBackdrop,0,0);
+    paintPikachu(c,334,236,2.15,now,now<pikachuGreetingUntil?"hello":"garden");
+  }
+  function renderPikachuCard() {
+    setText(document.getElementById("pikachuStatus"),t(!pikachuUnlocked?"pika.locked":!pikachuWritable?"pika.unsaved":"pika.saved"));
+    const button=document.getElementById("pikachuEquip");button.disabled=!pikachuUnlocked||selectedPartner==="pikachu";
+    setText(button,t(!pikachuUnlocked?"pika.find":selectedPartner==="pikachu"?"pika.equipped":"pika.equip"));
+    document.getElementById("pikachuGreet").setAttribute("aria-label",t("pika.greet"));
+    drawPikachuPortrait(performance.now());
+  }
+  document.getElementById("pikachuGreet").addEventListener("click",()=>{pikachuGreetingUntil=performance.now()+2200;drawPikachuPortrait(performance.now());});
+  document.getElementById("pikachuEquip").addEventListener("click",()=>{
+    if(!pikachuUnlocked)return;selectedPartner="pikachu";saveLegendPreferences();renderLegendMenu();renderPikachuCard();
+  });
   const HAVEN_KEY = "storm-emeralda-haven-v1";
   const HATCHLINGS = ["Togepi", "Azurill", "Swablu"];
   let haven = [0,0,0], havenWritable = true;
@@ -2628,6 +2791,7 @@
   let region = 0, regionToken = null, nextRegionToken = 0, chapterPending = false;
   const REGION_BIOMES = [4,5,0,3];
   function resetSanctuary() {
+    pikachuIsland=null;nextPikachuIsland=0;pikachuFlash=null;pikachuNoticeUntil=0;pikachuGreetingUntil=0;
     rescue=null;nextRescue=0;rescueMessage=null;hatchEffect=null;
     region=0;regionToken=null;nextRegionToken=0;chapterPending=false;
     document.getElementById("chapterDialog").close();
@@ -2635,7 +2799,7 @@
   }
   function sanctuaryOccupied(x,y) {
     const same = c => c && c.x===x && c.y===y;
-    return !!(same(regionToken) || rescue && !rescue.sheltered && (same(rescue.egg) || same(rescue.nest)));
+    return !!(pikachuIsland && Math.abs(x-pikachuIsland.x)<=1 && Math.abs(y-pikachuIsland.y)<=1 || same(regionToken) || rescue && !rescue.sheltered && (same(rescue.egg) || same(rescue.nest)));
   }
   function sanctuaryCell(minDistance=0) {
     const candidates=reachableUpgradeCells().filter(c=>!occupied(c.x,c.y)
@@ -2645,7 +2809,7 @@
   function spawnRescue(now) {
     if(runMode!=="adventure" || boss || rescue) return false;
     const egg=sanctuaryCell(4); if(!egg) return false;
-    rescue={phase:"offer",egg,nest:null,species:Math.floor(gameRandom()*3),until:now+25000,nextHunt:0,hunt:null,sheltered:false};
+    rescue={phase:"offer",egg,nest:null,pikaUsed:false,species:Math.floor(gameRandom()*3),until:now+25000,nextHunt:0,hunt:null,sheltered:false};
     const nest=sanctuaryCell(7);
     if(!nest) {rescue=null;return false;}
     rescue.nest=nest;rescueMessage=null;return true;
@@ -2666,6 +2830,7 @@
     renderHaven();
   }
   function shelterRescue(now) {
+    pikachuIsland=null;nextPikachuIsland=0;
     regionToken=null;nextRegionToken=now+10000;
     if(!rescue || rescue.sheltered) return;
     rescue.remaining=Math.max(1,rescue.until-now);rescue.sheltered=true;rescue.hunt=null;
@@ -2701,6 +2866,7 @@
     if(rescueMessage && now>=rescueMessage.until) rescueMessage=null;
     if(hatchEffect && now>=hatchEffect.until) hatchEffect=null;
     if(boss) {shelterRescue(now);return;}
+    updatePikachuEncounter(now);
     restoreRescue(now);
     if(!nextRescue) nextRescue=now+12000;
     if(!nextRegionToken) nextRegionToken=now+7000;
@@ -2712,7 +2878,13 @@
       else if(rescue.phase==="carry") {
         if(rescue.hunt && now>=rescue.hunt.at) {
           const tail=snake[snake.length-1],target=rescue.hunt;
-          if(tail.x===target.x && tail.y===target.y) finishRescue(false,now);
+          if(tail.x===target.x && tail.y===target.y) {
+            if(runPartner==="pikachu" && pikachuUnlocked && !rescue.pikaUsed) {
+              rescue.pikaUsed=true;rescue.hunt=null;rescue.nextHunt=now+7000;
+              pikachuFlash={x:target.x,y:target.y,until:now+850};
+              spawnRing(target.x,target.y,"#ffe68a");spawnPopup(target.x,target.y-1,t("pika.shock"),"#ffe68a");sfx.clear();
+            } else finishRescue(false,now);
+          }
           else {spawnRing(target.x,target.y,"#f7b894");rescue.hunt=null;rescue.nextHunt=now+7000;}
         } else if(!rescue.hunt && now>=rescue.nextHunt) {
           rescue.hunt={...snake[snake.length-1],at:now+2600};
@@ -2743,6 +2915,12 @@
     const countdown=active&&rescue&&!rescue.sheltered?(rescue.hunt?" \u00b7 "+Math.max(0,(rescue.hunt.at-now)/1000).toFixed(1)+"s":rescue.phase==="offer"?" \u00b7 "+Math.max(0,Math.ceil((rescue.until-now)/1000))+"s":""):"";
     setText(document.getElementById("rescueTitle"),t(key)+countdown);
     setText(document.getElementById("rescueHint"),active && runMode==="adventure" && !rescue && !rescueMessage ? t("chapter.rule"+region) : t(hint));
+    if(active && pikachuNoticeUntil>now) {setText(document.getElementById("rescueTitle"),t("pika.found"));setText(document.getElementById("rescueHint"),t("pika.foundHint"));}
+    else if(active && pikachuIsland && !rescue?.hunt) {
+      setText(document.getElementById("rescueTitle"),t("pika.island"));
+      const distance=Math.abs(snake[0].x-pikachuIsland.x)+Math.abs(snake[0].y-pikachuIsland.y);
+      setText(document.getElementById("rescueHint"),t(distance>3?"pika.near":airLockCharge<100?"pika.charge":"pika.ready"));
+    }
   }
   function advanceRegion() {
     if(runMode!=="adventure" || region>=3) return;
@@ -2863,8 +3041,10 @@
       c.save();c.translate(260+i*220,253);c.scale(2.8,2.8);
       if(haven[i])paintHatchling(c,i,0,0);else{c.globalAlpha=.55;paintEgg(c,0,0,1.4);}c.restore();
     }
+    if(pikachuUnlocked)paintPikachu(c,405,295,.9,performance.now(),"idle");
     document.getElementById("gardenRoster").innerHTML=HATCHLINGS.map((name,i)=>'<div class="haven-card"><strong>'+name+'</strong><small>'+(haven[i]?haven[i]+' '+t("haven.count"):t("haven.locked"))+'</small></div>').join("");
     setText(document.getElementById("gardenStorage"),t(havenWritable?"haven.saved":"haven.unsaved"));
+    renderPikachuCard();
   }
   document.getElementById("gardenBtn").addEventListener("click",()=>{pauseGame();renderHaven();document.getElementById("gardenDialog").showModal();});
   document.getElementById("gardenClose").addEventListener("click",()=>document.getElementById("gardenDialog").close());
@@ -3211,6 +3391,7 @@
     spawnRing(snake[0].x, snake[0].y, "#76e69a");
     spawnPopup(snake[0].x, snake[0].y - 1, "AIR LOCK", "#d8ffe8");
     sfx.clear();
+    updatePikachuEncounter(now);
     updateNatureHud(now);
   }
 
@@ -6121,6 +6302,7 @@
     drawSnake(rendered, now);
     drawLegendEffects(now,rendered[0]);
     drawSanctuary(now,rendered);
+    drawPikachuWorld(now,rendered);
     if (beam && now < beam.until) drawBeam(beam, now);
     if (ascent && now < ascent.until) drawBeam(ascent, now);
     drawReflection(now);
@@ -6239,6 +6421,7 @@
     }
     if (state !== "paused") updateFX(now);
     updateLegendsHud(state==="paused"?pausedAt:now);
+    if(document.getElementById("gardenDialog").open && now-lastPikachuPortrait>=33) {lastPikachuPortrait=now;drawPikachuPortrait(now);}
 
     // Saat pause, HUD membaca waktu saat tombol pause ditekan agar semua countdown benar-benar beku.
     const effectNow = state === "paused" ? pausedAt : now;
@@ -6346,6 +6529,9 @@
     if(rushResting || !document.getElementById("lessonOverlay").classList.contains("hidden")) return;
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
+    nextPikachuIsland=shiftPausedDeadline(nextPikachuIsland,pauseDuration);
+    pikachuNoticeUntil=shiftPausedDeadline(pikachuNoticeUntil,pauseDuration);
+    if(pikachuFlash)pikachuFlash.until+=pauseDuration;
     nextRescue=shiftPausedDeadline(nextRescue,pauseDuration);
     nextRegionToken=shiftPausedDeadline(nextRegionToken,pauseDuration);
     if(rescue && !rescue.sheltered){rescue.until+=pauseDuration;rescue.nextHunt=shiftPausedDeadline(rescue.nextHunt,pauseDuration);if(rescue.hunt)rescue.hunt.at+=pauseDuration;}
@@ -6728,7 +6914,7 @@
   }
 
   document.querySelectorAll("[data-path]").forEach(button=>button.addEventListener("click",()=>{selectedPath=button.dataset.path;saveLegendPreferences();renderLegendMenu();}));
-  document.querySelectorAll("[data-partner]").forEach(button=>button.addEventListener("click",()=>{selectedPartner=button.dataset.partner;saveLegendPreferences();renderLegendMenu();}));
+  document.querySelectorAll("[data-partner]").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.partner==="pikachu"&&!pikachuUnlocked)return;selectedPartner=button.dataset.partner;saveLegendPreferences();renderLegendMenu();}));
   document.getElementById("cinematicsSetting").addEventListener("change",event=>{cinematicsEnabled=event.target.checked;saveLegendPreferences();});
 
   // ---------- Jalan ----------

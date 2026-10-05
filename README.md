@@ -13,6 +13,17 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 
 ## Fitur
 
+### Pikachu — Thunder Guardian
+
+- Di **Lautan Safir** pada Adventure, pulau Pikachu mulai dicari setelah 6 detik di luar pertarungan boss. Area 3 × 3 dipilih tanpa menimpa objek lain. Kemunculan menunggu jika ada Sky Rift atau pilihan upgrade; pulau tidak punya batas waktu.
+- Dekati Pikachu hingga **3 petak jarak Manhattan**, lalu gunakan **Air Lock** dengan meter penuh (Q atau tombol Air Lock). Air Lock yang masih aktif juga dapat menyelamatkannya ketika pemain mendekat. Pemakaian Air Lock jauh dari pulau tidak membuka Pikachu.
+- Pertemanan tersimpan lokal dengan kunci terpisah dari album dan telur. Pikachu muncul di taman; pilih **Ajak untuk perjalanan berikutnya** atau pilih Pikachu di menu partner. Pilihan tidak mengganti partner di tengah run. Jika penyimpanan diblokir, pertemanan tetap bekerja selama halaman terbuka dan keterbatasannya ditampilkan.
+- **Thunder Shock** melindungi satu kali per misi telur, hanya ketika Murkrow akan benar-benar mencuri telur. Menghindari sergapan sendiri tidak menghabiskan bantuan. Perlindungan yang terpakai tidak pulih saat boss datang; misi telur baru memulihkannya. Tidak menambah damage boss, tidak mengambil berry, dan tidak memberi skor tambahan.
+- Dalam Daily dan Boss Rush, Pikachu hanya menemani tanpa bonus pertempuran; Latihan tetap tanpa partner. Pertemuan pulau hanya tersedia di Adventure.
+- Gambar Canvas memiliki telinga dan ekor yang bergerak sendiri, napas, kedipan, pose Thunder Shock, lambaian saat disentuh di taman, serta tidur singkat saat idle. Portrait taman dianimasikan hanya ketika dialog terbuka; latarnya disimpan dalam cache. Reduced motion menampilkan pose statis.
+
+Validasi: `node pikachu-check.cjs` dengan pengaturan Playwright yang sama. Tes mencakup penempatan, jarak/Air Lock, persistensi, perlindungan per misi, pause/reset, pemisahan mode, animasi asli, tampilan HP, ID/EN, dan penyimpanan diblokir. Semua request eksternal diblokir.
+
 ### Sanctuary Journey: telur dan perjalanan wilayah
 
 - **Adventure** dimulai di **Gua Kristal**. Tiga kemenangan boss pertama membuka **Lautan Safir**, **Langit Fajar**, lalu **Taman Kosmik**. Skor tinggi saja tidak melewati wilayah. Setelah itu permainan berlanjut tanpa batas di taman kosmik. Daily, Boss Rush, dan Latihan mempertahankan alur sebelumnya.
