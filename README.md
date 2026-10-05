@@ -13,6 +13,20 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 
 ## Fitur
 
+### Sanctuary Journey: telur dan perjalanan wilayah
+
+- **Adventure** dimulai di **Gua Kristal**. Tiga kemenangan boss pertama membuka **Lautan Safir**, **Langit Fajar**, lalu **Taman Kosmik**. Skor tinggi saja tidak melewati wilayah. Setelah itu permainan berlanjut tanpa batas di taman kosmik. Daily, Boss Rush, dan Latihan mempertahankan alur sebelumnya.
+- Perpindahan wilayah menampilkan ilustrasi dan aturan baru. Permainan serta seluruh timer dijeda sampai pemain menekan **Terbang ke wilayah baru** atau Escape. Pertarungan boss sendiri tetap berjalan tanpa dialog kedatangan.
+- **Kristal gua:** +8 Air Lock. **Mutiara laut:** bergeser satu petak ke kanan setiap 4 detik jika petaknya kosong, +12 Air Lock. **Cincin angin:** +12 Dragon Ascent. **Debu bintang:** +8 Air Lock dan +8 Ascent. Bonus tidak menambah skor atau panjang tubuh; meter tetap mengikuti batas normal.
+- **Telur opsional:** kesempatan pertama setelah 12 detik bermain; kemunculan menunggu bila ada Sky Rift atau pilihan upgrade. Sentuh telur bercincin mint untuk menerima misi, lalu masuki sarang emas dengan kepala. Telur mengikuti ujung ekor tanpa menambah panjang tubuh. Tawaran yang diabaikan berakhir setelah 25 detik; misi yang sudah diterima tidak memiliki batas waktu pengantaran.
+- **Murkrow:** setelah telur dibawa, pemburu menandai petak ekor selama 2,6 detik sebelum menyambar. Jika ekor masih berada di petak tersebut, telur dibawa pergi. Kepala/tubuh tidak terkena damage, Shield dan skor tidak berkurang. Setelah menghindar ada jeda 7 detik sebelum bidikan berikutnya.
+- Saat boss muncul, telur dititipkan di tempat aman dan sergapan dibatalkan. Misi serta spesies telur dipertahankan; telur/sarang ditempatkan kembali pada petak yang tersedia setelah pertarungan. Bila ruang belum cukup, telur tetap dititipkan.
+- Berhasil mengantar menetaskan **Togepi, Azurill, atau Swablu**, menampilkan efek menetas, dan memberi **+25 Air Lock**. Misi berikutnya dijadwalkan 35 detik sesudah misi selesai atau tawaran berakhir.
+- Tombol **TAMAN / GARDEN** membuka pulau taman dengan ilustrasi ketiga Pokémon dan jumlah penyelamatannya. Progres disimpan lokal di browser, terpisah dari skor dan album lama. Jika penyimpanan diblokir, taman masih bekerja selama halaman terbuka dan menampilkan keterbatasan tersebut. Membuka taman saat bermain menjeda game; sesudah menutupnya, gunakan Lanjutkan.
+- Latar gua dan lautan digambar di Canvas serta disimpan dalam cache. Tidak ada unduhan aset atau layanan tambahan. Efek ringan dan reduced motion tetap didukung.
+
+Validasi fitur ini: `node sanctuary-check.cjs` dengan `PLAYWRIGHT_PATH` bila diperlukan. Pengujian memblokir jaringan eksternal dan memeriksa penyelamatan, pemburu, persistensi, boss, perpindahan wilayah, timer, ID/EN, tampilan 320/390px, dan penyimpanan yang diblokir. `STORM_TEST_OUTPUT` menentukan folder screenshot.
+
 ### Legends: boss adaptif, jalur Mega, dan partner
 
 Di lobby, buka **Gaya bermain / Play style** untuk memilih jalur Mega dan partner. Pilihan serta pengaturan sinematik disimpan di browser. Jalur dan partner berlaku untuk Adventure, Daily, dan Boss Rush; latihan tetap menggunakan mekanik dasarnya.

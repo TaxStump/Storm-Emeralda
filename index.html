@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Storm Emeralda: boss adaptif, tiga jalur Mega, partner, sinematik, enam duel Boss Rush, dan tantangan harian." />
+<meta name="description" content="Storm Emeralda: selamatkan telur Pokemon, jelajahi gua hingga taman kosmik, bangun jalur Mega, dan taklukkan boss." />
 <meta name="theme-color" content="#102b25" />
 <title>Storm Emeralda — Emerald Expeditions</title>
 <style>
@@ -1051,9 +1051,42 @@
   .sky-hud small { color:#bdd1d5; font-size:10px; }
   #bossNotice { color:#ffe19b; }
   :root[data-screen="start"] .sky-hud { display:none; }
+
+  .rescue-panel { order:0; border:1px solid #83d4b23d; border-radius:12px; padding:11px 13px; background:linear-gradient(120deg,#102a29,#152538); min-width:0; }
+  @media(max-width:899px) { :root:not(:fullscreen) .rescue-panel { order:4; } }
+  .rescue-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .rescue-top strong { color:#dbf5cd; font-size:11px; letter-spacing:.06em; }
+  .rescue-panel small { display:block; color:#b5ced0; font-size:11px; line-height:1.6; margin-top:5px; }
+  .rescue-panel .utility-btn { flex-shrink:0; }
+  .haven-dialog { box-sizing:border-box; width:min(560px,calc(100vw - 24px)); max-height:90dvh; overflow:auto; border:1px solid #8fddbd66; border-radius:20px; padding:20px; color:#e1eee5; background:linear-gradient(150deg,#183934,#0c1a2b 70%); box-shadow:0 24px 100px #0009; }
+  .haven-dialog::backdrop { background:#041119bd; backdrop-filter:blur(5px); }
+  .haven-dialog h2 { margin:8px 0 10px; font-size:23px; color:#e4f4d3; }
+  .haven-dialog p { font-size:13px; line-height:1.7; color:#bcd3d2; }
+  .haven-dialog canvas { display:block; width:100%; height:auto; border-radius:12px; border:1px solid #c4efc021; box-sizing:border-box; }
+  .haven-kicker { font-size:10px; letter-spacing:.2em; color:#b1d9b6; }
+  .haven-roster { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
+  .haven-card { padding:10px 4px; text-align:center; border:1px solid #a8dac22b; border-radius:10px; background:#c9e9dd08; font-size:12px; }
+  .haven-card small { display:block; color:#a5c3bc; margin-top:4px; font-size:11px; }
+  .haven-dialog button { min-height:42px; }
+  .chapter-path { display:flex; gap:5px; margin:14px 0; }
+  .chapter-path span { flex:1; height:4px; border-radius:4px; background:#89c6be29; }
+  .chapter-path span.reached { background:#ace4bc; box-shadow:0 0 8px #a3e6c037; }
+  @media(max-width:400px) { .haven-dialog { padding:14px; } .haven-dialog h2 { font-size:20px; } }
 </style>
 </head>
 <body>
+  <dialog class="haven-dialog" id="gardenDialog" aria-labelledby="gardenTitle">
+    <span class="haven-kicker" data-i18n="haven.kicker"></span><h2 id="gardenTitle" data-i18n="haven.title"></h2>
+    <canvas id="gardenArt" width="960" height="440" role="img" data-i18n-aria="haven.title"></canvas>
+    <p data-i18n="haven.description"></p><div class="haven-roster" id="gardenRoster"></div><p id="gardenStorage"></p>
+    <button class="utility-btn" id="gardenClose" data-i18n="haven.close"></button>
+  </dialog>
+  <dialog class="haven-dialog" id="chapterDialog" aria-labelledby="chapterTitle">
+    <span class="haven-kicker" data-i18n="chapter.kicker"></span><h2 id="chapterTitle"></h2>
+    <canvas id="chapterArt" width="720" height="360" role="img"></canvas>
+    <div class="chapter-path" id="chapterPath" aria-hidden="true"></div><p id="chapterDescription"></p>
+    <button class="utility-btn" id="chapterContinue" data-i18n="chapter.continue"></button>
+  </dialog>
   <span class="bg-ornament pokeball" aria-hidden="true" style="top:14%;left:6%;width:22px;height:22px"></span>
   <span class="bg-ornament sky-comet" aria-hidden="true" style="top:20%;right:7%;color:#f6c945;animation-delay:2s"></span>
   <span class="bg-ornament pokeball" aria-hidden="true" style="top:72%;left:7%;width:28px;height:28px;opacity:.11;animation-delay:1s"></span>
@@ -1100,6 +1133,7 @@
       <div class="combo-life" role="meter" id="comboMeter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="comboFill"></span></div>
     </div>
 
+    <section class="rescue-panel" id="rescuePanel"><div class="rescue-top"><strong id="rescueTitle"></strong><button class="utility-btn" id="gardenBtn" type="button" data-i18n="haven.open"></button></div><small id="rescueHint"></small></section>
     <div class="sky-hud" id="skyHud"><strong id="skyTitle"></strong><small id="skyHint"></small><small id="bossNotice" role="status"></small></div>
     <div class="journey">
       <div class="journey-heading"><strong data-i18n="journey.title">PERJALANAN EMERALD</strong><span id="levelProgressLabel"></span></div>
@@ -1118,6 +1152,7 @@
       <button class="utility-btn" type="button" id="collectionBtn" data-i18n="collection.open">KOLEKSI</button>
       <button class="utility-btn" type="button" id="monsterBtn" data-i18n="monster.open">MONSTER</button>
     </div>
+
     <div class="badges" id="badges"></div>
     <div class="upgrade-chips" id="upgradeChips"></div>
     <div class="upgrade-hint" id="upgradeHint"></div>
@@ -1686,11 +1721,54 @@
     setText(document.getElementById("highLabel"),t("mode.best")+(runMode==="daily"||runMode==="rush"?" · LOCAL":""));
   }
 
+
+  Object.assign(I18N.id, {
+    "haven.open":"TAMAN", "haven.kicker":"EMERALD SANCTUARY", "haven.title":"Taman Titipan Langit",
+    "haven.description":"Di Adventure, ambil telur bercincin mint untuk menerima misi. Antar ke sarang emas dengan kepala Rayquaza. Telur mengikuti ekor; jauhkan ekor dari lingkaran merah sebelum Murkrow menyambar. Tidak ada penalti skor jika telur dibawa pergi. Saat boss datang, telur dititipkan dengan aman sampai pertarungan selesai.",
+    "haven.close":"Tutup taman", "haven.saved":"Tersimpan di browser ini. Pokémon yang sama menambah jumlah penyelamatan.", "haven.unsaved":"Penyimpanan tidak tersedia; taman hanya bertahan selama halaman ini terbuka.",
+    "haven.count":"diselamatkan", "haven.locked":"Belum ditemukan", "rescue.idle":"PENJAGA TELUR", "rescue.wait":"Telur muncul berkala di Adventure. Sentuh untuk membantu, atau lewati untuk fokus bertarung.",
+    "rescue.offer":"TELUR DITEMUKAN", "rescue.offerHint":"Sentuh telur mint untuk membantu. Antar ke sarang emas; tidak menambah panjang tubuh.",
+    "rescue.carry":"ANTAR KE SARANG", "rescue.carryHint":"Masuki sarang emas dengan kepala. Telur aman selama ekor menjauh dari sasaran merah.",
+    "rescue.warning":"MURKROW MEMBIDIK EKOR", "rescue.warningHint":"Pindahkan ekor dari lingkaran merah sebelum hitung mundur habis!",
+    "rescue.shelter":"TELUR DI TEMPAT AMAN", "rescue.shelterHint":"Misi dilanjutkan setelah boss. Pemburu tidak menyerang selama pertarungan.",
+    "rescue.success":"MENETAS! +25 AIR LOCK", "rescue.lost":"Murkrow membawa telur pergi. Kesempatan baru akan datang.", "rescue.expired":"Telur sudah dijemput penjaga. Tunggu kesempatan berikutnya.",
+    "rescue.disabled":"Penyelamatan telur dan perjalanan wilayah tersedia di Adventure.",
+    "chapter.kicker":"PERJALANAN EMERALD", "chapter.continue":"Terbang ke wilayah baru", "chapter.0":"01 · Gua Kristal", "chapter.1":"02 · Lautan Safir", "chapter.2":"03 · Langit Fajar", "chapter.3":"04 · Taman Kosmik",
+    "chapter.rule0":"Kristal mint muncul berkala. Ambil untuk +8 Air Lock. Kalahkan boss pertama untuk mencapai lautan.",
+    "chapter.rule1":"Mutiara mengikuti arus setiap 4 detik. Ambil untuk +12 Air Lock. Kalahkan boss berikutnya untuk terbang ke langit.",
+    "chapter.rule2":"Cincin angin memberi +12 Dragon Ascent. Kalahkan boss berikutnya untuk membuka taman kosmik.",
+    "chapter.rule3":"Debu bintang memberi +8 Air Lock dan +8 Dragon Ascent. Perjalanan berlanjut tanpa batas di antara bintang.",
+    "chapter.arrival":"Wilayah baru terbuka. Permainan dijeda sampai kamu siap.", "biome.cave":"Gua Kristal", "biome.sea":"Lautan Safir",
+    "lobby.story":"Jaga telur Pokémon dan terbang dari gua kristal menuju lautan, langit, dan taman kosmik. Kemenangan boss membuka wilayah Adventure berikutnya.",
+    "mode.adventure.desc":"Selamatkan telur, jelajahi empat wilayah setelah kemenangan boss, dan bangun sinergi. Skor masuk leaderboard dunia."
+  });
+  Object.assign(I18N.en, {
+    "haven.open":"GARDEN", "haven.kicker":"EMERALD SANCTUARY", "haven.title":"Garden of Skybound Friends",
+    "haven.description":"In Adventure, touch a mint-ringed egg to accept a rescue. Enter the golden nest with Rayquaza's head. The egg follows your tail; move the tail away from the red target before Murkrow swoops. Losing an egg costs no score. During boss fights, eggs stay in safe shelter until the battle ends.",
+    "haven.close":"Close garden", "haven.saved":"Saved in this browser. Rescuing the same Pokémon increases its rescue count.", "haven.unsaved":"Storage unavailable; your garden lasts only while this page stays open.",
+    "haven.count":"rescued", "haven.locked":"Not discovered", "rescue.idle":"EGG GUARDIAN", "rescue.wait":"Eggs appear periodically in Adventure. Touch one to help, or pass by to focus on combat.",
+    "rescue.offer":"AN EGG NEEDS YOU", "rescue.offerHint":"Touch the mint egg to help. Bring it to the golden nest; your body will not grow.",
+    "rescue.carry":"REACH THE NEST", "rescue.carryHint":"Enter the golden nest with your head. Keep the egg at your tail outside the red target.",
+    "rescue.warning":"MURKROW IS AIMING", "rescue.warningHint":"Move your tail out of the red circle before the countdown ends!",
+    "rescue.shelter":"EGG IN SAFE SHELTER", "rescue.shelterHint":"The rescue resumes after the boss. Hunters do not attack during battle.",
+    "rescue.success":"HATCHED! +25 AIR LOCK", "rescue.lost":"Murkrow carried the egg away. Another rescue will appear.", "rescue.expired":"A guardian collected the egg. Another chance is coming.",
+    "rescue.disabled":"Egg rescues and region journeys are available in Adventure.",
+    "chapter.kicker":"EMERALD JOURNEY", "chapter.continue":"Fly to the next region", "chapter.0":"01 · Crystal Cavern", "chapter.1":"02 · Sapphire Sea", "chapter.2":"03 · Dawn Skies", "chapter.3":"04 · Cosmic Garden",
+    "chapter.rule0":"Mint crystals appear periodically. Collect one for +8 Air Lock. Defeat your first boss to reach the sea.",
+    "chapter.rule1":"Pearls drift with the current every 4 seconds. Collect one for +12 Air Lock. Defeat the next boss to reach the skies.",
+    "chapter.rule2":"Wind rings grant +12 Dragon Ascent. Defeat the next boss to unlock the cosmic garden.",
+    "chapter.rule3":"Stardust grants +8 Air Lock and +8 Dragon Ascent. Your endless journey continues among the stars.",
+    "chapter.arrival":"A new region is open. The game is paused until you are ready.", "biome.cave":"Crystal Cavern", "biome.sea":"Sapphire Sea",
+    "lobby.story":"Rescue Pokémon eggs and fly from crystal caves to the sea, skies and cosmic garden. Each boss victory opens the next Adventure region.",
+    "mode.adventure.desc":"Rescue eggs, unlock four regions through boss victories, and build synergies. Scores join the world leaderboard."
+  });
+
   function setLang(l) {
     if (l !== "id" && l !== "en") return;
     lang = l;
     try { localStorage.setItem("storm-emeralda-lang", lang); } catch (e) {}
     applyI18n();
+    renderHaven(); renderChapter(); updateRescueHud(state === "paused" ? pausedAt : performance.now());
   }
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
@@ -2537,14 +2615,271 @@
     // Replacing the card preserves keyboard focus on the selected item.
     document.querySelector(`[data-cosmetic="${id}"]`)?.focus();
   }
+
+  // ---------- Egg sanctuary & Adventure regions ----------
+  const HAVEN_KEY = "storm-emeralda-haven-v1";
+  const HATCHLINGS = ["Togepi", "Azurill", "Swablu"];
+  let haven = [0,0,0], havenWritable = true;
+  try {
+    const saved = JSON.parse(localStorage.getItem(HAVEN_KEY) || "null");
+    if (Array.isArray(saved)) haven = haven.map((_,i) => Number.isSafeInteger(saved[i]) && saved[i]>=0 ? Math.min(9999,saved[i]) : 0);
+  } catch (_) { havenWritable = false; }
+  let rescue = null, nextRescue = 0, rescueMessage = null, hatchEffect = null;
+  let region = 0, regionToken = null, nextRegionToken = 0, chapterPending = false;
+  const REGION_BIOMES = [4,5,0,3];
+  function resetSanctuary() {
+    rescue=null;nextRescue=0;rescueMessage=null;hatchEffect=null;
+    region=0;regionToken=null;nextRegionToken=0;chapterPending=false;
+    document.getElementById("chapterDialog").close();
+    document.getElementById("gardenDialog").close();
+  }
+  function sanctuaryOccupied(x,y) {
+    const same = c => c && c.x===x && c.y===y;
+    return !!(same(regionToken) || rescue && !rescue.sheltered && (same(rescue.egg) || same(rescue.nest)));
+  }
+  function sanctuaryCell(minDistance=0) {
+    const candidates=reachableUpgradeCells().filter(c=>!occupied(c.x,c.y)
+      && Math.abs(c.x-snake[0].x)+Math.abs(c.y-snake[0].y)>=minDistance);
+    return candidates.length ? candidates[Math.floor(gameRandom()*candidates.length)] : null;
+  }
+  function spawnRescue(now) {
+    if(runMode!=="adventure" || boss || rescue) return false;
+    const egg=sanctuaryCell(4); if(!egg) return false;
+    rescue={phase:"offer",egg,nest:null,species:Math.floor(gameRandom()*3),until:now+25000,nextHunt:0,hunt:null,sheltered:false};
+    const nest=sanctuaryCell(7);
+    if(!nest) {rescue=null;return false;}
+    rescue.nest=nest;rescueMessage=null;return true;
+  }
+  function finishRescue(won,now,key="rescue.lost") {
+    if(!rescue) return;
+    if(won) {
+      const {species,nest}=rescue;
+      haven[species]=Math.min(9999,haven[species]+1);
+      try {localStorage.setItem(HAVEN_KEY,JSON.stringify(haven));havenWritable=true;} catch(_){havenWritable=false;}
+      airLockCharge=Math.min(100,airLockCharge+25);
+      hatchEffect={...nest,species,until:now+3500};
+      spawnRing(nest.x,nest.y,"#fff1ae");spawnParticles(nest.x,nest.y,"#bcf4cd",18,2);
+      spawnPopup(nest.x,nest.y,HATCHLINGS[species],"#ffedb0");sfx.rare();
+    }
+    rescue=null;nextRescue=now+35000;
+    rescueMessage={key:won?"rescue.success":key,until:now+5500};
+    renderHaven();
+  }
+  function shelterRescue(now) {
+    regionToken=null;nextRegionToken=now+10000;
+    if(!rescue || rescue.sheltered) return;
+    rescue.remaining=Math.max(1,rescue.until-now);rescue.sheltered=true;rescue.hunt=null;
+    rescue.egg=null;rescue.nest=null;
+  }
+  function restoreRescue(now) {
+    if(!rescue || !rescue.sheltered) return;
+    const nest=sanctuaryCell(6); if(!nest) return;
+    rescue.nest=nest;rescue.sheltered=false;
+    if(rescue.phase==="offer") {
+      rescue.egg=sanctuaryCell(4);
+      if(!rescue.egg) {rescue.sheltered=true;rescue.nest=null;return;}
+    }
+    rescue.until=now+rescue.remaining;rescue.nextHunt=now+6000;
+  }
+  function collectSanctuary(x,y,now) {
+    if(runMode!=="adventure" || boss) return;
+    if(regionToken && regionToken.x===x && regionToken.y===y) {
+      const air=[8,12,0,8][region],charge=[0,0,12,8][region];
+      airLockCharge=Math.min(100,airLockCharge+air);gainAscent(charge);
+      spawnRing(x,y,"#a6f3df");spawnPopup(x,y,air?"+"+air+" AIR LOCK":"+12 ASCENT","#b7f4ec");
+      regionToken=null;nextRegionToken=now+18000;sfx.eat();
+    }
+    if(!rescue || rescue.sheltered) return;
+    if(rescue.phase==="offer" && now>=rescue.until) {finishRescue(false,now,"rescue.expired");return;}
+    if(rescue.phase==="offer" && rescue.egg.x===x && rescue.egg.y===y) {
+      rescue.phase="carry";rescue.egg=null;rescue.nextHunt=now+6500;
+      spawnRing(x,y,"#bcf4cd");sfx.eat();
+    } else if(rescue.phase==="carry" && rescue.nest.x===x && rescue.nest.y===y) finishRescue(true,now);
+  }
+  function updateSanctuary(now) {
+    if(state!=="playing" || runMode!=="adventure") return;
+    if(rescueMessage && now>=rescueMessage.until) rescueMessage=null;
+    if(hatchEffect && now>=hatchEffect.until) hatchEffect=null;
+    if(boss) {shelterRescue(now);return;}
+    restoreRescue(now);
+    if(!nextRescue) nextRescue=now+12000;
+    if(!nextRegionToken) nextRegionToken=now+7000;
+    if(!rescue && now>=nextRescue && !skyRift && !upgradeChoices.length) {
+      if(!spawnRescue(now)) nextRescue=now+3000;
+    }
+    if(rescue && !rescue.sheltered) {
+      if(rescue.phase==="offer" && now>=rescue.until) finishRescue(false,now,"rescue.expired");
+      else if(rescue.phase==="carry") {
+        if(rescue.hunt && now>=rescue.hunt.at) {
+          const tail=snake[snake.length-1],target=rescue.hunt;
+          if(tail.x===target.x && tail.y===target.y) finishRescue(false,now);
+          else {spawnRing(target.x,target.y,"#f7b894");rescue.hunt=null;rescue.nextHunt=now+7000;}
+        } else if(!rescue.hunt && now>=rescue.nextHunt) {
+          rescue.hunt={...snake[snake.length-1],at:now+2600};
+        }
+      }
+    }
+    if(!regionToken && now>=nextRegionToken) {
+      const c=sanctuaryCell(3);
+      if(c) regionToken={...c,nextDrift:now+4000,until:now+16000};
+      else nextRegionToken=now+3000;
+    }
+    if(regionToken) {
+      if(now>=regionToken.until) {regionToken=null;nextRegionToken=now+6000;}
+      else if(region===1 && now>=regionToken.nextDrift) {
+        const nx=regionToken.x+1;
+        if(nx<COLS && !occupied(nx,regionToken.y)) regionToken.x=nx;
+        regionToken.nextDrift=now+4000;
+      }
+    }
+  }
+  function updateRescueHud(now) {
+    const active=state==="playing" || state==="paused";
+    let key="rescue.idle",hint=runMode==="adventure"?"rescue.wait":"rescue.disabled";
+    if(active && rescue) {
+      key=rescue.sheltered?"rescue.shelter":rescue.hunt?"rescue.warning":"rescue."+rescue.phase;
+      hint=key+"Hint";
+    } else if(active && rescueMessage) hint=rescueMessage.key;
+    const countdown=active&&rescue&&!rescue.sheltered?(rescue.hunt?" \u00b7 "+Math.max(0,(rescue.hunt.at-now)/1000).toFixed(1)+"s":rescue.phase==="offer"?" \u00b7 "+Math.max(0,Math.ceil((rescue.until-now)/1000))+"s":""):"";
+    setText(document.getElementById("rescueTitle"),t(key)+countdown);
+    setText(document.getElementById("rescueHint"),active && runMode==="adventure" && !rescue && !rescueMessage ? t("chapter.rule"+region) : t(hint));
+  }
+  function advanceRegion() {
+    if(runMode!=="adventure" || region>=3) return;
+    region++;regionToken=null;nextRegionToken=performance.now()+10000;
+    chapterPending=true;
+    syncBiome();
+  }
+  function showChapter() {
+    if(!chapterPending || state!=="playing") return;
+    chapterPending=false;pauseGame();renderChapter();
+    document.getElementById("chapterDialog").showModal();
+  }
+  function renderChapter() {
+    setText(document.getElementById("chapterTitle"),t("chapter."+region));
+    setText(document.getElementById("chapterDescription"),t("chapter.arrival")+" "+t("chapter.rule"+region));
+    document.getElementById("chapterPath").innerHTML=[0,1,2,3].map(i=>'<span class="'+(i<=region?'reached':'')+'"></span>').join("");
+    const art=document.getElementById("chapterArt"),c=art.getContext("2d");
+    art.setAttribute("aria-label",t("chapter."+region));
+    c.clearRect(0,0,720,360);c.drawImage(biomeLayer(REGION_BIOMES[region]),0,80,480,300,0,0,720,360);
+    c.save();c.translate(360,190);c.scale(2,2);paintHatchling(c,region%3,0,0);c.restore();
+    c.strokeStyle="#efffce40";c.lineWidth=1;c.beginPath();c.ellipse(360,238,120,28,0,0,Math.PI*2);c.stroke();
+  }
+  function paintEgg(c,x,y,scale=1) {
+    c.save();c.translate(x,y);c.scale(scale,scale);
+    const g=c.createLinearGradient(-7,-10,8,10);g.addColorStop(0,"#fffce0");g.addColorStop(.5,"#e9f4d7");g.addColorStop(1,"#8ab8a3");
+    c.fillStyle=g;c.strokeStyle="#244b4c";c.lineWidth=1.5;c.beginPath();c.ellipse(0,0,7.5,10,0,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle="#55ab94";for(const [a,b,r] of [[-3,-3,2],[3,3,2.4],[-2,6,1.6]]){c.beginPath();c.ellipse(a,b,r,r*1.3,-.4,0,Math.PI*2);c.fill();}
+    c.fillStyle="#ffffffad";c.beginPath();c.ellipse(-3,-5,1.3,2.5,.3,0,Math.PI*2);c.fill();c.restore();
+  }
+  function paintHatchling(c,type,x,y) {
+    c.save();c.translate(x,y);
+    const oval=(x,y,rx,ry,color)=>{c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();};
+    oval(0,15,21,5,"#061f283d");
+    if(type===0) {
+      oval(-9,12,6,3,"#e4c587");oval(9,12,6,3,"#e4c587");
+      c.fillStyle="#f2ddb1";c.beginPath();c.moveTo(-12,0);c.lineTo(-14,-14);c.lineTo(-6,-10);c.lineTo(-1,-21);c.lineTo(5,-12);c.lineTo(13,-16);c.lineTo(12,2);c.closePath();c.fill();
+      oval(0,3,13,12,"#fff5d5");c.strokeStyle="#cc8576";c.lineWidth=2;c.beginPath();c.moveTo(-8,4);c.lineTo(-3,10);c.lineTo(-9,10);c.closePath();c.stroke();
+      c.strokeStyle="#62acbc";c.beginPath();c.moveTo(4,5);c.lineTo(9,3);c.lineTo(10,9);c.closePath();c.stroke();
+    } else if(type===1) {
+      c.strokeStyle="#388cab";c.lineWidth=2;c.beginPath();c.moveTo(9,6);c.lineTo(23,0);c.lineTo(19,-7);c.lineTo(29,-8);c.stroke();
+      oval(30,-9,7,7,"#79cdeb");oval(-9,-12,7,8,"#5bb9df");oval(9,-12,7,8,"#5bb9df");oval(-9,-12,3.4,4,"#dfb8ce");oval(9,-12,3.4,4,"#dfb8ce");
+      oval(0,0,14,13,"#6cc5e6");oval(0,7,9,5,"#c7f0ee");oval(-8,13,5,3,"#4a9cc3");oval(8,13,5,3,"#4a9cc3");
+    } else {
+      for(const side of [-1,1]) for(let i=0;i<3;i++) oval(side*(13+i*5),i%2*3,8,7,"#eef6f0");
+      oval(0,1,10,12,"#8acde3");c.strokeStyle="#98d7e7";c.lineWidth=3;c.beginPath();c.moveTo(-2,-9);c.quadraticCurveTo(-5,-21,-10,-21);c.moveTo(2,-9);c.quadraticCurveTo(5,-21,10,-21);c.stroke();
+      c.fillStyle="#f4d998";c.beginPath();c.moveTo(-3,3);c.lineTo(0,7);c.lineTo(3,3);c.fill();
+    }
+    oval(-4,-3,1.5,2.2,"#183640");oval(4,-3,1.5,2.2,"#183640");oval(-4.4,-3.7,.5,.7,"#fff");oval(3.6,-3.7,.5,.7,"#fff");
+    if(type!==2){c.strokeStyle="#63584f";c.lineWidth=1;c.beginPath();c.arc(0,0,2,0,Math.PI);c.stroke();}
+    c.restore();
+  }
+  function drawSanctuary(now,rendered) {
+    if(runMode!=="adventure") return;
+    const pulse=reducedMotion.matches?0:Math.sin(now/350);
+    ctx.save();
+    if(regionToken && !boss) {
+      const x=(regionToken.x+.5)*CELL,y=(regionToken.y+.5)*CELL;
+      ctx.strokeStyle="#9ddfd2";ctx.fillStyle="#b6f4eb";ctx.lineWidth=1.5;
+      if(region===1){ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#85c9db80";ctx.beginPath();ctx.ellipse(x,y+5,10,3,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x+8,y-6);ctx.lineTo(x+11,y-3);ctx.lineTo(x+8,y);ctx.stroke();}
+      else if(region===2){ctx.beginPath();ctx.ellipse(x,y,8+pulse,6,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x-13,y+5);ctx.lineTo(x-5,y+5);ctx.moveTo(x+5,y-5);ctx.lineTo(x+13,y-5);ctx.stroke();}
+      else{ctx.beginPath();ctx.moveTo(x,y-9);ctx.lineTo(x+6,y);ctx.lineTo(x,y+9);ctx.lineTo(x-6,y);ctx.closePath();ctx.fill();ctx.stroke();}
+    }
+    if(rescue && !rescue.sheltered) {
+      const n=rescue.nest,x=(n.x+.5)*CELL,y=(n.y+.5)*CELL;
+      ctx.strokeStyle="#ffe3a3";ctx.lineWidth=1.5;ctx.fillStyle="#b89a572e";
+      ctx.beginPath();ctx.ellipse(x,y,11,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      for(let i=0;i<4;i++){ctx.strokeStyle=i%2?"#b78a54":"#e4c182";ctx.beginPath();ctx.ellipse(x,y+2+i,10-i,4,0,0,Math.PI);ctx.stroke();}
+      ctx.fillStyle="#fff0be";ctx.font="bold 9px sans-serif";ctx.textAlign="center";ctx.beginPath();ctx.moveTo(x-4,y-12);ctx.lineTo(x,y-16);ctx.lineTo(x+4,y-12);ctx.stroke();
+      if(rescue.phase==="offer") {
+        const ex=(rescue.egg.x+.5)*CELL,ey=(rescue.egg.y+.5)*CELL;
+        ctx.strokeStyle="#a3f5ce";ctx.beginPath();ctx.ellipse(ex,ey+4,11+pulse,8,0,0,Math.PI*2);ctx.stroke();paintEgg(ctx,ex,ey-2);
+      } else {
+        const tail=rendered[rendered.length-1];
+        const tx=(tail.x+.5)*CELL,ty=(tail.y+.5)*CELL;
+        ctx.strokeStyle="#f4eccca6";ctx.beginPath();ctx.arc(tx,ty,13,0,Math.PI*2);ctx.stroke();paintEgg(ctx,tx,ty,.85);
+      }
+      if(rescue.hunt) {
+        const h=rescue.hunt,hx=(h.x+.5)*CELL,hy=(h.y+.5)*CELL,left=Math.max(0,(h.at-now)/2600);
+        ctx.fillStyle="#ee825938";ctx.strokeStyle="#ffbc94";ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.strokeRect(h.x*CELL+2,h.y*CELL+2,CELL-4,CELL-4);ctx.setLineDash([]);
+        ctx.beginPath();ctx.arc(hx,hy,13,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(hx,hy,13,-Math.PI/2,-Math.PI/2+Math.PI*2*left);ctx.stroke();
+        // Murkrow silhouette stays beside its marked target, not on another playable cell.
+        ctx.save();ctx.translate(hx,hy-21);ctx.fillStyle="#24263e";ctx.strokeStyle="#bac0ea";ctx.lineWidth=.8;
+        ctx.beginPath();ctx.moveTo(0,3);ctx.quadraticCurveTo(-15,-14,-18,-6);ctx.lineTo(-9,2);ctx.lineTo(-3,7);ctx.lineTo(0,11);ctx.lineTo(3,7);ctx.lineTo(9,2);ctx.lineTo(18,-6);ctx.quadraticCurveTo(12,-13,0,3);ctx.fill();ctx.stroke();
+        ctx.beginPath();ctx.arc(0,-2,5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#cda75c";ctx.beginPath();ctx.moveTo(4,-2);ctx.lineTo(10,1);ctx.lineTo(4,2);ctx.fill();ctx.fillStyle="#faf0c5";ctx.fillRect(2,-3,1.5,1.5);ctx.restore();
+      }
+    }
+    if(hatchEffect && now<hatchEffect.until) {
+      const x=(hatchEffect.x+.5)*CELL,y=(hatchEffect.y+.5)*CELL;
+      ctx.save();ctx.globalAlpha=Math.min(1,(hatchEffect.until-now)/700);paintHatchling(ctx,hatchEffect.species,x,y-7);ctx.restore();
+    }
+    ctx.restore();
+  }
+  function renderHaven() {
+    const art=document.getElementById("gardenArt"),c=art.getContext("2d");
+    art.setAttribute("aria-label",t("haven.title"));
+    const g=c.createLinearGradient(0,0,0,440);g.addColorStop(0,"#173b53");g.addColorStop(.6,"#426968");g.addColorStop(1,"#172f39");c.fillStyle=g;c.fillRect(0,0,960,440);
+    const glow=c.createRadialGradient(735,90,0,735,90,220);glow.addColorStop(0,"#f4e4ac65");glow.addColorStop(1,"#f4e4ac00");c.fillStyle=glow;c.fillRect(500,0,460,330);
+    c.fillStyle="#e9e6bc";c.beginPath();c.arc(735,90,27,0,Math.PI*2);c.fill();
+    for(let i=0;i<5;i++){c.fillStyle="#c8e6db10";c.beginPath();c.ellipse(i*230,130+(i%2)*70,170,23,0,0,Math.PI*2);c.fill();}
+
+    // Faceted floating island, hanging vines and a quiet waterfall frame the residents.
+    const island=c.createLinearGradient(0,285,0,430);island.addColorStop(0,"#3c6460");island.addColorStop(1,"#152d3b");c.fillStyle=island;
+    c.beginPath();c.moveTo(90,285);c.lineTo(190,333);c.lineTo(320,355);c.lineTo(425,412);c.lineTo(515,387);c.lineTo(657,367);c.lineTo(755,330);c.lineTo(870,285);c.closePath();c.fill();
+    c.fillStyle="#0d293e45";for(const points of [[[190,315],[320,335],[425,412]],[[490,325],[657,345],[515,387]],[[657,320],[755,315],[657,367]]]){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();}
+    const fall=c.createLinearGradient(0,291,0,427);fall.addColorStop(0,"#b1ead991");fall.addColorStop(.6,"#81cfda39");fall.addColorStop(1,"#81cfda00");c.fillStyle=fall;c.beginPath();c.moveTo(563,293);c.bezierCurveTo(575,346,554,397,564,434);c.lineTo(581,434);c.bezierCurveTo(569,385,591,341,581,293);c.closePath();c.fill();
+    c.strokeStyle="#76a89369";c.lineWidth=3;for(const [x,h] of [[185,39],[221,51],[714,41],[746,25]]){c.beginPath();c.moveTo(x,297);c.quadraticCurveTo(x-10,320,x+3,297+h);c.stroke();for(let j=0;j<3;j++){c.fillStyle="#76a89380";c.beginPath();c.ellipse(x-2,305+j*9,5,2.5,-.6,0,Math.PI*2);c.fill();}}
+
+    c.fillStyle="#395c50";c.beginPath();c.ellipse(480,284,391,71,0,0,Math.PI*2);c.fill();
+    c.strokeStyle="#a5d4aa66";c.lineWidth=3;c.beginPath();c.ellipse(480,276,385,66,0,0,Math.PI*2);c.stroke();
+    const lawn=c.createRadialGradient(450,258,10,450,258,340);lawn.addColorStop(0,"#79a97829");lawn.addColorStop(1,"#79a97800");c.fillStyle=lawn;c.beginPath();c.ellipse(480,271,370,59,0,0,Math.PI*2);c.fill();
+    c.fillStyle="#81bec43b";c.beginPath();c.ellipse(566,290,47,12,-.1,0,Math.PI*2);c.fill();c.strokeStyle="#d5eed756";c.lineWidth=1;c.stroke();
+    for(const x of [146,814]){
+      c.strokeStyle="#9ab394";c.lineWidth=5;c.beginPath();c.moveTo(x,272);c.quadraticCurveTo(x-12,223,x,181);c.moveTo(x-4,235);c.lineTo(x-32,212);c.moveTo(x-4,216);c.lineTo(x+26,197);c.stroke();
+      for(const [dx,dy,r] of [[-30,205,28],[23,189,32],[-4,173,35]]){const leaf=c.createRadialGradient(x+dx-7,dy-8,0,x+dx,dy,r);leaf.addColorStop(0,"#abc9a5");leaf.addColorStop(1,"#557e6f");c.fillStyle=leaf;c.beginPath();c.ellipse(x+dx,dy,r,r*.65,-.2,0,Math.PI*2);c.fill();}
+    }
+    for(let i=0;i<36;i++){const x=145+(i*137)%680,y=245+(i*31)%70;c.fillStyle=i%3?"#a2c9a273":"#f8d899ab";c.beginPath();c.arc(x,y,2,0,Math.PI*2);c.fill();}
+    for(let i=0;i<3;i++){
+      c.save();c.translate(260+i*220,253);c.scale(2.8,2.8);
+      if(haven[i])paintHatchling(c,i,0,0);else{c.globalAlpha=.55;paintEgg(c,0,0,1.4);}c.restore();
+    }
+    document.getElementById("gardenRoster").innerHTML=HATCHLINGS.map((name,i)=>'<div class="haven-card"><strong>'+name+'</strong><small>'+(haven[i]?haven[i]+' '+t("haven.count"):t("haven.locked"))+'</small></div>').join("");
+    setText(document.getElementById("gardenStorage"),t(havenWritable?"haven.saved":"haven.unsaved"));
+  }
+  document.getElementById("gardenBtn").addEventListener("click",()=>{pauseGame();renderHaven();document.getElementById("gardenDialog").showModal();});
+  document.getElementById("gardenClose").addEventListener("click",()=>document.getElementById("gardenDialog").close());
+  function closeChapter(){document.getElementById("chapterDialog").close();resumeGame();canvas.focus({preventScroll:true});}
+  document.getElementById("chapterContinue").addEventListener("click",closeChapter);
+  document.getElementById("chapterDialog").addEventListener("cancel",event=>{event.preventDefault();closeChapter();});
+
   let biomeIndex = 0, biomeFrom = 0, biomeChangedAt = 0;
-  const BIOMES = ["sky","pillar","storm","cosmos"];
+  const BIOMES = ["sky","pillar","storm","cosmos","cave","sea"];
   const biomeLayers = new Map();
-  function targetBiome() { const lv=level(); return lv>=12?3:lv>=8?2:lv>=4?1:0; }
+  function targetBiome() { if(runMode==="adventure")return REGION_BIOMES[region]; const lv=level(); return lv>=12?3:lv>=8?2:lv>=4?1:0; }
   function syncBiome() {
     const next=targetBiome();
     if (next!==biomeIndex) { biomeFrom=biomeIndex;biomeIndex=next;biomeChangedAt=performance.now(); }
-    setText(document.getElementById("biomeLabel"), t("biome."+BIOMES[biomeIndex]));
+    setText(document.getElementById("biomeLabel"), t(runMode==="adventure"?"chapter."+region:"biome."+BIOMES[biomeIndex]));
   }
 
   const elScore   = document.getElementById("score");
@@ -2670,7 +3005,7 @@
   }
 
   function occupied(x, y) {
-    return skyOccupied(x, y) || snake.some(s => s.x === x && s.y === y) ||
+    return sanctuaryOccupied(x,y) || skyOccupied(x, y) || snake.some(s => s.x === x && s.y === y) ||
            (food && food.x === x && food.y === y) ||
            rocks.some(r => r.x === x && r.y === y) ||
            wilds.some(w => w.x === x && w.y === y) ||
@@ -3143,6 +3478,7 @@
       }
     }
     if (!pos) return; // Retry progression after the player opens space.
+    shelterRescue(performance.now());
     const hp = 7 + bossCount * 3;
     const now = performance.now();
     if (skyRift) endSkyRift(false, now, "rift.boss");
@@ -3212,6 +3548,7 @@
     bossHud.classList.add("hidden");
     bossSkill.textContent = "";
     meteors = meteors.filter(m => !m.bossAttack);
+    advanceRegion();
     updateHud();
     sfx.evolve();
     if (runMode === "rush") {
@@ -3462,7 +3799,7 @@
   }
 
   function checkProgression() {
-    if (state !== "playing") return;
+    if (state !== "playing" || chapterPending) return;
     if (runMode === "training") return;
     if (runMode === "rush") {
       if (!boss && !rushResting && runBosses < RUSH_ROUNDS) startBoss();
@@ -3492,6 +3829,7 @@
   }
 
   function reset() {
+    resetSanctuary();
     resetSkyEvents();
     resetLegends();
     runSession++;
@@ -3757,6 +4095,7 @@
       snake.pop();
     }
 
+    collectSanctuary(nx, ny, now);
     collectSkyRift(nx, ny, now);
     if (pickedUpgrade) selectUpgrade(pickedUpgrade);
     if (pickedNature) collectNatureOrb(pickedNature, now);
@@ -4113,12 +4452,51 @@
     ctx.restore();
   }
 
+
+
+  function paintSapphireSea(c) {
+    const g=c.createLinearGradient(0,0,0,480);g.addColorStop(0,"#203952");g.addColorStop(.3,"#325d70");g.addColorStop(.31,"#235362");g.addColorStop(.7,"#163b51");g.addColorStop(1,"#102b40");c.fillStyle=g;c.fillRect(0,0,480,480);
+    const sun=c.createRadialGradient(350,94,6,350,94,120);sun.addColorStop(0,"#f9e1ac55");sun.addColorStop(1,"#fae0a100");c.fillStyle=sun;c.fillRect(220,0,260,220);
+    c.fillStyle="#e7ddae60";c.beginPath();c.arc(350,94,21,0,Math.PI*2);c.fill();
+    for(let i=0;i<4;i++){c.fillStyle="#c1d6d70f";c.beginPath();c.ellipse(i*154+20,58+(i%2)*35,91,13,0,0,Math.PI*2);c.fill();}
+    for(const [x,y,w,h] of [[-20,145,120,55],[390,153,110,70],[173,147,72,23]]){
+      c.fillStyle="#1737469c";c.beginPath();c.moveTo(x,y);c.lineTo(x+w*.25,y-h*.5);c.lineTo(x+w*.4,y-h);c.lineTo(x+w*.62,y-h*.6);c.lineTo(x+w,y);c.closePath();c.fill();
+      c.strokeStyle="#87bcad38";c.beginPath();c.moveTo(x+w*.25,y-h*.5);c.lineTo(x+w*.4,y-h);c.lineTo(x+w*.6,y-h*.6);c.stroke();
+    }
+    for(let i=0;i<18;i++){c.strokeStyle=i%2?"#71b9c518":"#9dd7d00c";c.lineWidth=1;c.beginPath();const y=159+i*18;c.moveTo(0,y);c.bezierCurveTo(150,y-8,330,y+8,480,y);c.stroke();}
+    for(const side of [0,1]){c.save();c.translate(side?480:0,430);c.scale(side?-1:1,1);c.strokeStyle="#91b6ab31";c.lineWidth=3;for(let i=0;i<5;i++){c.beginPath();c.moveTo(6+i*5,35);c.quadraticCurveTo(30+i*3,-i*9,12+i*4,-25-i*7);c.stroke();}c.restore();}
+    c.strokeStyle="#c2f5e509";for(let i=1;i<20;i++){c.beginPath();c.moveTo(i*24,0);c.lineTo(i*24,480);c.moveTo(0,i*24);c.lineTo(480,i*24);c.stroke();}
+    c.strokeStyle="#9acec83f";c.strokeRect(5,5,470,470);
+  }
+
+  function paintCrystalCavern(c) {
+    const bg=c.createLinearGradient(0,0,0,480);bg.addColorStop(0,"#0b1c2a");bg.addColorStop(.6,"#193a42");bg.addColorStop(1,"#102633");c.fillStyle=bg;c.fillRect(0,0,480,480);
+    const light=c.createRadialGradient(240,225,5,240,225,250);light.addColorStop(0,"#69c5b327");light.addColorStop(1,"#3d928000");c.fillStyle=light;c.fillRect(0,0,480,480);
+    for(let layer=0;layer<3;layer++) {
+      c.strokeStyle=["#42707924","#385f6e3b","#081923b0"][layer];c.lineWidth=20+layer*13;
+      c.beginPath();c.ellipse(240,270,172+layer*48,230+layer*30,0,Math.PI,Math.PI*2);c.stroke();
+    }
+    for(let i=0;i<13;i++) {
+      const x=i*41-10,h=24+(i*29)%58;c.fillStyle=i%2?"#18303ccc":"#0c2332cc";c.beginPath();c.moveTo(x,0);c.lineTo(x+20,h);c.lineTo(x+37,0);c.fill();
+    }
+    for(const [x,y,h,w] of [[24,390,95,16],[47,408,52,12],[432,367,80,18],[457,401,118,15],[19,178,50,10],[453,160,47,10]]) {
+      const g=c.createLinearGradient(x-w,y-h,x+w,y);g.addColorStop(0,"#abedd885");g.addColorStop(.4,"#61b7bc59");g.addColorStop(1,"#28678340");c.fillStyle=g;
+      c.beginPath();c.moveTo(x,y-h);c.lineTo(x+w,y-h*.6);c.lineTo(x+w*.7,y);c.lineTo(x-w,y-8);c.lineTo(x-w*.65,y-h*.62);c.closePath();c.fill();
+      c.strokeStyle="#c5fae856";c.lineWidth=1;c.beginPath();c.moveTo(x,y-h);c.lineTo(x+2,y-7);c.moveTo(x-w*.65,y-h*.62);c.lineTo(x+2,y-h*.47);c.lineTo(x+w,y-h*.6);c.stroke();
+    }
+    for(let i=0;i<6;i++){c.strokeStyle="#86cfcc0c";c.beginPath();c.ellipse(240,415+i*10,90+i*30,8+i*3,0,0,Math.PI*2);c.stroke();}
+    c.strokeStyle="#c2f5e509";c.lineWidth=1;for(let i=1;i<20;i++){c.beginPath();c.moveTo(i*24,0);c.lineTo(i*24,480);c.moveTo(0,i*24);c.lineTo(480,i*24);c.stroke();}
+    c.strokeStyle="#89c6b944";c.strokeRect(5,5,470,470);
+  }
+
   function biomeLayer(index) {
     const key=index+"|"+richEffects;
     if (biomeLayers.has(key)) return biomeLayers.get(key);
     const layer=document.createElement("canvas");layer.width=layer.height=480;
     const c=layer.getContext("2d");
-    if(index===3) paintBackground(c);
+    if(index===5) paintSapphireSea(c);
+    else if(index===4) paintCrystalCavern(c);
+    else if(index===3) paintBackground(c);
     else {
       const colors=[["#152b46","#30525d","#152932"],["#182e39","#29464b","#14262c"],["#171d36","#2d3752","#142731"]][index];
       const sky=c.createLinearGradient(0,0,0,480);
@@ -4165,6 +4543,18 @@
   }
   function drawBiomeAtmosphere(now, head) {
     if(biomeIndex===3) { drawAtmosphere(now,head);return; }
+    if(biomeIndex===4) {
+      if(!richEffects || reducedMotion.matches)return;
+      ctx.save();
+      for(let i=0;i<12;i++){const x=14+(i*137)%452,y=50+(i*79)%390;ctx.globalAlpha=.12+.12*Math.sin(now/1200+i);ctx.fillStyle="#b1f8db";ctx.beginPath();ctx.arc(x,y,1.3,0,Math.PI*2);ctx.fill();}
+      ctx.restore();return;
+    }
+    if(biomeIndex===5) {
+      if(!richEffects || reducedMotion.matches)return;
+      ctx.save();ctx.strokeStyle="#9acfd419";ctx.lineWidth=1;
+      for(let i=0;i<8;i++){const y=170+i*40;ctx.beginPath();for(let x=0;x<=480;x+=12){const py=y+Math.sin(x/55+now/2300+i)*3;x?ctx.lineTo(x,py):ctx.moveTo(x,py);}ctx.stroke();}
+      ctx.restore();return;
+    }
     if(!richEffects || reducedMotion.matches) return;
     ctx.save();ctx.fillStyle=biomeIndex===2?"#b0bbd507":"#d2ebdb08";
     for(let i=0;i<3;i++) {
@@ -5730,6 +6120,7 @@
     drawMagikarp();
     drawSnake(rendered, now);
     drawLegendEffects(now,rendered[0]);
+    drawSanctuary(now,rendered);
     if (beam && now < beam.until) drawBeam(beam, now);
     if (ascent && now < ascent.until) drawBeam(ascent, now);
     drawReflection(now);
@@ -5751,6 +6142,7 @@
   }
 
   function loop(now) {
+    if(chapterPending&&state==="playing")showChapter();
     if(pendingScene&&state==="playing")openCinematic();
     if (bossNotice && state !== "paused" && now >= bossNotice.until) bossNotice = null;
     if(chainFlash&&now>=chainFlash.until&&state==="playing")chainFlash=null;
@@ -5758,6 +6150,7 @@
     if (state === "playing") {
       if(ascent && now>=ascent.until) ascent=null;
       if(reflection && now>=reflection.until) reflection=null;
+      updateSanctuary(now);
       updateSkyRift(now);
       updatePerfectDodge(now);
       updateNature(now);
@@ -5930,6 +6323,7 @@
       setClass(elWeather, "on", false);
     }
 
+    updateRescueHud(state==="paused"?pausedAt:now);
     draw();
     requestAnimationFrame(loop);
   }
@@ -5948,10 +6342,16 @@
   }
 
   function resumeGame() {
-    if (state !== "paused") return;
+    if (state !== "paused" || document.getElementById("chapterDialog").open || document.getElementById("gardenDialog").open) return;
     if(rushResting || !document.getElementById("lessonOverlay").classList.contains("hidden")) return;
     const now = performance.now();
     const pauseDuration = Math.max(0, now - pausedAt);
+    nextRescue=shiftPausedDeadline(nextRescue,pauseDuration);
+    nextRegionToken=shiftPausedDeadline(nextRegionToken,pauseDuration);
+    if(rescue && !rescue.sheltered){rescue.until+=pauseDuration;rescue.nextHunt=shiftPausedDeadline(rescue.nextHunt,pauseDuration);if(rescue.hunt)rescue.hunt.at+=pauseDuration;}
+    if(regionToken){regionToken.nextDrift+=pauseDuration;regionToken.until+=pauseDuration;}
+    if(rescueMessage)rescueMessage.until+=pauseDuration;
+    if(hatchEffect)hatchEffect.until+=pauseDuration;
     nextSkyRift = shiftPausedDeadline(nextSkyRift, pauseDuration);
     dodgeCooldown = shiftPausedDeadline(dodgeCooldown, pauseDuration);
     if (bossNotice) bossNotice.until += pauseDuration;
@@ -6098,6 +6498,7 @@
   }
 
   window.addEventListener("keydown", (e) => {
+    if (document.getElementById("gardenDialog").open || document.getElementById("chapterDialog").open) return;
     if (document.getElementById("collectionDialog").open) return;
     if (document.getElementById("monsterDialog").open) return;
     if(!document.getElementById("lessonOverlay").classList.contains("hidden") || rushResting) return;
@@ -6253,7 +6654,7 @@
   document.getElementById("qualityBtn").addEventListener("click", () => {
     richEffects = !richEffects;
     for (const upgrade of UPGRADES) upgradeSprite(upgrade);
-  for(let i=0;i<4;i++) biomeLayer(i);
+  for(let i=0;i<6;i++) biomeLayer(i);
     try { localStorage.setItem("storm-emeralda-fx", richEffects ? "rich" : "light"); } catch (e) {}
     updatePreferences();
   });
@@ -6338,7 +6739,7 @@
     for(const part of ["head","fin","arms","tail","ring"]) dragonPart(part,pal,form);
   }
   for (const upgrade of UPGRADES) upgradeSprite(upgrade);
-  for(let i=0;i<4;i++) biomeLayer(i);
+  for(let i=0;i<6;i++) biomeLayer(i);
   for(const type of MONSTER_TYPES) for(let frame=0;frame<4;frame++) monsterSprite(type,frame);
   drawLobbyArt();
   requestAnimationFrame(loop);
