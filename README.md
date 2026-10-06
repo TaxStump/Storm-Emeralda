@@ -9,9 +9,31 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 - **Gerak:** ← ↑ ↓ → atau WASD
 - **Hyper Beam:** Spasi atau tombol ⚡ pada kontrol HP
 - **Pause/Lanjutkan:** Escape
-- **Fullscreen:** tombol ⛶ FULLSCREEN pada komputer
+- **Fullscreen:** tombol ⛶ FULLSCREEN pada komputer maupun HP. Browser yang tidak mendukung fullscreen memakai **LAYAR FOKUS**.
 
 ## Fitur
+
+### Fullscreen HP
+
+- Tombol fullscreen tersedia di layar kecil. Jika fullscreen bawaan tidak tersedia atau permintaannya ditolak, **Layar Fokus** memakai area layar browser; bilah browser bisa tetap terlihat.
+- Posisi tegak menempatkan arena di atas kontrol sentuh. Posisi mendatar menempatkan arena di kiri dan kontrol di kanan. Tombol arah, Hyper Beam, Air Lock, serta Dragon Ascent tetap tersedia dengan target sentuh minimal 44px.
+- Arena menyesuaikan tinggi layar yang terlihat, rotasi, dan area aman perangkat. Skor, level, efek aktif, informasi boss, dan timer mode ditampilkan secara ringkas. Informasi partner, misi telur, Sky Rift, dan pilihan upgrade bisa diperiksa pada panel informasi saat pause.
+- Keluar fullscreen atau Layar Fokus ketika bermain otomatis menjeda run. Masuk fullscreen dari menu tetap memungkinkan memilih mode dan memulai permainan. Escape juga keluar dari Layar Fokus.
+- `node mobile-fullscreen-check.cjs` menguji fullscreen bawaan, fallback, permintaan yang ditolak, enam ukuran tegak/mendatar, ukuran dan posisi kontrol, tombol arah/Beam/Air Lock/Ascent, boss, keluar-pause, menu, restart, Escape, serta ID/EN. Pengujian menggunakan emulasi layar sentuh di Edge dengan jaringan eksternal diblokir; bukan pengujian pada perangkat fisik.
+
+### Taman interaktif & partner dari telur
+
+- Buka **TAMAN / GARDEN** untuk memberi berry, mengajak bermain, dan memilih Togepi, Azurill, atau Swablu sebagai partner perjalanan berikutnya. Setiap spesies terbuka setelah satu telur spesies tersebut berhasil diselamatkan. Koleksi telur lama langsung berlaku; jumlah penyelamatan tetap tersimpan dengan format sebelumnya.
+- Bekal awal **6 berry**. Setiap berry Oran, Pinap, atau Pecha yang dikumpulkan di Adventure menambah **1 bekal**, maksimum **99**. Berry yang diambil Pip juga dihitung. Item lain dan berry tantangan Sky Rift tidak mengisi bekal; Daily, Boss Rush, serta Latihan tidak menambahnya.
+- **Beri berry** memakai 1 bekal dan menambah 2 hati; **Ajak bermain** gratis dan menambah 1 hati. Masing-masing aksi punya jeda **30 detik per Pokémon**, tetap berlaku setelah reload. Ikatan maksimum 30 hati: tingkat 1 pada 0–9, tingkat 2 pada 10–24, tingkat 3 pada 25–30. Pada ikatan penuh, perawatan tetap bisa dilakukan dengan biaya dan jeda yang sama, tanpa tambahan hati.
+- **Togepi:** setiap **10 / 9 / 8 berry** sesuai tingkat ikatan memberi +1 Shield, maksimum 3 Shield. Jika Shield penuh, satu hitungan penuh disimpan sampai berry berikutnya setelah Shield berkurang. Hitungan direset setiap run.
+- **Azurill:** setiap berry memberi tambahan **+4 / +5 / +6 Air Lock** sesuai tingkat ikatan, dengan batas meter 100.
+- **Swablu:** setiap berry memberi tambahan **+4 / +5 / +6 Dragon Ascent** sesuai tingkat ikatan, dengan batas meter 100.
+- Bonus partner telur hanya aktif di **Adventure**. Daily dan Boss Rush menampilkan partner sebagai teman tanpa bonus; Latihan tanpa partner. Pilihan partner dan tingkat kekuatannya ditetapkan saat run dimulai, sehingga merawat atau mengganti pilihan di taman tidak mengubah run yang sedang dijeda.
+- Penghuni taman bergerak lembut, melompat saat dirawat, dan menampilkan hati, berry, atau bola. Kartu Pokémon juga merespons saat dirawat; reduced motion memakai pose diam. Latar taman disimpan dalam cache. Tombol tutup di sudut tetap terjangkau saat menggulir di HP. Membuka taman menjeda permainan; menutup taman tidak otomatis melanjutkan run.
+- Bekal, hati, dan jeda perawatan tersimpan di browser dengan kunci `storm-emeralda-garden-care-v1`, terpisah dari jumlah penyelamatan dan skor. Jika penyimpanan diblokir, fitur tetap bekerja selama halaman terbuka dan status penyimpanannya ditampilkan. Menghapus data situs menghapus progres lokal.
+
+Validasi: `node garden-check.cjs` memakai Playwright dan Edge seperti pengujian lain. Mencakup penyelamatan dan pengambilan berry melalui gerakan, pembukaan partner, perawatan, jeda/reload, tingkat ikatan, kemampuan dan batas meter, pemisahan mode, pause/reset, migrasi koleksi lama, penyimpanan rusak/diblokir, keyboard, fokus tombol, ID/EN, lebar 320/390px, animasi frame loop asli, serta reduced motion. Semua jaringan eksternal diblokir; `STORM_TEST_OUTPUT` menentukan folder screenshot.
 
 ### Pikachu — Thunder Guardian
 

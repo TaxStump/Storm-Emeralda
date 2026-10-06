@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="description" content="Storm Emeralda: selamatkan telur Pokemon, jelajahi gua hingga taman kosmik, bangun jalur Mega, dan taklukkan boss." />
 <meta name="theme-color" content="#102b25" />
 <title>Storm Emeralda — Emerald Expeditions</title>
@@ -748,7 +748,10 @@
     .keys { display: none; }
   }
 
-  @media (max-width: 700px) { .fullscreen-btn { display: none; } }
+  @media (max-width: 700px), (pointer: coarse) {
+    .utility-bar { flex-wrap:wrap; }
+    .fullscreen-btn { display:inline-flex; min-height:44px; }
+  }
 
   @media (max-width: 430px) {
     body { padding: 8px; align-items: flex-start; }
@@ -1068,6 +1071,25 @@
   .haven-card { padding:10px 4px; text-align:center; border:1px solid #a8dac22b; border-radius:10px; background:#c9e9dd08; font-size:12px; }
   .haven-card small { display:block; color:#a5c3bc; margin-top:4px; font-size:11px; }
   .haven-dialog button { min-height:42px; }
+  .care-basket { padding:12px 14px; border:1px solid #d7ba6655; border-radius:12px; background:#e5c7750b; }
+  .care-basket strong { display:block; color:#ffe6a5; }
+  .care-basket small { display:block; color:#bcd3d2; margin-top:6px; line-height:1.5; }
+  #gardenFeedback { min-height:22px; color:#d5f2bd; }
+  #gardenRoster { grid-template-columns:1fr; gap:12px; }
+  .care-card { padding:14px; text-align:left; min-width:0; }
+  .care-card.selected { border-color:#a9e1b8; background:#a9e1b80c; }
+  .care-heading { display:flex; align-items:center; gap:12px; }
+  .care-heading canvas { width:72px; height:64px; flex-shrink:0; border:0; background:#c9e9dd08; }
+  .care-card strong { color:#edf4cf; font-size:14px; }
+  .care-card p { margin:8px 0; font-size:12px; }
+  .care-card progress { width:100%; height:7px; accent-color:#b2dfb7; margin:8px 0; }
+  .care-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .care-actions button { white-space:normal; padding:8px; font-size:11px; line-height:1.4; }
+  .care-actions .care-equip { grid-column:1/-1; }
+  .care-actions button[aria-disabled="true"] { opacity:.55; cursor:default; }
+  .care-card button:focus-visible { outline:2px solid #fff0b4; outline-offset:3px; }
+  .garden-dismiss { position:sticky; top:0; height:0; display:flex; justify-content:flex-end; z-index:2; pointer-events:none; }
+  .garden-dismiss button { pointer-events:auto; width:38px; min-height:38px; padding:0; border-radius:50%; border:1px solid #a8dac266; background:#142f31; color:#e4f4d3; font-size:24px; cursor:pointer; box-shadow:0 3px 12px #081b2580; }
   .chapter-path { display:flex; gap:5px; margin:14px 0; }
   .chapter-path span { flex:1; height:4px; border-radius:4px; background:#89c6be29; }
   .chapter-path span.reached { background:#ace4bc; box-shadow:0 0 8px #a3e6c037; }
@@ -1084,13 +1106,83 @@
   .legend-options button:disabled { opacity:.5; cursor:default; }
   #pikachuEquip { width:100%; border-color:#c5a45f; color:#ffe3a3; }
   #pikachuEquip:disabled { opacity:.65; cursor:default; }
+  /* Touch fullscreen keeps the arena and every control inside the visible safe area. */
+  :root.touch-fullscreen { overflow:hidden; overscroll-behavior:none; }
+  :root.touch-fullscreen body {
+    position:fixed; top:0; left:0; width:100%; height:var(--touch-height,100dvh); min-height:0;
+    padding: max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+    overflow:hidden; overscroll-behavior:none; align-items:stretch;
+  }
+  :root.touch-fullscreen .wrap {
+    display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto;
+    width:100%; max-width:700px; height:100%; max-height:none; gap:6px; margin:0;
+  }
+  :root.touch-fullscreen .game-info {
+    display:flex; flex-direction:column; grid-area:1/1; gap:3px; width:100%; height:auto;
+    max-height:150px; min-height:0; overflow:auto; padding:0; scrollbar-width:thin;
+  }
+  :root.touch-fullscreen .game-info > * { display:none; flex-shrink:0; }
+  :root.touch-fullscreen .game-info .utility-bar { display:flex; flex-wrap:nowrap; justify-content:space-between; gap:4px; order:0; }
+  :root.touch-fullscreen .utility-bar > button { min-height:44px; font-size:10px; padding:4px 8px; }
+  :root.touch-fullscreen .utility-bar #qualityBtn,
+  :root.touch-fullscreen .utility-bar #soundBtn,
+  :root.touch-fullscreen .utility-bar .lang-toggle { display:none; }
+  :root.touch-fullscreen .game-info .hud { display:flex; order:1; padding:4px 8px; min-height:32px; }
+  :root.touch-fullscreen .hud { gap:3px; }
+  :root.touch-fullscreen .status-effects { height:18px; }
+  :root.touch-fullscreen .hud .value { font-size:17px; }
+  :root.touch-fullscreen .hud .label { font-size:8px; }
+  :root.touch-fullscreen .game-info .boss-hud:not(.hidden) { display:block; order:2; padding:4px 8px; }
+  :root.touch-fullscreen .boss-skill { height:auto; min-height:13px; margin-top:2px; }
+  :root.touch-fullscreen .boss-name { font-size:9px; }
+  :root.touch-fullscreen .game-info .expedition-hud:not(.hidden) { display:block; order:3; padding:4px 8px; }
+  :root.touch-fullscreen .expedition-hud progress,
+  :root.touch-fullscreen .expedition-hud small { display:none; }
+  :root.touch-fullscreen .board {
+    grid-area:2/1; order:unset; justify-self:center; align-self:center;
+    width:var(--touch-board-size,280px); height:var(--touch-board-size,280px); min-height:0;
+    max-width:100%; margin:0; flex:none;
+  }
+  :root.touch-fullscreen .board #game { width:100%; height:100%; object-fit:contain; }
+  :root.touch-fullscreen .dpad {
+    display:grid; grid-area:3/1; order:unset; justify-self:center; width:100%; max-width:480px;
+    grid-template-columns:64px minmax(0,1fr) repeat(3,52px); grid-template-rows:repeat(3,48px);
+    gap:5px; padding:0 6px; margin:0;
+  }
+  :root.touch-fullscreen .dpad .fire { height:58px; }
+  :root.touch-fullscreen .dpad .ultimate { grid-area:3/1; }
+  :root.touch-fullscreen .dpad button { min-width:0; touch-action:none; }
+  :root.touch-fullscreen[data-screen="start"] .game-info .hud,
+  :root.touch-fullscreen[data-screen="start"] .dpad { display:none; }
+  :root.touch-fullscreen[data-screen="start"] .wrap { grid-template-rows:auto minmax(0,1fr); }
+  :root.touch-fullscreen[data-screen="start"] .board { width:100%; height:100%; align-self:stretch; }
+  :root.touch-fullscreen .overlay { overscroll-behavior:contain; }
+  :root.touch-fullscreen[data-screen="paused"] .game-info { max-height:150px; }
+  :root.touch-fullscreen[data-screen="paused"] .game-info .rescue-panel,
+  :root.touch-fullscreen[data-screen="paused"] .game-info .sky-hud,
+  :root.touch-fullscreen[data-screen="paused"] .game-info .legends-hud,
+  :root.touch-fullscreen[data-screen="paused"] .game-info .upgrade-hint:not(:empty) { display:block; order:4; }
+  @media (orientation:landscape) {
+    :root.touch-fullscreen .wrap { max-width:none; grid-template-columns:minmax(0,1fr) 230px; grid-template-rows:minmax(0,1fr) auto; gap:6px 10px; }
+    :root.touch-fullscreen .game-info { grid-area:1/2; max-height:none; }
+    :root.touch-fullscreen .board { grid-area:1/1/3/2; }
+    :root.touch-fullscreen .dpad { grid-area:2/2; grid-template-columns:58px minmax(0,1fr) repeat(3,48px); padding:0; gap:4px; }
+    :root.touch-fullscreen[data-screen="start"] .wrap { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
+    :root.touch-fullscreen[data-screen="start"] .game-info { grid-area:1/1; }
+    :root.touch-fullscreen[data-screen="start"] .board { grid-area:2/1; }
+  }
 </style>
 </head>
 <body>
   <dialog class="haven-dialog" id="gardenDialog" aria-labelledby="gardenTitle">
+    <div class="garden-dismiss"><button type="button" id="gardenCloseTop" data-i18n-aria="haven.close">×</button></div>
     <span class="haven-kicker" data-i18n="haven.kicker"></span><h2 id="gardenTitle" data-i18n="haven.title"></h2>
     <canvas id="gardenArt" width="960" height="440" role="img" data-i18n-aria="haven.title"></canvas>
-    <p data-i18n="haven.description"></p><div class="haven-roster" id="gardenRoster"></div><p id="gardenStorage"></p>
+    <p data-i18n="care.intro"></p>
+    <div class="care-basket"><strong id="gardenBasket"></strong><small data-i18n="care.supply"></small></div>
+    <p id="gardenFeedback" role="status" aria-live="polite"></p>
+    <div class="haven-roster" id="gardenRoster"></div>
+    <p data-i18n="care.rules"></p><p id="gardenStorage"></p>
     <section class="pikachu-card"><div class="pikachu-heading"><span class="haven-kicker">THUNDER GUARDIAN</span><strong>PIKACHU</strong></div>
       <button type="button" id="pikachuGreet" class="pikachu-portrait" aria-label="Pikachu"><canvas id="pikachuPortrait" width="720" height="400"></canvas></button>
       <p id="pikachuStatus"></p><button type="button" id="pikachuEquip" class="utility-btn"></button>
@@ -1214,7 +1306,7 @@
             <button type="button" data-path="tempest" aria-pressed="true">TEMPEST</button><button type="button" data-path="prism" aria-pressed="false">PRISM</button><button type="button" data-path="ancient" aria-pressed="false">ANCIENT</button>
           </div><p id="pathDescription"></p>
           <h3 data-i18n="legends.partner"></h3><div class="legend-options" role="group" aria-label="Partner">
-            <button type="button" data-partner="guide" data-i18n="partner.guide" aria-pressed="true"></button><button type="button" data-partner="collector" data-i18n="partner.collector" aria-pressed="false"></button><button type="button" data-partner="pikachu" data-i18n="partner.pikachu" aria-pressed="false"></button><button type="button" data-partner="none" data-i18n="partner.none" aria-pressed="false"></button>
+            <button type="button" data-partner="guide" data-i18n="partner.guide" aria-pressed="true"></button><button type="button" data-partner="collector" data-i18n="partner.collector" aria-pressed="false"></button><button type="button" data-partner="pikachu" data-i18n="partner.pikachu" aria-pressed="false"></button><button type="button" data-partner="togepi" data-i18n="partner.togepi" aria-pressed="false"></button><button type="button" data-partner="azurill" data-i18n="partner.azurill" aria-pressed="false"></button><button type="button" data-partner="swablu" data-i18n="partner.swablu" aria-pressed="false"></button><button type="button" data-partner="none" data-i18n="partner.none" aria-pressed="false"></button>
           </div><p id="partnerDescription"></p>
           <label class="scene-setting"><input id="cinematicsSetting" type="checkbox" checked><span data-i18n="scene.setting"></span></label>
         </details>
@@ -1409,7 +1501,9 @@
       "pause.desc": "Semua gerakan dan timer dibekukan.",
       "pause.resume": "LANJUTKAN",
       "fullscreen.enter": "FULLSCREEN",
-      "fullscreen.exit": "KELUAR FULLSCREEN"
+      "fullscreen.exit": "KELUAR FULLSCREEN",
+      "fullscreen.focusEnter": "LAYAR FOKUS",
+      "fullscreen.focusExit": "KELUAR FOKUS"
     },
     en: {
       "start.guide": "Item & hazard guide",
@@ -1493,7 +1587,9 @@
       "pause.desc": "All movement and timers are frozen.",
       "pause.resume": "RESUME",
       "fullscreen.enter": "FULLSCREEN",
-      "fullscreen.exit": "EXIT FULLSCREEN"
+      "fullscreen.exit": "EXIT FULLSCREEN",
+      "fullscreen.focusEnter": "FOCUS SCREEN",
+      "fullscreen.focusExit": "EXIT FOCUS"
     }
   };
 
@@ -1804,6 +1900,36 @@
     "pika.equip":"Choose for the next run", "pika.equipped":"Selected for the next run", "pika.greet":"Say hello to Pikachu", "pika.find":"Find in Sapphire Sea",
     "pika.guard":"Thunder Shock ready - one protection per egg mission", "pika.rest":"Pikachu rests until the next egg mission", "pika.social":"Pikachu accompanies you. Egg protection is available in Adventure.", "pika.shock":"THUNDER SHOCK! EGG SAFE"
   });
+  Object.assign(I18N.id, {
+    "care.intro":"Rawat teman yang menetas, bangun ikatan, lalu ajak terbang. Bonus partner telur hanya aktif di Adventure.",
+    "care.wallet":"Bekal berry", "care.supply":"Setiap berry di Adventure menambah 1 bekal (maks. 99). Hadiah awal: 6 berry.",
+    "care.feed":"Beri berry · 1", "care.play":"Ajak bermain", "care.equip":"Ajak perjalanan berikutnya", "care.equipped":"Dipilih untuk perjalanan berikutnya",
+    "care.locked":"Selamatkan telur Pokémon ini di Adventure untuk membuka perawatan dan partner.",
+    "care.bond":"Ikatan", "care.level1":"Teman baru", "care.level2":"Teman dekat", "care.level3":"Sahabat",
+    "care.fed":"menikmati berry!", "care.played":"senang bermain!", "care.wait":"Sedang beristirahat", "care.empty":"Bekal habis. Kumpulkan berry di Adventure.",
+    "care.max":"Ikatan penuh. Tetap bisa bermain dan memberi berry.", "care.rules":"Ikatan naik di 10 dan 25 hati; maksimum 30. Jeda makan dan bermain masing-masing 30 detik. Kekuatan partner ditetapkan saat perjalanan dimulai.",
+    "care.social":"Menemani tanpa bonus di mode ini.", "care.shieldProgress":"Berry menuju +1 Shield", "care.berryBonus":"Bonus setiap berry:",
+    "care.saved":"Perawatan tersimpan di browser ini.", "care.unsaved":"Perawatan belum tersimpan; progres hanya bertahan selama halaman ini terbuka.",
+    "partner.togepi":"Togepi · Sahabat Pelindung", "partner.azurill":"Azurill · Sahabat Air", "partner.swablu":"Swablu · Sahabat Langit",
+    "partner.togepi.desc":"Adventure: setiap 10/9/8 berry memberi +1 Shield sesuai tingkat ikatan (maks. 3 Shield). Saat Shield penuh, hitungan siap disimpan sampai berry berikutnya setelah Shield berkurang.",
+    "partner.azurill.desc":"Adventure: setiap berry memberi tambahan +4/5/6 Air Lock sesuai tingkat ikatan. Meter maksimum 100.",
+    "partner.swablu.desc":"Adventure: setiap berry memberi tambahan +4/5/6 Dragon Ascent sesuai tingkat ikatan. Meter maksimum 100."
+  });
+  Object.assign(I18N.en, {
+    "care.intro":"Care for your hatchlings, grow your bond, then fly together. Egg partner bonuses are active only in Adventure.",
+    "care.wallet":"Berry basket", "care.supply":"Each Adventure berry adds 1 to your basket (max. 99). Welcome gift: 6 berries.",
+    "care.feed":"Feed berry · 1", "care.play":"Play together", "care.equip":"Join the next journey", "care.equipped":"Selected for the next journey",
+    "care.locked":"Rescue this Pokémon's egg in Adventure to unlock care and companionship.",
+    "care.bond":"Bond", "care.level1":"New friend", "care.level2":"Close friend", "care.level3":"Best friend",
+    "care.fed":"enjoyed the berry!", "care.played":"loved playing!", "care.wait":"Taking a little rest", "care.empty":"Basket empty. Collect berries in Adventure.",
+    "care.max":"Bond is full. You can still play and feed berries.", "care.rules":"Bond levels rise at 10 and 25 hearts; maximum 30. Feeding and playing each have a 30-second rest. Partner strength is set when a journey starts.",
+    "care.social":"Accompanies you without a bonus in this mode.", "care.shieldProgress":"Berries toward +1 Shield", "care.berryBonus":"Bonus per berry:",
+    "care.saved":"Care progress is saved in this browser.", "care.unsaved":"Care progress is not saved; it lasts only while this page stays open.",
+    "partner.togepi":"Togepi · Gentle Guardian", "partner.azurill":"Azurill · Water Friend", "partner.swablu":"Swablu · Sky Friend",
+    "partner.togepi.desc":"Adventure: every 10/9/8 berries grant +1 Shield based on bond level (max. 3 Shields). At full Shields, a ready charge waits for the next berry after a Shield is lost.",
+    "partner.azurill.desc":"Adventure: each berry grants an extra +4/5/6 Air Lock based on bond level. The meter caps at 100.",
+    "partner.swablu.desc":"Adventure: each berry grants an extra +4/5/6 Dragon Ascent based on bond level. The meter caps at 100."
+  });
   function setLang(l) {
     if (l !== "id" && l !== "en") return;
     lang = l;
@@ -1952,7 +2078,8 @@
   let pikachuUnlocked=false,pikachuWritable=true;
   try {pikachuUnlocked=localStorage.getItem(PIKACHU_KEY)==="rescued";}catch(_){pikachuWritable=false;}
   let pikachuIsland=null,nextPikachuIsland=0,pikachuFlash=null,pikachuNoticeUntil=0,pikachuGreetingUntil=0,lastPikachuPortrait=0;
-  const PARTNERS = ["guide","collector","pikachu","none"];
+  const EGG_PARTNERS = ["togepi","azurill","swablu"];
+  const PARTNERS = ["guide","collector","pikachu",...EGG_PARTNERS,"none"];
   let selectedPath="tempest",selectedPartner="guide",runPath="tempest",runPartner="guide";
   let habits={moves:[],shots:[]},partner={nextCollect:0,route:[],bond:0,mood:"calm",flashUntil:0};
   let chainFlash=null,pendingScene=null,cinematicsEnabled=true;
@@ -1970,15 +2097,16 @@
   function pathRank() {const key={tempest:"combo",prism:"beam",ancient:"shield"}[runPath];return 1+Math.min(2,upgrades[key]||0);}
   function resetLegends() {
     habits={moves:[],shots:[]};chainFlash=null;pendingScene=null;
-    runPath=selectedPath;runPartner=runMode==="training"?"none":selectedPartner;
+    runPath=selectedPath;runPartner=runMode==="training"||!partnerUnlocked(selectedPartner)?"none":selectedPartner;
     partner={nextCollect:performance.now()+12000,route:[],bond:0,mood:"calm",flashUntil:0};
+    partner.gardenRank=gardenRank(EGG_PARTNERS.indexOf(runPartner));partner.berries=0;
   }
   function renderLegendMenu() {
     document.getElementById("cinematicsSetting").checked=cinematicsEnabled;
     document.querySelector("[data-path]").parentElement.setAttribute("aria-label",t("legends.path"));
     document.querySelector("[data-partner]").parentElement.setAttribute("aria-label",t("legends.partner"));
     document.querySelectorAll("[data-path]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.path===selectedPath));
-    document.querySelectorAll("[data-partner]").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.partner===selectedPartner);b.disabled=b.dataset.partner==="pikachu"&&!pikachuUnlocked;if(b.dataset.partner==="pikachu")b.title=t(pikachuUnlocked?"partner.pikachu.desc":"pika.locked");});
+    document.querySelectorAll("[data-partner]").forEach(b=>{const id=b.dataset.partner;b.setAttribute("aria-pressed",id===selectedPartner);b.disabled=!partnerUnlocked(id);b.title=t(partnerUnlocked(id)?"partner."+id+".desc":id==="pikachu"?"pika.locked":"care.locked");});
     setText(document.getElementById("pathDescription"),t("path."+selectedPath+".desc"));
     setText(document.getElementById("partnerDescription"),t("partner."+selectedPartner+".desc"));
     setText(document.getElementById("legendMenuSummary"),t("path."+selectedPath)+" · "+t("partner."+selectedPartner));
@@ -1990,6 +2118,10 @@
     setText(document.getElementById("partnerStatus"),t("partner."+runPartner)+(runPartner!=="none"&&runPartner!=="pikachu"?" · "+t("partner.bond")+" "+(1+Math.min(2,Math.floor(partner.bond/8))):""));
     setText(document.getElementById("partnerHint"),runPartner==="pikachu"?t(runMode!=="adventure"?"pika.social":rescue?.pikaUsed?"pika.rest":"pika.guard"):runPartner==="collector"?t("partner.cooldown")+" "+Math.max(0,Math.ceil((partner.nextCollect-now)/1000))+"s":runPartner==="guide"?t("partner."+(partner.route.length?"route":"wait")):t("partner.none.desc"));
     setText(document.getElementById("bossRead"),boss?t("boss.read")+" · "+t("habit."+(boss.tactic||"observe")):t("path."+runPath+".short"));
+    if(EGG_PARTNERS.includes(runPartner)) {
+      setText(document.getElementById("partnerStatus"),t("partner."+runPartner)+" · "+t("partner.bond")+" "+partner.gardenRank);
+      setText(document.getElementById("partnerHint"),runMode!=="adventure"?t("care.social"):runPartner==="togepi"?t("care.shieldProgress")+" "+partner.berries+"/"+(11-partner.gardenRank):t("care.berryBonus")+" +"+(3+partner.gardenRank)+" "+(runPartner==="azurill"?"Air Lock":"Dragon Ascent"));
+    }
   }
   function rememberMove() {
     habits.moves.push({x:snake[0].x,y:snake[0].y,dx:dir.x,dy:dir.y});
@@ -2071,7 +2203,7 @@
     if(cells.length)rays.push({origin:{...last},direction:side,cells,branch:true});return rays;
   }
   function updatePartner(now) {
-    if(runPartner==="none"||runPartner==="pikachu"||runMode==="training")return;
+    if(runPartner==="none"||runPartner==="pikachu"||EGG_PARTNERS.includes(runPartner)||runMode==="training")return;
     partner.bond=runItems;const rank=1+Math.min(2,Math.floor(partner.bond/8));
     if(runPartner==="guide") {
       const routes=reachableRoutes(now,rank+2);
@@ -2109,7 +2241,13 @@
       for(const l of chainFlash.links){ctx.beginPath();ctx.moveTo((l.from.x+.5)*CELL,(l.from.y+.5)*CELL);ctx.lineTo((l.from.x+l.to.x+1)*CELL/2+4,(l.from.y+l.to.y+1)*CELL/2-4);ctx.lineTo((l.to.x+.5)*CELL,(l.to.y+.5)*CELL);ctx.stroke();}
     }
     ctx.globalAlpha=1;
-    if(runPartner!=="none"&&runPartner!=="pikachu"&&runMode!=="training") {
+    if(EGG_PARTNERS.includes(runPartner)&&runMode!=="training") {
+      const bob=reducedMotion.matches?0:Math.sin(now/300)*2;
+      ctx.save();ctx.translate(head.x-18,head.y-24+bob);ctx.scale(.62,.62);
+      paintHatchling(ctx,EGG_PARTNERS.indexOf(runPartner),0,0);ctx.restore();
+      if(now<partner.flashUntil){ctx.strokeStyle="#c7f4ce";ctx.beginPath();ctx.arc(head.x-18,head.y-24,17,0,Math.PI*2);ctx.stroke();}
+    }
+    if((runPartner==="guide"||runPartner==="collector")&&runMode!=="training") {
       if(runPartner==="guide")for(let i=0;i<partner.route.length;i++) {
         const p=partner.route[i];if(forecastBlocked(p.x,p.y,now+(i+1)*speedMs()))break;
         ctx.strokeStyle="#aef4d9";ctx.globalAlpha=.55-i*.07;ctx.lineWidth=1.5;
@@ -2787,10 +2925,95 @@
     const saved = JSON.parse(localStorage.getItem(HAVEN_KEY) || "null");
     if (Array.isArray(saved)) haven = haven.map((_,i) => Number.isSafeInteger(saved[i]) && saved[i]>=0 ? Math.min(9999,saved[i]) : 0);
   } catch (_) { havenWritable = false; }
+  // Care is separate from legacy rescue counts so existing gardens migrate without losing residents.
+  const CARE_KEY="storm-emeralda-garden-care-v1";
+  let gardenCare={berries:6,pets:[0,1,2].map(()=>({bond:0,feedAt:0,playAt:0}))},careWritable=true;
+  let gardenBackdrop=null,gardenReaction=null,gardenFeedback=null,lastGardenControls=0;
+  const safeCareInt=(n,max)=>Number.isSafeInteger(n)&&n>=0?Math.min(max,n):0;
+  try {
+    const saved=JSON.parse(localStorage.getItem(CARE_KEY)||"null");
+    if(saved&&typeof saved==="object"&&!Array.isArray(saved)) {
+      gardenCare.berries=safeCareInt(saved.berries,99);
+      gardenCare.pets=gardenCare.pets.map((p,i)=>({bond:safeCareInt(saved.pets?.[i]?.bond,30),feedAt:safeCareInt(saved.pets?.[i]?.feedAt,Date.now()+30000),playAt:safeCareInt(saved.pets?.[i]?.playAt,Date.now()+30000)}));
+    }
+  } catch(_){careWritable=false;}
+  function partnerUnlocked(id) {
+    const i=EGG_PARTNERS.indexOf(id);
+    return i>=0?haven[i]>0:id==="pikachu"?pikachuUnlocked:PARTNERS.includes(id);
+  }
+  if(!partnerUnlocked(selectedPartner))selectedPartner="guide";
+  function gardenRank(i) {const bond=gardenCare.pets[i]?.bond||0;return bond>=25?3:bond>=10?2:1;}
+  function saveGardenCare() {
+    try{localStorage.setItem(CARE_KEY,JSON.stringify(gardenCare));careWritable=true;}catch(_){careWritable=false;}
+  }
+  function collectGardenBerry(f,now) {
+    if(runMode!=="adventure"||!["oran","pinap","pecha"].includes(f.type.kind))return;
+    if(gardenCare.berries<99){gardenCare.berries++;saveGardenCare();}
+    if(!EGG_PARTNERS.includes(runPartner))return;
+    const bonus=3+partner.gardenRank;
+    let activated=false;
+    if(runPartner==="togepi") {
+      const target=11-partner.gardenRank;
+      partner.berries=Math.min(target,partner.berries+1);
+      if(partner.berries>=target&&shield<3){shield++;partner.berries=0;activated=true;}
+    } else if(runPartner==="azurill") {
+      activated=airLockCharge<100;airLockCharge=Math.min(100,airLockCharge+bonus);
+    } else {activated=ascentCharge<100;gainAscent(bonus);}
+    if(activated){partner.flashUntil=now+900;spawnPopup(f.x,f.y-2,runPartner==="togepi"?"+1 SHIELD":"+"+bonus+(runPartner==="azurill"?" AIR LOCK":" ASCENT"),"#c7f4ce");}
+  }
+  function gardenAction(i,action) {
+    if(!Number.isInteger(i)||!haven[i]||!["feed","play","equip"].includes(action))return;
+    if(action==="equip") {
+      selectedPartner=EGG_PARTNERS[i];saveLegendPreferences();renderLegendMenu();updateGardenControls();renderPikachuCard();drawGardenResidents(performance.now());return;
+    }
+    const pet=gardenCare.pets[i],now=Date.now(),key=action+"At";
+    if(now<pet[key]){gardenFeedback={i,key:"care.wait"};updateGardenControls();return;}
+    if(action==="feed"&&!gardenCare.berries){gardenFeedback={i,key:"care.empty"};updateGardenControls();return;}
+    const oldBond=pet.bond,full=oldBond===30;
+    if(action==="feed")gardenCare.berries--;
+    pet.bond=Math.min(30,pet.bond+(action==="feed"?2:1));pet[key]=now+30000;
+    gardenReaction={i,action,until:performance.now()+2400};
+    gardenFeedback={i,key:full?"care.max":action==="feed"?"care.fed":"care.played",gain:pet.bond-oldBond};
+    saveGardenCare();updateGardenControls();drawGardenResidents(performance.now());
+  }
+  function renderHavenRoster() {
+    document.getElementById("gardenRoster").innerHTML=HATCHLINGS.map((name,i)=>{
+      const unlocked=haven[i]>0;
+      return '<article class="haven-card care-card" data-care-card="'+i+'"><div class="care-heading"><canvas width="144" height="128" data-care-portrait="'+i+'" aria-hidden="true"></canvas><div><strong>'+name+'</strong><small>'+(unlocked?haven[i]+' '+t("haven.count"):t("haven.locked"))+'</small></div></div>'+
+        (unlocked?'<small data-care-bond="'+i+'"></small><progress data-care-progress="'+i+'" max="30" value="0" aria-label="'+name+' · '+t("care.bond")+'"></progress><p>'+t("partner."+EGG_PARTNERS[i]+".desc")+'</p><div class="care-actions">'+['feed','play','equip'].map(action=>'<button type="button" class="utility-btn care-'+action+'" data-care="'+action+'" data-pet="'+i+'"></button>').join('')+'</div>':'<p>'+t("care.locked")+'</p>')+'</article>';
+    }).join('');
+    document.querySelectorAll('[data-care-portrait]').forEach(art=>{const i=Number(art.dataset.carePortrait),c=art.getContext('2d');c.save();c.translate(66,69);c.scale(2,2);if(haven[i])paintHatchling(c,i,0,0);else paintEgg(c,0,0,1.7);c.restore();});
+    updateGardenControls();
+  }
+  function updateGardenControls() {
+    setText(document.getElementById("gardenBasket"),t("care.wallet")+" · "+gardenCare.berries+" / 99");
+    setText(document.getElementById("gardenFeedback"),gardenFeedback?HATCHLINGS[gardenFeedback.i]+" · "+t(gardenFeedback.key)+(gardenFeedback.gain?" "+t("care.bond")+" +"+gardenFeedback.gain+".":""):"");
+    setText(document.getElementById("gardenStorage"),t(havenWritable?"haven.saved":"haven.unsaved")+" "+t(careWritable?"care.saved":"care.unsaved"));
+    const now=Date.now();
+    document.querySelectorAll('[data-care-card]').forEach(card=>{
+      const i=Number(card.dataset.careCard),pet=gardenCare.pets[i];
+      card.classList.toggle('selected',selectedPartner===EGG_PARTNERS[i]);
+      const label=card.querySelector('[data-care-bond]');if(!label)return;
+      setText(label,t("care.level"+gardenRank(i))+" · "+t("care.bond")+" "+pet.bond+" / 30 ♥");
+      card.querySelector('progress').value=pet.bond;
+      card.querySelectorAll('[data-care]').forEach(button=>{
+        const action=button.dataset.care,remaining=Math.max(0,Math.ceil((pet[action+'At']-now)/1000));
+        const selected=action==='equip'&&selectedPartner===EGG_PARTNERS[i];
+        const unavailable=selected||remaining>0||action==='feed'&&!gardenCare.berries;
+        button.setAttribute('aria-disabled',String(unavailable));
+        setText(button,selected?t('care.equipped'):t('care.'+action)+(remaining>0?' · '+remaining+'s':''));
+        button.setAttribute('aria-label',HATCHLINGS[i]+' · '+button.textContent);
+      });
+    });
+  }
+  document.getElementById('gardenRoster').addEventListener('click',event=>{
+    const button=event.target.closest('[data-care]');if(button)gardenAction(Number(button.dataset.pet),button.dataset.care);
+  });
   let rescue = null, nextRescue = 0, rescueMessage = null, hatchEffect = null;
   let region = 0, regionToken = null, nextRegionToken = 0, chapterPending = false;
   const REGION_BIOMES = [4,5,0,3];
   function resetSanctuary() {
+    gardenReaction=null;gardenFeedback=null;lastGardenControls=0;
     pikachuIsland=null;nextPikachuIsland=0;pikachuFlash=null;pikachuNoticeUntil=0;pikachuGreetingUntil=0;
     rescue=null;nextRescue=0;rescueMessage=null;hatchEffect=null;
     region=0;regionToken=null;nextRegionToken=0;chapterPending=false;
@@ -2828,6 +3051,7 @@
     rescue=null;nextRescue=now+35000;
     rescueMessage={key:won?"rescue.success":key,until:now+5500};
     renderHaven();
+    renderLegendMenu();
   }
   function shelterRescue(now) {
     pikachuIsland=null;nextPikachuIsland=0;
@@ -3016,6 +3240,7 @@
   function renderHaven() {
     const art=document.getElementById("gardenArt"),c=art.getContext("2d");
     art.setAttribute("aria-label",t("haven.title"));
+    if(!gardenBackdrop) {
     const g=c.createLinearGradient(0,0,0,440);g.addColorStop(0,"#173b53");g.addColorStop(.6,"#426968");g.addColorStop(1,"#172f39");c.fillStyle=g;c.fillRect(0,0,960,440);
     const glow=c.createRadialGradient(735,90,0,735,90,220);glow.addColorStop(0,"#f4e4ac65");glow.addColorStop(1,"#f4e4ac00");c.fillStyle=glow;c.fillRect(500,0,460,330);
     c.fillStyle="#e9e6bc";c.beginPath();c.arc(735,90,27,0,Math.PI*2);c.fill();
@@ -3037,17 +3262,43 @@
       for(const [dx,dy,r] of [[-30,205,28],[23,189,32],[-4,173,35]]){const leaf=c.createRadialGradient(x+dx-7,dy-8,0,x+dx,dy,r);leaf.addColorStop(0,"#abc9a5");leaf.addColorStop(1,"#557e6f");c.fillStyle=leaf;c.beginPath();c.ellipse(x+dx,dy,r,r*.65,-.2,0,Math.PI*2);c.fill();}
     }
     for(let i=0;i<36;i++){const x=145+(i*137)%680,y=245+(i*31)%70;c.fillStyle=i%3?"#a2c9a273":"#f8d899ab";c.beginPath();c.arc(x,y,2,0,Math.PI*2);c.fill();}
-    for(let i=0;i<3;i++){
-      c.save();c.translate(260+i*220,253);c.scale(2.8,2.8);
-      if(haven[i])paintHatchling(c,i,0,0);else{c.globalAlpha=.55;paintEgg(c,0,0,1.4);}c.restore();
+    gardenBackdrop=document.createElement('canvas');gardenBackdrop.width=960;gardenBackdrop.height=440;
+    gardenBackdrop.getContext('2d').drawImage(art,0,0);
     }
-    if(pikachuUnlocked)paintPikachu(c,405,295,.9,performance.now(),"idle");
-    document.getElementById("gardenRoster").innerHTML=HATCHLINGS.map((name,i)=>'<div class="haven-card"><strong>'+name+'</strong><small>'+(haven[i]?haven[i]+' '+t("haven.count"):t("haven.locked"))+'</small></div>').join("");
-    setText(document.getElementById("gardenStorage"),t(havenWritable?"haven.saved":"haven.unsaved"));
+    drawGardenResidents(performance.now());renderHavenRoster();
     renderPikachuCard();
+  }
+  function drawGardenResidents(now) {
+    if(!gardenBackdrop)return;
+    const c=document.getElementById('gardenArt').getContext('2d'),moving=!reducedMotion.matches;
+    c.drawImage(gardenBackdrop,0,0);
+    for(let i=0;i<3;i++) {
+      const reaction=gardenReaction?.i===i&&now<gardenReaction.until?gardenReaction:null;
+      const time=moving?now/600+i*2:0;
+      const hop=reaction&&moving?Math.abs(Math.sin(now/110))*12:0;
+      c.save();c.translate(260+i*220+(haven[i]&&moving?Math.sin(time)*6:0),253-hop+(haven[i]&&moving?Math.sin(time*1.5)*2:0));
+      if(selectedPartner===EGG_PARTNERS[i]){c.strokeStyle='#f4e5a7';c.lineWidth=2;c.beginPath();c.ellipse(0,42,53,12,0,0,Math.PI*2);c.stroke();}
+      c.save();c.scale(2.8,2.8);
+      if(haven[i])paintHatchling(c,i,0,0);else{c.globalAlpha=.55;paintEgg(c,0,0,1.4);}c.restore();
+      if(reaction) {
+        c.fillStyle='#ffbfd1';c.font='25px sans-serif';c.textAlign='center';c.fillText('♥',0,-75);
+        if(reaction.action==='feed'){c.fillStyle='#82baec';c.beginPath();c.arc(37,15,10,0,Math.PI*2);c.fill();c.fillStyle='#b8e5ac';c.beginPath();c.ellipse(40,3,7,3,-.5,0,Math.PI*2);c.fill();}
+        else{c.fillStyle='#ffe2a1';c.beginPath();c.arc(-46+(moving?Math.sin(now/170)*8:0),27,10,0,Math.PI*2);c.fill();c.strokeStyle='#e38d7e';c.lineWidth=3;c.stroke();}
+      }
+      c.restore();
+    }
+    if(pikachuUnlocked)paintPikachu(c,405,295,.9,now,'idle');
+    document.querySelectorAll('[data-care-portrait]').forEach(art=>{
+      const i=Number(art.dataset.carePortrait),p=art.getContext('2d');
+      const active=gardenReaction?.i===i&&now<gardenReaction.until;
+      p.clearRect(0,0,144,128);p.save();p.translate(66,69-(active&&moving?Math.abs(Math.sin(now/110))*7:0));p.scale(2,2);
+      if(haven[i])paintHatchling(p,i,0,0);else paintEgg(p,0,0,1.7);p.restore();
+      if(active){p.fillStyle='#ffbfd1';p.font='16px sans-serif';p.fillText('♥',110,25);}
+    });
   }
   document.getElementById("gardenBtn").addEventListener("click",()=>{pauseGame();renderHaven();document.getElementById("gardenDialog").showModal();});
   document.getElementById("gardenClose").addEventListener("click",()=>document.getElementById("gardenDialog").close());
+  document.getElementById("gardenCloseTop").addEventListener("click",()=>document.getElementById("gardenDialog").close());
   function closeChapter(){document.getElementById("chapterDialog").close();resumeGame();canvas.focus({preventScroll:true});}
   document.getElementById("chapterContinue").addEventListener("click",closeChapter);
   document.getElementById("chapterDialog").addEventListener("cancel",event=>{event.preventDefault();closeChapter();});
@@ -4343,6 +4594,7 @@
       case "evolve":  doEvolve(); break;
       case "mega":    mega = true; megaUntil = now + 8000; sfx.mega(); break;
     }
+    collectGardenBerry(f,now);
   }
 
   function doEvolve() {
@@ -6421,7 +6673,10 @@
     }
     if (state !== "paused") updateFX(now);
     updateLegendsHud(state==="paused"?pausedAt:now);
-    if(document.getElementById("gardenDialog").open && now-lastPikachuPortrait>=33) {lastPikachuPortrait=now;drawPikachuPortrait(now);}
+    if(document.getElementById("gardenDialog").open && now-lastPikachuPortrait>=33) {
+      lastPikachuPortrait=now;drawPikachuPortrait(now);drawGardenResidents(now);
+      if(now-lastGardenControls>=250){lastGardenControls=now;updateGardenControls();}
+    }
 
     // Saat pause, HUD membaca waktu saat tombol pause ditekan agar semua countdown benar-benar beku.
     const effectNow = state === "paused" ? pausedAt : now;
@@ -6608,20 +6863,31 @@
 
   function updateFullscreenButton() {
     if (!elFullscreen) return;
-    if (!document.fullscreenEnabled) {
-      elFullscreen.hidden = true;
-      return;
-    }
     elFullscreen.hidden = false;
-    const active = !!document.fullscreenElement;
+    const active = fullscreenActive();
     elFullscreenLabel.textContent = t(active ? "fullscreen.exit" : "fullscreen.enter");
+    if (document.documentElement.classList.contains('focus-fullscreen')) elFullscreenLabel.textContent=t('fullscreen.focusExit');
+    else if(!active&&!document.fullscreenEnabled)elFullscreenLabel.textContent=t('fullscreen.focusEnter');
     elFullscreen.setAttribute("aria-label", elFullscreenLabel.textContent);
     elFullscreen.setAttribute("aria-pressed", active ? "true" : "false");
   }
 
   function fitFullscreenLayout() {
     const root = document.documentElement;
-    if (!document.fullscreenElement) {
+    const active=fullscreenActive();
+    const touch=active&&(matchMedia('(pointer: coarse)').matches||innerWidth<900||root.classList.contains('focus-fullscreen'));
+    root.classList.toggle('touch-fullscreen',touch);
+    if(touch) {
+      root.style.setProperty('--touch-height',Math.floor(window.visualViewport?.height||innerHeight)+'px');
+      const wrap=document.querySelector('.wrap'),info=document.querySelector('.game-info'),pad=document.getElementById('dpad');
+      const landscape=matchMedia('(orientation: landscape)').matches;
+      const width=wrap.clientWidth-(landscape&&state!=='start'?240:0);
+      const height=landscape&&state!=='start'?wrap.clientHeight:wrap.clientHeight-info.offsetHeight-pad.offsetHeight-12;
+      root.style.setProperty('--touch-board-size',Math.max(80,Math.floor(Math.min(width,height)))+'px');
+      return;
+    }
+    root.style.removeProperty('--touch-height');root.style.removeProperty('--touch-board-size');
+    if (!active) {
       root.style.removeProperty("--fullscreen-size");
       return;
     }
@@ -6648,26 +6914,44 @@
   }
 
   async function toggleFullscreen() {
+    if(fullscreenPending)return;
+    fullscreenPending=true;
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
-      else await document.documentElement.requestFullscreen();
-    } catch (error) {
-      console.warn("Fullscreen tidak tersedia:", error);
-    }
+      else if(document.documentElement.classList.contains('focus-fullscreen')) {
+        document.documentElement.classList.remove('focus-fullscreen');syncFullscreenState();
+      } else {
+        fullscreenScrollY=scrollY;
+        if(document.fullscreenEnabled&&document.documentElement.requestFullscreen) {
+          try {await document.documentElement.requestFullscreen({navigationUI:'hide'});}
+          catch(_){document.documentElement.classList.add('focus-fullscreen');syncFullscreenState();}
+        } else {document.documentElement.classList.add('focus-fullscreen');syncFullscreenState();}
+      }
+    } finally {fullscreenPending=false;}
   }
 
-  document.addEventListener("fullscreenchange", () => {
-    const active = !!document.fullscreenElement;
+  let fullscreenPending=false,fullscreenScrollY=0,fullscreenFitFrame=0;
+  function fullscreenActive(){return !!document.fullscreenElement||document.documentElement.classList.contains('focus-fullscreen');}
+  function scheduleFullscreenFit(){
+    if(fullscreenFitFrame)return;
+    fullscreenFitFrame=requestAnimationFrame(()=>{fullscreenFitFrame=0;fitFullscreenLayout();});
+  }
+  function syncFullscreenState() {
+    const active = fullscreenActive();
     const justExited = fullscreenWasActive && !active;
     fullscreenWasActive = active;
     updateFullscreenButton();
-    if (active) requestAnimationFrame(fitFullscreenLayout);
-    else fitFullscreenLayout();
+    fitFullscreenLayout();scheduleFullscreenFit();
+    if(!active)window.scrollTo(0,fullscreenScrollY);
     if (justExited && state === "playing") pauseGame();
-  });
+  }
+  document.addEventListener("fullscreenchange",syncFullscreenState);
   window.addEventListener("resize", () => {
-    if (document.fullscreenElement) requestAnimationFrame(fitFullscreenLayout);
+    if (fullscreenActive()) scheduleFullscreenFit();
   });
+  window.visualViewport?.addEventListener('resize',()=>{if(fullscreenActive())scheduleFullscreenFit();});
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(fullscreenActive())scheduleFullscreenFit();}).observe(document.querySelector('.game-info'));
+  new MutationObserver(()=>{if(fullscreenActive())scheduleFullscreenFit();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-screen']});
 
   // ---------- Input ----------
   function setDirection(name) {
@@ -6694,6 +6978,7 @@
       && e.target?.closest?.("button, a, summary")) return;
     if (state === "start" && e.target?.closest?.("[data-mode], [data-loadout], [data-path], [data-partner], #cinematicsSetting, #trainingBtn")) return;
     if (e.key === "Escape") {
+      if(document.documentElement.classList.contains('focus-fullscreen')){e.preventDefault();toggleFullscreen();return;}
       if (state === "playing") {
         e.preventDefault();
         pauseGame();
@@ -6914,7 +7199,7 @@
   }
 
   document.querySelectorAll("[data-path]").forEach(button=>button.addEventListener("click",()=>{selectedPath=button.dataset.path;saveLegendPreferences();renderLegendMenu();}));
-  document.querySelectorAll("[data-partner]").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.partner==="pikachu"&&!pikachuUnlocked)return;selectedPartner=button.dataset.partner;saveLegendPreferences();renderLegendMenu();}));
+  document.querySelectorAll("[data-partner]").forEach(button=>button.addEventListener("click",()=>{if(!partnerUnlocked(button.dataset.partner))return;selectedPartner=button.dataset.partner;saveLegendPreferences();renderLegendMenu();}));
   document.getElementById("cinematicsSetting").addEventListener("change",event=>{cinematicsEnabled=event.target.checked;saveLegendPreferences();});
 
   // ---------- Jalan ----------
