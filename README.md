@@ -13,6 +13,16 @@ Buka `index.html` di browser, atau deploy ke Netlify.
 
 ## Fitur
 
+### Evolusi taman, dekorasi & Pikachu menumpang
+
+- **Togepi → Togetic**, **Azurill → Marill**, dan **Swablu → Altaria** terbuka setelah mencapai **25 hati** serta **3 penyelamatan spesies tersebut**. Buka taman lalu tekan **Evolusikan menjadi…**. Evolusi gratis, tidak mengurangi berry/hati/jumlah penyelamatan, dan menampilkan lingkaran cahaya serta reaksi pada kartu Pokémon.
+- Setelah evolusi terbuka, tombol **Tampilkan…** dapat mengganti tampilan antara bentuk awal dan evolusi. Nama dan ilustrasi taman mengikuti pilihan. Partner memakai bentuk yang dipilih saat run dimulai; perubahan di taman saat pause berlaku untuk perjalanan berikutnya. Kemampuan partner tetap mengikuti tingkat ikatan yang sudah ada, termasuk pemisahan bonus Adventure dari Daily/Boss Rush/Latihan.
+- **Kolam Safir** terbuka pada total 2 penyelamatan, **Bunga Bintang** pada 4, dan **Sarang Awan** pada 6. Pasang atau simpan masing-masing lewat panel Dekorasi Taman; ketiganya bisa dipasang bersamaan tanpa biaya. Kolam memiliki riak, bunga ditemani kunang-kunang, dan sarang berbentuk awan.
+- Pilihan evolusi, bentuk, dan dekorasi disimpan di `storm-emeralda-garden-growth-v1`, terpisah dari koleksi dan perawatan. Koleksi lama langsung dihitung untuk syarat pembukaan. Penyimpanan diblokir tetap mendukung fitur selama halaman terbuka dengan status yang terlihat.
+- **Pikachu menumpang pada segmen punggung di belakang kepala Rayquaza**, mengikuti posisi animasi gerak. Saat Thunder Shock benar-benar melindungi telur dari Murkrow, Pikachu melompat menuju penyerang lalu kembali ke punggung. Kemampuan tetap satu perlindungan per misi telur; tidak menambah damage atau skor. Reduced motion memakai pose tanpa lompatan.
+
+Validasi: `node garden-growth-check.cjs` memeriksa syarat evolusi, tiga bentuk baru, pergantian tampilan, bentuk partner per run, pemasangan dekorasi, penyimpanan/reload/migrasi/data rusak/storage diblokir, gambar tanpa efek terhadap gameplay, posisi rider/lompatan/kembali, keyboard, fokus, ID/EN, 320/390px, frame loop asli, dan reduced motion. `STORM_TEST_OUTPUT` menentukan folder screenshot. Jaringan eksternal diblokir selama tes.
+
 ### Fullscreen HP
 
 - Tombol fullscreen tersedia di layar kecil. Jika fullscreen bawaan tidak tersedia atau permintaannya ditolak, **Layar Fokus** memakai area layar browser; bilah browser bisa tetap terlihat.

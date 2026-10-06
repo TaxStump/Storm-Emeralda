@@ -1086,6 +1086,14 @@
   .care-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .care-actions button { white-space:normal; padding:8px; font-size:11px; line-height:1.4; }
   .care-actions .care-equip { grid-column:1/-1; }
+  .care-actions .care-evolve,.care-actions .care-form { grid-column:1/-1; border-color:#b9a36b; color:#fff0bc; background:#3f38233b; }
+  .garden-decor { margin:16px 0; padding:14px; border:1px solid #a8dac23d; border-radius:14px; background:#b8ead508; }
+  .garden-decor h3 { margin:0 0 6px; color:#e6efca; font-size:15px; }
+  .garden-decor-grid { display:grid; gap:8px; }
+  .garden-decor button { text-align:left; padding:12px; white-space:normal; line-height:1.5; }
+  .garden-decor button small { display:block; color:#b9d3cf; font-weight:400; }
+  .garden-decor button[aria-pressed="true"] { background:#254939; border-color:#b1dfad; }
+  .growth-progress { padding:9px 10px; border-radius:9px; background:#f7df8c0b; color:#ddd5ad!important; }
   .care-actions button[aria-disabled="true"] { opacity:.55; cursor:default; }
   .care-card button:focus-visible { outline:2px solid #fff0b4; outline-offset:3px; }
   .garden-dismiss { position:sticky; top:0; height:0; display:flex; justify-content:flex-end; z-index:2; pointer-events:none; }
@@ -1182,6 +1190,8 @@
     <div class="care-basket"><strong id="gardenBasket"></strong><small data-i18n="care.supply"></small></div>
     <p id="gardenFeedback" role="status" aria-live="polite"></p>
     <div class="haven-roster" id="gardenRoster"></div>
+    <section class="garden-decor" aria-labelledby="gardenDecorTitle"><h3 id="gardenDecorTitle" data-i18n="growth.decorTitle"></h3><p data-i18n="growth.decorHelp"></p><div class="garden-decor-grid" id="gardenDecor"></div></section>
+    <p id="gardenGrowthStorage"></p>
     <p data-i18n="care.rules"></p><p id="gardenStorage"></p>
     <section class="pikachu-card"><div class="pikachu-heading"><span class="haven-kicker">THUNDER GUARDIAN</span><strong>PIKACHU</strong></div>
       <button type="button" id="pikachuGreet" class="pikachu-portrait" aria-label="Pikachu"><canvas id="pikachuPortrait" width="720" height="400"></canvas></button>
@@ -1877,7 +1887,7 @@
 
 
   Object.assign(I18N.id, {
-    "partner.pikachu":"Pikachu - Penjaga Telur", "partner.pikachu.desc":"Adventure: sekali per misi telur, Thunder Shock menggagalkan sambaran Murkrow yang hampir mencuri telur. Di mode lain Pikachu menemani tanpa bonus pertempuran.",
+    "partner.pikachu":"Pikachu - Penjaga Telur", "partner.pikachu.desc":"Pikachu menumpang di punggung Rayquaza. Adventure: sekali per misi telur, ia melompat dan memakai Thunder Shock untuk menggagalkan pencurian Murkrow. Di mode lain ia menemani tanpa bonus pertempuran.",
     "pika.locked":"Temukan Pikachu di pulau Lautan Safir setelah boss pertama. Dekati hingga 3 petak, lalu aktifkan Air Lock (Q) saat meter penuh.",
     "pika.island":"PIKACHU TERJEBAK BADAI", "pika.near":"Dekati pulau hingga 3 petak, lalu gunakan Air Lock (Q atau tombol Air Lock) untuk menolongnya.",
     "pika.charge":"Kamu sudah dekat. Isi Air Lock sampai 100%, lalu tekan Q atau tombol Air Lock.",
@@ -1889,7 +1899,7 @@
     "pika.guard":"Thunder Shock siap - satu perlindungan per misi telur", "pika.rest":"Pikachu beristirahat sampai misi telur berikutnya", "pika.social":"Pikachu menemani. Perlindungan telur tersedia di Adventure.", "pika.shock":"THUNDER SHOCK! TELUR AMAN"
   });
   Object.assign(I18N.en, {
-    "partner.pikachu":"Pikachu - Egg Guardian", "partner.pikachu.desc":"Adventure: once per egg mission, Thunder Shock stops a Murkrow swoop that would steal the egg. In other modes Pikachu accompanies you without a combat bonus.",
+    "partner.pikachu":"Pikachu - Egg Guardian", "partner.pikachu.desc":"Pikachu rides on Rayquaza's back. Adventure: once per egg mission, it leaps up and uses Thunder Shock to stop Murkrow stealing the egg. In other modes it accompanies you without a combat bonus.",
     "pika.locked":"Find Pikachu on an island in Sapphire Sea after the first boss. Get within 3 cells, then activate Air Lock (Q) with a full meter.",
     "pika.island":"PIKACHU IS STRANDED", "pika.near":"Get within 3 cells of the island, then use Air Lock (Q or the Air Lock button) to help.",
     "pika.charge":"You are close. Fill Air Lock to 100%, then press Q or the Air Lock button.",
@@ -1929,6 +1939,24 @@
     "partner.togepi.desc":"Adventure: every 10/9/8 berries grant +1 Shield based on bond level (max. 3 Shields). At full Shields, a ready charge waits for the next berry after a Shield is lost.",
     "partner.azurill.desc":"Adventure: each berry grants an extra +4/5/6 Air Lock based on bond level. The meter caps at 100.",
     "partner.swablu.desc":"Adventure: each berry grants an extra +4/5/6 Dragon Ascent based on bond level. The meter caps at 100."
+  });
+  Object.assign(I18N.id, {
+    "growth.title":"EVOLUSI PERSAHABATAN", "growth.help":"Buka evolusi dengan 25 hati dan 3 penyelamatan spesies ini. Gratis; tekan Evolusikan saat siap. Bentuk partner mengikuti pilihanmu pada perjalanan berikutnya, dengan kemampuan dan tingkat ikatan yang sama.",
+    "growth.evolve":"Evolusikan menjadi", "growth.form":"Tampilkan", "growth.hearts":"hati", "growth.rescues":"penyelamatan", "growth.ready":"Siap berevolusi!", "growth.done":"Evolusi terbuka", "growth.success":"berhasil berevolusi!", "growth.need":"Lengkapi hati dan penyelamatan untuk berevolusi.",
+    "growth.decorTitle":"DEKORASI TAMAN", "growth.decorHelp":"Hadiah dari total telur yang diselamatkan. Pasang beberapa dekorasi sekaligus, gratis.",
+    "growth.pond":"Kolam Safir", "growth.pond.desc":"Kolam beriak tempat Azurill atau Marill bermain air.",
+    "growth.flowers":"Bunga Bintang", "growth.flowers.desc":"Bunga bercahaya dan kunang-kunang menemani Togepi atau Togetic.",
+    "growth.perch":"Sarang Awan", "growth.perch.desc":"Tempat istirahat lembut untuk Swablu atau Altaria.",
+    "growth.place":"Pasang", "growth.remove":"Simpan", "growth.total":"Total penyelamatan", "growth.saved":"Evolusi dan dekorasi tersimpan di browser ini.", "growth.unsaved":"Evolusi dan dekorasi belum tersimpan; hanya bertahan selama halaman terbuka."
+  });
+  Object.assign(I18N.en, {
+    "growth.title":"FRIENDSHIP EVOLUTION", "growth.help":"Unlock evolution with 25 hearts and 3 rescues of this species. Free; choose Evolve when ready. Your chosen form joins the next journey with the same abilities and bond level.",
+    "growth.evolve":"Evolve into", "growth.form":"Show", "growth.hearts":"hearts", "growth.rescues":"rescues", "growth.ready":"Ready to evolve!", "growth.done":"Evolution unlocked", "growth.success":"evolved!", "growth.need":"Reach the heart and rescue milestones to evolve.",
+    "growth.decorTitle":"GARDEN DECORATIONS", "growth.decorHelp":"Rewards for your total rescued eggs. Place several decorations together, for free.",
+    "growth.pond":"Sapphire Pond", "growth.pond.desc":"A rippling pool where Azurill or Marill plays in the water.",
+    "growth.flowers":"Star Flowers", "growth.flowers.desc":"Glowing flowers and fireflies keep Togepi or Togetic company.",
+    "growth.perch":"Cloud Nest", "growth.perch.desc":"A soft resting place for Swablu or Altaria.",
+    "growth.place":"Place", "growth.remove":"Put away", "growth.total":"Total rescues", "growth.saved":"Evolutions and decorations are saved in this browser.", "growth.unsaved":"Evolutions and decorations are not saved; they last only while this page stays open."
   });
   function setLang(l) {
     if (l !== "id" && l !== "en") return;
@@ -2100,6 +2128,7 @@
     runPath=selectedPath;runPartner=runMode==="training"||!partnerUnlocked(selectedPartner)?"none":selectedPartner;
     partner={nextCollect:performance.now()+12000,route:[],bond:0,mood:"calm",flashUntil:0};
     partner.gardenRank=gardenRank(EGG_PARTNERS.indexOf(runPartner));partner.berries=0;
+    partner.gardenForm=gardenForm(EGG_PARTNERS.indexOf(runPartner));
   }
   function renderLegendMenu() {
     document.getElementById("cinematicsSetting").checked=cinematicsEnabled;
@@ -2108,8 +2137,8 @@
     document.querySelectorAll("[data-path]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.path===selectedPath));
     document.querySelectorAll("[data-partner]").forEach(b=>{const id=b.dataset.partner;b.setAttribute("aria-pressed",id===selectedPartner);b.disabled=!partnerUnlocked(id);b.title=t(partnerUnlocked(id)?"partner."+id+".desc":id==="pikachu"?"pika.locked":"care.locked");});
     setText(document.getElementById("pathDescription"),t("path."+selectedPath+".desc"));
-    setText(document.getElementById("partnerDescription"),t("partner."+selectedPartner+".desc"));
-    setText(document.getElementById("legendMenuSummary"),t("path."+selectedPath)+" · "+t("partner."+selectedPartner));
+    setText(document.getElementById("partnerDescription"),gardenPartnerLabel(selectedPartner)+" · "+t("partner."+selectedPartner+".desc"));
+    setText(document.getElementById("legendMenuSummary"),t("path."+selectedPath)+" · "+gardenPartnerLabel(selectedPartner));
   }
   function updateLegendsHud(now) {
     const panel=document.getElementById("legendsHud");
@@ -2119,7 +2148,7 @@
     setText(document.getElementById("partnerHint"),runPartner==="pikachu"?t(runMode!=="adventure"?"pika.social":rescue?.pikaUsed?"pika.rest":"pika.guard"):runPartner==="collector"?t("partner.cooldown")+" "+Math.max(0,Math.ceil((partner.nextCollect-now)/1000))+"s":runPartner==="guide"?t("partner."+(partner.route.length?"route":"wait")):t("partner.none.desc"));
     setText(document.getElementById("bossRead"),boss?t("boss.read")+" · "+t("habit."+(boss.tactic||"observe")):t("path."+runPath+".short"));
     if(EGG_PARTNERS.includes(runPartner)) {
-      setText(document.getElementById("partnerStatus"),t("partner."+runPartner)+" · "+t("partner.bond")+" "+partner.gardenRank);
+      setText(document.getElementById("partnerStatus"),gardenPartnerLabel(runPartner,partner.gardenForm)+" · "+t("partner.bond")+" "+partner.gardenRank);
       setText(document.getElementById("partnerHint"),runMode!=="adventure"?t("care.social"):runPartner==="togepi"?t("care.shieldProgress")+" "+partner.berries+"/"+(11-partner.gardenRank):t("care.berryBonus")+" +"+(3+partner.gardenRank)+" "+(runPartner==="azurill"?"Air Lock":"Dragon Ascent"));
     }
   }
@@ -2244,7 +2273,7 @@
     if(EGG_PARTNERS.includes(runPartner)&&runMode!=="training") {
       const bob=reducedMotion.matches?0:Math.sin(now/300)*2;
       ctx.save();ctx.translate(head.x-18,head.y-24+bob);ctx.scale(.62,.62);
-      paintHatchling(ctx,EGG_PARTNERS.indexOf(runPartner),0,0);ctx.restore();
+      paintGardenPokemon(ctx,EGG_PARTNERS.indexOf(runPartner),0,0,partner.gardenForm,now);ctx.restore();
       if(now<partner.flashUntil){ctx.strokeStyle="#c7f4ce";ctx.beginPath();ctx.arc(head.x-18,head.y-24,17,0,Math.PI*2);ctx.stroke();}
     }
     if((runPartner==="guide"||runPartner==="collector")&&runMode!=="training") {
@@ -2860,7 +2889,7 @@
     c.restore();
     // A reaching front paw and a waving/off-hand pose add a forward silhouette.
     shape(fur,()=>{c.moveTo(-17,-6);c.bezierCurveTo(-28,-3,power?-41:-29,power?-13:10,power?-29:-20,power?-16:16);c.quadraticCurveTo(-12,13,-10,3);});
-    c.save();c.translate(13,-3);c.rotate(hello?-1.0+(moving?Math.sin(t*10)*.22:0):power?-.8:.12);
+    c.save();c.translate(13,-3);c.rotate(hello?-1.0+(moving?Math.sin(t*10)*.22:0):power?-.8:pose==='ride'?.8:.12);
     shape(fur,()=>{c.moveTo(0,-4);c.bezierCurveTo(13,-7,25,1,19,7);c.quadraticCurveTo(11,12,1,6);});
     c.strokeStyle="#c09033";c.lineWidth=.8;c.beginPath();c.moveTo(17,3);c.lineTo(20,4);c.moveTo(15,6);c.lineTo(18,7);c.stroke();c.restore();
     if(power||hello){c.strokeStyle="#fff1a8";c.lineWidth=1.5;for(const side of [-1,1]){c.beginPath();c.moveTo(side*27,-21);c.lineTo(side*35,-26);c.lineTo(side*31,-31);c.lineTo(side*42,-38);c.stroke();}}
@@ -2881,9 +2910,8 @@
       for(let i=0;i<5;i++){const rx=x-18+i*9;ctx.beginPath();ctx.moveTo(rx,y-29+shift);ctx.lineTo(rx-3,y-22+shift);ctx.stroke();}
     }
     if(runPartner==="pikachu" && pikachuUnlocked && runMode!=="training" && (state==="playing"||state==="paused")) {
-      const target=runMode==="adventure"&&rescue?.phase==="carry"?rendered[rendered.length-1]:rendered[0];
-      const x=Math.max(17,Math.min(447,(target.x+.5)*CELL-8)),y=Math.max(31,Math.min(462,(target.y+.5)*CELL-10));
-      paintPikachu(ctx,x,y,.34,now,pikachuFlash&&now<pikachuFlash.until?"power":"idle");
+      const seat=pikachuRidePosition(now,rendered),x=seat.x,y=seat.y;
+      paintPikachu(ctx,x,y,.32,now,pikachuFlash&&now<pikachuFlash.until?"power":"ride");
       if(pikachuFlash && now<pikachuFlash.until) {
         const tx=(pikachuFlash.x+.5)*CELL,ty=(pikachuFlash.y+.5)*CELL-20;
         ctx.globalAlpha=Math.min(1,(pikachuFlash.until-now)/350);ctx.strokeStyle="#fff5b1";ctx.lineWidth=reducedMotion.matches?1:2;
@@ -2892,6 +2920,18 @@
       }
     }
     ctx.restore();
+  }
+  function pikachuRidePosition(now,rendered) {
+    // Follow the interpolated neck segment; a rescue jump is purely visual.
+    const target=rendered[Math.min(1,rendered.length-1)]||{x:0,y:0};
+    let x=(target.x+.5)*CELL,y=(target.y+.5)*CELL-10;
+    if(pikachuFlash&&now<pikachuFlash.until&&!reducedMotion.matches) {
+      const progress=Math.max(0,Math.min(1,1-(pikachuFlash.until-now)/850));
+      const jump=Math.sin(progress*Math.PI);
+      x+=((pikachuFlash.x+.5)*CELL-x)*jump;
+      y+=((pikachuFlash.y+.5)*CELL-20-y)*jump-18*jump;
+    }
+    return {x:Math.max(17,Math.min(canvas.width-25,x)),y:Math.max(29,Math.min(canvas.height-18,y))};
   }
   let pikachuPortraitBackdrop=null;
   function drawPikachuPortrait(now) {
@@ -2937,6 +2977,57 @@
       gardenCare.pets=gardenCare.pets.map((p,i)=>({bond:safeCareInt(saved.pets?.[i]?.bond,30),feedAt:safeCareInt(saved.pets?.[i]?.feedAt,Date.now()+30000),playAt:safeCareInt(saved.pets?.[i]?.playAt,Date.now()+30000)}));
     }
   } catch(_){careWritable=false;}
+  const GARDEN_GROWTH_KEY="storm-emeralda-garden-growth-v1";
+  const GARDEN_EVOLUTIONS=["Togetic","Marill","Altaria"];
+  const GARDEN_DECOR=[{id:"pond",need:2},{id:"flowers",need:4},{id:"perch",need:6}];
+  let gardenGrowth={evolved:[false,false,false],forms:[true,true,true],decorations:[]},growthWritable=true;
+  try {
+    const saved=JSON.parse(localStorage.getItem(GARDEN_GROWTH_KEY)||'null');
+    if(saved&&typeof saved==='object'&&!Array.isArray(saved)) {
+      gardenGrowth.evolved=haven.map((count,i)=>count>0&&saved.evolved?.[i]===true);
+      gardenGrowth.forms=haven.map((_,i)=>saved.forms?.[i]!==false);
+      gardenGrowth.decorations=GARDEN_DECOR.filter(d=>Array.isArray(saved.decorations)&&saved.decorations.includes(d.id)&&decorUnlocked(d.id)).map(d=>d.id);
+    }
+  }catch(_){growthWritable=false;}
+  function gardenForm(i){return !!(haven[i]>0&&gardenGrowth.evolved[i]&&gardenGrowth.forms[i]);}
+  function gardenName(i,form=gardenForm(i)){return form?GARDEN_EVOLUTIONS[i]:HATCHLINGS[i];}
+  function gardenPartnerLabel(id,form=gardenForm(EGG_PARTNERS.indexOf(id))){
+    const i=EGG_PARTNERS.indexOf(id);return i>=0?t('partner.'+id).replace(HATCHLINGS[i],gardenName(i,form)):t('partner.'+id);
+  }
+  function canGardenEvolve(i){return haven[i]>=3&&(gardenCare.pets[i]?.bond||0)>=25&&!gardenGrowth.evolved[i];}
+  function decorUnlocked(id){const d=GARDEN_DECOR.find(d=>d.id===id);return !!d&&haven.reduce((a,b)=>a+b,0)>=d.need;}
+  function decorActive(id){return decorUnlocked(id)&&gardenGrowth.decorations.includes(id);}
+  function saveGardenGrowth(){try{localStorage.setItem(GARDEN_GROWTH_KEY,JSON.stringify(gardenGrowth));growthWritable=true;}catch(_){growthWritable=false;}}
+  function gardenGrowthAction(i,action) {
+    if(!Number.isInteger(i)||!haven[i])return;
+    if(action==='evolve') {
+      if(!canGardenEvolve(i)){gardenFeedback={i,key:'growth.need'};updateGardenControls();return;}
+      gardenGrowth.evolved[i]=true;gardenGrowth.forms[i]=true;
+      gardenReaction={i,action:'evolve',until:performance.now()+3000};gardenFeedback={i,key:'growth.success'};
+    } else if(action==='form'&&gardenGrowth.evolved[i]) {
+      gardenGrowth.forms[i]=!gardenGrowth.forms[i];gardenReaction=null;gardenFeedback=null;
+    } else return;
+    saveGardenGrowth();renderLegendMenu();updateGardenControls();drawGardenResidents(performance.now());
+  }
+  function renderGardenDecor() {
+    document.getElementById('gardenDecor').innerHTML=GARDEN_DECOR.map(d=>'<button type="button" class="utility-btn" data-decor="'+d.id+'"><strong></strong><small></small></button>').join('');
+    updateGardenDecor();
+  }
+  function updateGardenDecor() {
+    document.querySelectorAll('[data-decor]').forEach(button=>{
+      const d=GARDEN_DECOR.find(d=>d.id===button.dataset.decor),active=decorActive(d.id),unlocked=decorUnlocked(d.id);
+      button.disabled=!unlocked;button.setAttribute('aria-pressed',String(active));
+      setText(button.querySelector('strong'),t('growth.'+d.id)+' · '+(unlocked?t(active?'growth.remove':'growth.place'):Math.min(d.need,haven.reduce((a,b)=>a+b,0))+'/'+d.need+' '+t('growth.rescues')));
+      setText(button.querySelector('small'),t('growth.'+d.id+'.desc'));
+    });
+    setText(document.getElementById('gardenGrowthStorage'),t(growthWritable?'growth.saved':'growth.unsaved'));
+  }
+  document.getElementById('gardenDecor').addEventListener('click',event=>{
+    const b=event.target.closest('[data-decor]');if(!b||!decorUnlocked(b.dataset.decor))return;
+    const id=b.dataset.decor;
+    gardenGrowth.decorations=decorActive(id)?gardenGrowth.decorations.filter(d=>d!==id):[...gardenGrowth.decorations,id];
+    saveGardenGrowth();updateGardenDecor();drawGardenResidents(performance.now());
+  });
   function partnerUnlocked(id) {
     const i=EGG_PARTNERS.indexOf(id);
     return i>=0?haven[i]>0:id==="pikachu"?pikachuUnlocked:PARTNERS.includes(id);
@@ -2962,7 +3053,9 @@
     if(activated){partner.flashUntil=now+900;spawnPopup(f.x,f.y-2,runPartner==="togepi"?"+1 SHIELD":"+"+bonus+(runPartner==="azurill"?" AIR LOCK":" ASCENT"),"#c7f4ce");}
   }
   function gardenAction(i,action) {
-    if(!Number.isInteger(i)||!haven[i]||!["feed","play","equip"].includes(action))return;
+    if(!Number.isInteger(i)||!haven[i])return;
+    if(action==='evolve'||action==='form'){gardenGrowthAction(i,action);return;}
+    if(!["feed","play","equip"].includes(action))return;
     if(action==="equip") {
       selectedPartner=EGG_PARTNERS[i];saveLegendPreferences();renderLegendMenu();updateGardenControls();renderPikachuCard();drawGardenResidents(performance.now());return;
     }
@@ -2979,32 +3072,41 @@
   function renderHavenRoster() {
     document.getElementById("gardenRoster").innerHTML=HATCHLINGS.map((name,i)=>{
       const unlocked=haven[i]>0;
-      return '<article class="haven-card care-card" data-care-card="'+i+'"><div class="care-heading"><canvas width="144" height="128" data-care-portrait="'+i+'" aria-hidden="true"></canvas><div><strong>'+name+'</strong><small>'+(unlocked?haven[i]+' '+t("haven.count"):t("haven.locked"))+'</small></div></div>'+
-        (unlocked?'<small data-care-bond="'+i+'"></small><progress data-care-progress="'+i+'" max="30" value="0" aria-label="'+name+' · '+t("care.bond")+'"></progress><p>'+t("partner."+EGG_PARTNERS[i]+".desc")+'</p><div class="care-actions">'+['feed','play','equip'].map(action=>'<button type="button" class="utility-btn care-'+action+'" data-care="'+action+'" data-pet="'+i+'"></button>').join('')+'</div>':'<p>'+t("care.locked")+'</p>')+'</article>';
+      return '<article class="haven-card care-card" data-care-card="'+i+'"><div class="care-heading"><canvas width="144" height="128" data-care-portrait="'+i+'" aria-hidden="true"></canvas><div><strong data-care-name="'+i+'">'+gardenName(i)+'</strong><small>'+(unlocked?haven[i]+' '+t("haven.count"):t("haven.locked"))+'</small></div></div>'+
+        (unlocked?'<small data-care-bond="'+i+'"></small><progress data-care-progress="'+i+'" max="30" value="0" aria-label="'+name+' · '+t("care.bond")+'"></progress><p>'+t("partner."+EGG_PARTNERS[i]+".desc")+'</p><p class="growth-progress" data-growth-progress="'+i+'"></p><details><summary>'+t('growth.title')+'</summary><p>'+t('growth.help')+'</p></details><div class="care-actions">'+['feed','play','equip','evolve'].map(action=>'<button type="button" class="utility-btn care-'+action+'" data-care="'+action+'" data-pet="'+i+'"></button>').join('')+'</div>':'<p>'+t("care.locked")+'</p>')+'</article>';
     }).join('');
-    document.querySelectorAll('[data-care-portrait]').forEach(art=>{const i=Number(art.dataset.carePortrait),c=art.getContext('2d');c.save();c.translate(66,69);c.scale(2,2);if(haven[i])paintHatchling(c,i,0,0);else paintEgg(c,0,0,1.7);c.restore();});
+    document.querySelectorAll('[data-care-portrait]').forEach(art=>{const i=Number(art.dataset.carePortrait),c=art.getContext('2d');c.save();c.translate(66,69);c.scale(2,2);if(haven[i])paintGardenPokemon(c,i,0,0,gardenForm(i));else paintEgg(c,0,0,1.7);c.restore();});
     updateGardenControls();
   }
   function updateGardenControls() {
     setText(document.getElementById("gardenBasket"),t("care.wallet")+" · "+gardenCare.berries+" / 99");
-    setText(document.getElementById("gardenFeedback"),gardenFeedback?HATCHLINGS[gardenFeedback.i]+" · "+t(gardenFeedback.key)+(gardenFeedback.gain?" "+t("care.bond")+" +"+gardenFeedback.gain+".":""):"");
+    setText(document.getElementById("gardenFeedback"),gardenFeedback?gardenName(gardenFeedback.i)+" · "+t(gardenFeedback.key)+(gardenFeedback.gain?" "+t("care.bond")+" +"+gardenFeedback.gain+".":""):"");
     setText(document.getElementById("gardenStorage"),t(havenWritable?"haven.saved":"haven.unsaved")+" "+t(careWritable?"care.saved":"care.unsaved"));
     const now=Date.now();
     document.querySelectorAll('[data-care-card]').forEach(card=>{
       const i=Number(card.dataset.careCard),pet=gardenCare.pets[i];
       card.classList.toggle('selected',selectedPartner===EGG_PARTNERS[i]);
+      setText(card.querySelector('[data-care-name]'),gardenName(i));
       const label=card.querySelector('[data-care-bond]');if(!label)return;
+      setText(card.querySelector('[data-growth-progress]'),gardenGrowth.evolved[i]?t('growth.done')+' · '+HATCHLINGS[i]+' → '+GARDEN_EVOLUTIONS[i]:(canGardenEvolve(i)?t('growth.ready')+' · ':'')+Math.min(pet.bond,25)+'/25 '+t('growth.hearts')+' · '+Math.min(haven[i],3)+'/3 '+t('growth.rescues'));
       setText(label,t("care.level"+gardenRank(i))+" · "+t("care.bond")+" "+pet.bond+" / 30 ♥");
       card.querySelector('progress').value=pet.bond;
       card.querySelectorAll('[data-care]').forEach(button=>{
+        if(button.classList.contains('care-evolve')) {
+          const evolved=gardenGrowth.evolved[i];button.dataset.care=evolved?'form':'evolve';
+          button.setAttribute('aria-disabled',String(!evolved&&!canGardenEvolve(i)));
+          setText(button,t(evolved?'growth.form':'growth.evolve')+' '+(evolved&&gardenForm(i)?HATCHLINGS[i]:GARDEN_EVOLUTIONS[i]));
+          button.setAttribute('aria-label',gardenName(i)+' · '+button.textContent);return;
+        }
         const action=button.dataset.care,remaining=Math.max(0,Math.ceil((pet[action+'At']-now)/1000));
         const selected=action==='equip'&&selectedPartner===EGG_PARTNERS[i];
         const unavailable=selected||remaining>0||action==='feed'&&!gardenCare.berries;
         button.setAttribute('aria-disabled',String(unavailable));
         setText(button,selected?t('care.equipped'):t('care.'+action)+(remaining>0?' · '+remaining+'s':''));
-        button.setAttribute('aria-label',HATCHLINGS[i]+' · '+button.textContent);
+        button.setAttribute('aria-label',gardenName(i)+' · '+button.textContent);
       });
     });
+    updateGardenDecor();
   }
   document.getElementById('gardenRoster').addEventListener('click',event=>{
     const button=event.target.closest('[data-care]');if(button)gardenAction(Number(button.dataset.pet),button.dataset.care);
@@ -3196,6 +3298,72 @@
     if(type!==2){c.strokeStyle="#63584f";c.lineWidth=1;c.beginPath();c.arc(0,0,2,0,Math.PI);c.stroke();}
     c.restore();
   }
+  function paintGardenPokemon(c,type,x,y,form=false,now=0) {
+    if(!form){paintHatchling(c,type,x,y);return;}
+    c.save();c.translate(x,y);
+    const flap=reducedMotion.matches?0:Math.sin(now/420)*2;
+    const oval=(x,y,rx,ry,color,angle=0)=>{c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,angle,0,Math.PI*2);c.fill();};
+    const path=(color,points)=>{c.fillStyle=color;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();};
+    oval(0,17,22,4,'#061f283d');
+    if(type===0) {
+      // Togetic: long neck, crown, small feathered wings and red/blue shell markings.
+      for(const side of [-1,1]) {
+        c.save();c.translate(side*9,-1);c.rotate(side*(-.2-flap*.025));
+        path('#c7dcd8',[[0,9],[side*17,-4],[side*14,-8],[side*10,-5],[side*10,-10],[side*5,-6],[0,-8]]);
+        path('#fff9e8',[[0,5],[side*15,-5],[side*12,-7],[side*7,-3],[side*7,-7],[0,-5]]);c.restore();
+      }
+      oval(-6,15,5,3,'#e3d4a8');oval(6,15,5,3,'#e3d4a8');
+      oval(0,6,10,11,'#fff9e8');oval(0,-8,5,11,'#f5efdc');
+      path('#fff5de',[[-8,-18],[-10,-27],[-3,-24],[1,-31],[5,-23],[11,-25],[9,-16]]);
+      oval(0,-17,9,8,'#fff8e6');
+      path('#de9388',[[-6,2],[-2,8],[-7,9]]);path('#85bdce',[[3,7],[7,3],[8,10]]);
+      oval(-3,-18,1.2,2,'#203d42');oval(4,-18,1.2,2,'#203d42');
+      c.strokeStyle='#ba8772';c.lineWidth=1;c.beginPath();c.arc(1,-14,2,0,Math.PI);c.stroke();
+    } else if(type===1) {
+      // Marill: round blue body, pink ears, white belly and a zig-zag tail.
+      c.strokeStyle='#244d67';c.lineWidth=2;c.beginPath();c.moveTo(10,7);c.lineTo(19,3);c.lineTo(17,-4);c.lineTo(25,-7);c.stroke();
+      oval(28,-9,7,7,'#4db7e4');oval(26,-11,2,2,'#a8e5f6');
+      oval(-11,-14,7,8,'#45a9d7');oval(11,-14,7,8,'#45a9d7');
+      oval(-11,-14,4,5,'#eaa6b4');oval(11,-14,4,5,'#eaa6b4');
+      oval(-10,14,6,3,'#3794c4');oval(10,14,6,3,'#3794c4');
+      oval(0,0,16,16,'#56bbe4');oval(0,8,11,7,'#f0f8ed');
+      oval(-14,3,5,4,'#50b2dc');oval(14,3,5,4,'#50b2dc');
+      oval(-5,-4,1.5,2.3,'#183640');oval(5,-4,1.5,2.3,'#183640');
+      c.strokeStyle='#24556b';c.lineWidth=1;c.beginPath();c.arc(0,0,3,0,Math.PI);c.stroke();
+    } else {
+      // Altaria: cloud wings, curved blue neck, head ribbons and flowing tail.
+      path('#74b8d8',[[0,9],[-10,20],[-5,19],[-4,23],[3,16],[7,23],[9,19],[11,20],[7,8]]);
+      for(const side of [-1,1])for(let j=0;j<4;j++)oval(side*(10+j*5),3+(j%2)*4+flap,9,9,j%2?'#f8fbf0':'#dbe8e3');
+      oval(0,3,10,12,'#7ab9d7');
+      c.strokeStyle='#88c6e0';c.lineWidth=9;c.lineCap='round';c.beginPath();c.moveTo(0,1);c.bezierCurveTo(11,-8,-4,-12,2,-20);c.stroke();
+      oval(3,-22,8,7,'#91cde3');
+      c.strokeStyle='#b1dfed';c.lineWidth=2;c.beginPath();c.moveTo(0,-27);c.bezierCurveTo(-8,-37,-13,-24,-20,-31);c.moveTo(6,-28);c.bezierCurveTo(11,-38,20,-27,24,-34);c.stroke();
+      path('#efd799',[[8,-22],[15,-20],[8,-17]]);oval(5,-24,1.3,2,'#204359');
+    }
+    c.restore();
+  }
+  function drawGardenDecorations(c,now) {
+    const time=reducedMotion.matches?0:now;
+    if(decorActive('pond')) {
+      c.fillStyle='#123d4f';c.strokeStyle='#9cba9b';c.lineWidth=5;c.beginPath();c.ellipse(480,294,96,27,0,0,Math.PI*2);c.fill();c.stroke();
+      c.strokeStyle='#8be1ed66';c.lineWidth=1.5;
+      for(let i=0;i<3;i++){c.beginPath();c.ellipse(480,294,40+i*17+Math.sin(time/700+i)*3,9+i*5,0,0,Math.PI*2);c.stroke();}
+      c.fillStyle='#8fbf8c';for(const [x,y]of [[418,290],[541,302]]){c.beginPath();c.ellipse(x,y,12,5,-.2,0,Math.PI*2);c.fill();}
+    }
+    if(decorActive('flowers'))for(let i=0;i<12;i++){
+      const x=188+(i*29)%150,y=275+(i*13)%43;
+      c.strokeStyle='#94b88b';c.lineWidth=2;c.beginPath();c.moveTo(x,y+8);c.lineTo(x,y-4);c.stroke();
+      c.fillStyle=i%2?'#eddba6':'#c2b8e4';for(let p=0;p<5;p++){const a=p*Math.PI*2/5;c.beginPath();c.ellipse(x+Math.cos(a)*4,y-4+Math.sin(a)*4,3.5,2.5,a,0,Math.PI*2);c.fill();}
+      c.fillStyle='#fff6cb';c.beginPath();c.arc(x,y-4,2,0,Math.PI*2);c.fill();
+      if(i%3===0){c.globalAlpha=.45+(Math.sin(time/900+i)+1)*.2;c.beginPath();c.arc(x+Math.sin(time/1100+i)*8,y-35+Math.cos(time/1300+i)*7,2,0,Math.PI*2);c.fill();c.globalAlpha=1;}
+    }
+    if(decorActive('perch')) {
+      c.strokeStyle='#bba37a';c.lineWidth=8;c.beginPath();c.moveTo(695,300);c.lineTo(705,267);c.moveTo(745,300);c.lineTo(734,267);c.stroke();
+      c.fillStyle='#a38a62';c.beginPath();c.ellipse(720,272,62,15,0,0,Math.PI*2);c.fill();
+      for(let i=0;i<6;i++){c.fillStyle=i%2?'#d9e5df':'#eff4e5';c.beginPath();c.ellipse(670+i*19,263+i%2*4,18,11,0,0,Math.PI*2);c.fill();}
+      c.strokeStyle='#decaa1';c.lineWidth=2;c.beginPath();c.ellipse(720,272,53,9,0,0,Math.PI);c.stroke();
+    }
+  }
   function drawSanctuary(now,rendered) {
     if(runMode!=="adventure") return;
     const pulse=reducedMotion.matches?0:Math.sin(now/350);
@@ -3265,13 +3433,14 @@
     gardenBackdrop=document.createElement('canvas');gardenBackdrop.width=960;gardenBackdrop.height=440;
     gardenBackdrop.getContext('2d').drawImage(art,0,0);
     }
-    drawGardenResidents(performance.now());renderHavenRoster();
+    drawGardenResidents(performance.now());renderHavenRoster();renderGardenDecor();
     renderPikachuCard();
   }
   function drawGardenResidents(now) {
     if(!gardenBackdrop)return;
     const c=document.getElementById('gardenArt').getContext('2d'),moving=!reducedMotion.matches;
     c.drawImage(gardenBackdrop,0,0);
+    drawGardenDecorations(c,now);
     for(let i=0;i<3;i++) {
       const reaction=gardenReaction?.i===i&&now<gardenReaction.until?gardenReaction:null;
       const time=moving?now/600+i*2:0;
@@ -3279,11 +3448,17 @@
       c.save();c.translate(260+i*220+(haven[i]&&moving?Math.sin(time)*6:0),253-hop+(haven[i]&&moving?Math.sin(time*1.5)*2:0));
       if(selectedPartner===EGG_PARTNERS[i]){c.strokeStyle='#f4e5a7';c.lineWidth=2;c.beginPath();c.ellipse(0,42,53,12,0,0,Math.PI*2);c.stroke();}
       c.save();c.scale(2.8,2.8);
-      if(haven[i])paintHatchling(c,i,0,0);else{c.globalAlpha=.55;paintEgg(c,0,0,1.4);}c.restore();
+      if(haven[i])paintGardenPokemon(c,i,0,0,gardenForm(i),now);else{c.globalAlpha=.55;paintEgg(c,0,0,1.4);}c.restore();
       if(reaction) {
+        if(reaction.action==='evolve') {
+          const pulse=moving?(1-(reaction.until-now)/3000):.5;
+          c.strokeStyle='#fff3bf';c.lineWidth=2;c.globalAlpha=moving?Math.max(0,(reaction.until-now)/3000):1;
+          c.beginPath();c.ellipse(0,-6,45+pulse*40,60+pulse*35,0,0,Math.PI*2);c.stroke();
+          for(let j=0;j<8;j++){const a=j*Math.PI/4+(moving?now/900:0);c.fillStyle='#ffe9b4';c.fillRect(Math.cos(a)*65-2,Math.sin(a)*65-17,4,4);}c.globalAlpha=1;
+        }
         c.fillStyle='#ffbfd1';c.font='25px sans-serif';c.textAlign='center';c.fillText('♥',0,-75);
         if(reaction.action==='feed'){c.fillStyle='#82baec';c.beginPath();c.arc(37,15,10,0,Math.PI*2);c.fill();c.fillStyle='#b8e5ac';c.beginPath();c.ellipse(40,3,7,3,-.5,0,Math.PI*2);c.fill();}
-        else{c.fillStyle='#ffe2a1';c.beginPath();c.arc(-46+(moving?Math.sin(now/170)*8:0),27,10,0,Math.PI*2);c.fill();c.strokeStyle='#e38d7e';c.lineWidth=3;c.stroke();}
+        else if(reaction.action==='play'){c.fillStyle='#ffe2a1';c.beginPath();c.arc(-46+(moving?Math.sin(now/170)*8:0),27,10,0,Math.PI*2);c.fill();c.strokeStyle='#e38d7e';c.lineWidth=3;c.stroke();}
       }
       c.restore();
     }
@@ -3292,7 +3467,7 @@
       const i=Number(art.dataset.carePortrait),p=art.getContext('2d');
       const active=gardenReaction?.i===i&&now<gardenReaction.until;
       p.clearRect(0,0,144,128);p.save();p.translate(66,69-(active&&moving?Math.abs(Math.sin(now/110))*7:0));p.scale(2,2);
-      if(haven[i])paintHatchling(p,i,0,0);else paintEgg(p,0,0,1.7);p.restore();
+      if(haven[i])paintGardenPokemon(p,i,0,0,gardenForm(i),now);else paintEgg(p,0,0,1.7);p.restore();
       if(active){p.fillStyle='#ffbfd1';p.font='16px sans-serif';p.fillText('♥',110,25);}
     });
   }
